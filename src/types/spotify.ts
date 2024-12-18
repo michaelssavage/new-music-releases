@@ -31,6 +31,7 @@ export interface ArtistAlbumsI {
 
 export interface NewReleasesI {
 	id: string;
+	uri: string;
 	artists: Array<{ name: string; id: string; url: string }>;
 	name: string;
 	image: string;

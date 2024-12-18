@@ -2,11 +2,11 @@ import axios, { type AxiosResponse } from "axios";
 import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
 import type { ArtistAlbumsI, NewReleasesI } from "../types/spotify";
+import { SPOTIFY_API_URL } from "../utils/constants";
 import { getAccessToken } from "./getAccessToken";
 
 dotenv.config();
 
-const SPOTIFY_API_URL = "https://api.spotify.com/v1";
 const { MONGO_URI } = process.env;
 
 const getNewReleasesForArtist = async (
@@ -26,6 +26,7 @@ const getNewReleasesForArtist = async (
 		.filter(({ release_date }) => release_date === today)
 		.map((props) => ({
 			id: props.id,
+			uri: props.uri,
 			artists: props.artists.map(({ name, id, external_urls }) => ({
 				name,
 				id,

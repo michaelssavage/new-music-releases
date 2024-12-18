@@ -2,11 +2,11 @@ import axios, { type AxiosResponse } from "axios";
 import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
 import type { ArtistI, FollowedArtistsI } from "../types/spotify";
+import { SPOTIFY_API_URL } from "../utils/constants";
 import { getAccessToken } from "./getAccessToken";
 
 dotenv.config();
 
-const SPOTIFY_API_URL = "https://api.spotify.com/v1";
 const { MONGO_URI } = process.env;
 
 const fetchFollowedArtists = async (accessToken: string) => {

@@ -8,7 +8,10 @@
 		"format": "biome format ./src",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"fetch-artists": "ts-node ./src/scripts/fetchFollowedArtists.ts",
-		"get-releases": "ts-node ./src/scripts/getNewReleases.ts"
+		"get-releases": "ts-node ./src/scripts/getNewReleases.ts",
+		"get-playlist": "ts-node ./src/scripts/getPlaylist.ts",
+		"add-tracks": "ts-node ./src/scripts/addTracksToPlaylist.ts",
+		"get-album-tracks": "ts-node ./src/scripts/getAlbumTracks.ts"
 	},
 	"dependencies": {
 		"axios": "^1.7.9",
