@@ -11,7 +11,7 @@
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab",    
+		"indentStyle": "tab",
 		"indentWidth": 2
 	},
 	"organizeImports": {
@@ -30,8 +30,8 @@
 		}
 	},
 	"json": {
-    "formatter": {
-      "trailingCommas": "none"
-    }
-  }
+		"formatter": {
+			"trailingCommas": "none"
+		}
+	}
 }

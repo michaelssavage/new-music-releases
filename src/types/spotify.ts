@@ -1,27 +1,38 @@
 export interface ArtistI {
-  id: string;
-  name: string;
-  uri: string;
+	id: string;
+	name: string;
+	uri: string;
 }
 
 export interface FollowedArtistsI {
-  artists: {
-    items: Array<ArtistI>;
-    next: string | null;
-  };
+	artists: {
+		items: Array<ArtistI>;
+		next: string | null;
+	};
 }
 
 export interface AlbumI {
-  name: string;
-  release_date: string;
-  uri: string;
+	id: string;
+	name: string;
+	release_date: string;
+	uri: string;
+	images: Array<{ url: string }>;
+	external_urls: { spotify: string };
+	artists: Array<{
+		name: string;
+		id: string;
+		external_urls: { spotify: string };
+	}>;
 }
 
 export interface ArtistAlbumsI {
-  items: Array<AlbumI>;
+	items: Array<AlbumI>;
 }
 
-
 export interface NewReleasesI {
-  artist: string;
+	id: string;
+	artists: Array<{ name: string; id: string; url: string }>;
+	name: string;
+	image: string;
+	url: string;
 }
