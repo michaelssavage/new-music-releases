@@ -1,9 +1,9 @@
 import axios, { type AxiosResponse } from "axios";
 import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
-import type { ArtistAlbumsI, NewReleasesI } from "../types/spotify";
-import { SPOTIFY_API_URL } from "../utils/constants";
-import { getAccessToken } from "./getAccessToken";
+import type { ArtistAlbumsI, NewReleasesI } from "../types/spotify.ts";
+import { SPOTIFY_API_URL } from "../utils/constants.ts";
+import { getAccessToken } from "./getAccessToken.ts";
 
 dotenv.config();
 

@@ -1,8 +1,8 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
-import { SPOTIFY_API_URL } from "../utils/constants";
-import { getAccessToken } from "./getAccessToken";
+import { SPOTIFY_API_URL } from "../utils/constants.ts";
+import { getAccessToken } from "./getAccessToken.ts";
 
 dotenv.config();
 

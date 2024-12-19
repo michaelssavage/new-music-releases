@@ -1,10 +1,10 @@
 import axios from "axios";
-import type { NewReleasesI } from "../types/spotify";
-import { SPOTIFY_API_URL } from "../utils/constants";
-import { getAccessToken } from "./getAccessToken";
-import { getAlbumTracks } from "./getAlbumTracks";
-import { fetchNewReleases } from "./getNewReleases";
-import { getPlaylist } from "./getPlaylist";
+import type { NewReleasesI } from "../types/spotify.ts";
+import { SPOTIFY_API_URL } from "../utils/constants.ts";
+import { getAccessToken } from "./getAccessToken.ts";
+import { getAlbumTracks } from "./getAlbumTracks.ts";
+import { fetchNewReleases } from "./getNewReleases.ts";
+import { getPlaylist } from "./getPlaylist.ts";
 
 const addTracksToPlaylist = async (
 	tracks: string[],

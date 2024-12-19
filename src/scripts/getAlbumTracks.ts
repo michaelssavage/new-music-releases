@@ -1,6 +1,6 @@
 import axios from "axios";
-import { SPOTIFY_API_URL } from "../utils/constants";
-import { getAccessToken } from "./getAccessToken";
+import { SPOTIFY_API_URL } from "../utils/constants.ts";
+import { getAccessToken } from "./getAccessToken.ts";
 
 export const getAlbumTracks = async (albumId: string, accessToken: string) => {
 	try {
