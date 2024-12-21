@@ -1,9 +1,13 @@
+import { AlbumCard } from "@client/components/Card/Album.tsx";
+import { ArtistCard } from "@client/components/Card/Artist.tsx";
+import { getSavedArtists } from "@client/lib/getSavedArtists.ts";
 import styled from "@emotion/styled";
 import { useState } from "react";
+import { useQuery } from "react-query";
 import type { SearchResponse } from "src/types/spotify/search.ts";
 import { Card } from "../components/Card.tsx";
+import { Panel } from "../components/Panel.tsx";
 import { SearchArea } from "../components/SearchArea.tsx";
-import { SearchPanel } from "../components/SearchPanel.tsx";
 import { type Tab, Tabs } from "../components/Tabs.tsx";
 import { defaultOptions, defaultResults } from "../utils/defaults.ts";
 
@@ -16,25 +20,30 @@ export const App = () => {
 	const [type, setType] = useState(defaultOptions);
 	const [results, setResults] = useState<SearchResponse>(defaultResults);
 
+	const { data: artistIds = [], refetch: refetchArtists } = useQuery({
+		queryKey: ["savedArtists"],
+		queryFn: getSavedArtists,
+	});
+
 	const data: Array<Tab> = [
 		{
 			key: "artists",
 			tab: "Artists",
 			visible: type.some(({ value }) => value === "artist"),
 			panel: (
-				<SearchPanel title="Artists" show={results.artists?.length > 0}>
+				<Panel title="Artists" show={results.artists?.length > 0}>
 					{results.artists
 						.filter((artist) => artist.images.length)
 						.map((artist) => (
-							<Card
+							<ArtistCard
 								key={artist.id}
 								image={artist?.images?.[0]?.url}
-								name={artist.name}
-								fact={`${artist.followers.total.toLocaleString()} Followers`}
-								genres={artist?.genres}
+								artist={artist}
+								isSaved={artistIds.includes(artist.id)}
+								refetchArtists={refetchArtists}
 							/>
 						))}
-				</SearchPanel>
+				</Panel>
 			),
 		},
 		{
@@ -42,19 +51,19 @@ export const App = () => {
 			tab: "Albums",
 			visible: type.some(({ value }) => value === "album"),
 			panel: (
-				<SearchPanel title="Albums" show={results.albums?.length > 0}>
+				<Panel title="Albums" show={results.albums?.length > 0}>
 					{results.albums
 						.filter((album) => album.images.length)
 						.map((album) => (
-							<Card
+							<AlbumCard
 								key={album.id}
 								image={album?.images?.[0]?.url}
 								name={album.name}
-								fact={`Album Type: ${album.album_type}`}
+								type={album.album_type}
 								artists={album.artists}
 							/>
 						))}
-				</SearchPanel>
+				</Panel>
 			),
 		},
 		{
@@ -62,7 +71,7 @@ export const App = () => {
 			tab: "Tracks",
 			visible: type.some(({ value }) => value === "track"),
 			panel: (
-				<SearchPanel title="Tracks" show={results.tracks?.length > 0}>
+				<Panel title="Tracks" show={results.tracks?.length > 0}>
 					{results.tracks
 						.filter((track) => track.album.images.length)
 						.map((track) => (
@@ -70,11 +79,10 @@ export const App = () => {
 								key={track.id}
 								image={track?.album?.images?.[0]?.url}
 								name={track.name}
-								fact={`Artists:
-							${track.artists.map((artist) => artist.name).join(", ")}`}
+								fact={`Artists: ${track.artists.map((artist) => artist.name).join(", ")}`}
 							/>
 						))}
-				</SearchPanel>
+				</Panel>
 			),
 		},
 	];
@@ -86,14 +94,10 @@ export const App = () => {
 				setResults={setResults}
 				type={type}
 				setType={setType}
+				refetchArtists={refetchArtists}
 			/>
 			<Content>
-				{results !== defaultResults ? (
-					<Tabs
-						data={data.filter(({ visible }) => visible)}
-						loading={loading}
-					/>
-				) : null}
+				<Tabs data={data.filter(({ visible }) => visible)} loading={loading} />
 			</Content>
 		</div>
 	);

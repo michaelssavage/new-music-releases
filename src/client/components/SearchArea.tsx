@@ -1,9 +1,11 @@
+import { fetchSearchResults } from "@client/lib/fetchSearchResults.ts";
+import { getActiveTabKey } from "@client/utils/activeKeys.ts";
 import styled from "@emotion/styled";
-import axios from "axios";
 import { type ChangeEvent, useState } from "react";
+import { useMutation } from "react-query";
 import Select, { type MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
-import type { SearchResponse } from "src/types/spotify/search.ts";
+import type { SearchProps, SearchResponse } from "src/types/spotify/search.ts";
 import { useTabs } from "../context/tabs.context.tsx";
 import {
 	type TypeI,
@@ -67,6 +69,7 @@ interface Props {
 	setResults: (results: SearchResponse) => void;
 	type: Array<TypeI>;
 	setType: (type: Array<TypeI>) => void;
+	refetchArtists: () => void;
 }
 
 export const SearchArea = ({
@@ -74,6 +77,7 @@ export const SearchArea = ({
 	setResults,
 	type,
 	setType,
+	refetchArtists,
 }: Props) => {
 	const [search, setSearch] = useState("");
 	const { setActiveTab } = useTabs();
@@ -86,39 +90,35 @@ export const SearchArea = ({
 		setType(newValue as TypeI[]);
 	};
 
-	const handleClick = async () => {
-		setLoading(true);
-		try {
-			const { data } = await axios.get("http://localhost:5000/api/search", {
-				params: {
-					query: search,
-					type: type.map((t) => t.value).join(","),
-					limit: 10,
-				},
-			});
+	const { isLoading, mutate } = useMutation(
+		({ search, type }: SearchProps) => fetchSearchResults({ search, type }),
+		{
+			onMutate: () => setLoading(true),
+			onSuccess: (data) => {
+				const {
+					artists: { items: artists = [] },
+					albums: { items: albums = [] },
+					tracks: { items: tracks = [] },
+				} = data;
 
-			const {
-				artists: { items: artists = [] },
-				albums: { items: albums = [] },
-				tracks: { items: tracks = [] },
-			} = data;
+				setResults({ artists, albums, tracks });
+				setActiveTab(getActiveTabKey({ artists, albums, tracks }));
+				setLoading(false);
+			},
+			onError: (error) => {
+				console.error(error);
+				setResults(defaultResults);
+				setLoading(false);
+			},
+		},
+	);
 
-			setResults({ artists, albums, tracks });
-
-			const activeTabKey =
-				Object.entries({ artists, albums, tracks }).find(
-					([_, value]) => Array.isArray(value) && value.length > 0,
-				)?.[0] || "";
-
-			setActiveTab(activeTabKey);
-		} catch (error) {
-			console.error(error);
-			setResults(defaultResults);
-		}
-		setLoading(false);
+	const handleClick = () => {
+		mutate({ search, type: type.map((t) => t.value) });
+		refetchArtists();
 	};
 
-	const disableSearch = !search || type.length === 0;
+	const disableSearch = !search || type.length === 0 || isLoading;
 
 	return (
 		<Wrapper>
@@ -148,7 +148,7 @@ export const SearchArea = ({
 					/>
 				</Group>
 				<Button type="button" disabled={disableSearch} onClick={handleClick}>
-					Search
+					{isLoading ? "Searching..." : "Search"}
 				</Button>
 			</Group>
 		</Wrapper>

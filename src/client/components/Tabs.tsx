@@ -118,8 +118,6 @@ export const Tabs = ({ data, loading = false }: TabsProps) => {
 
 	const activePanel = data.find(({ key }) => key === activeTab);
 
-	if (loading) return <Loader />;
-
 	return (
 		<TabWrapper>
 			<List role="tablist">
@@ -128,20 +126,23 @@ export const Tabs = ({ data, loading = false }: TabsProps) => {
 					return renderTab(key, tab, isActive, index);
 				})}
 			</List>
-
-			<SwitchTransition>
-				<CSSTransition
-					classNames="fade"
-					timeout={200}
-					key={activeTab}
-					nodeRef={nodeRef}
-					exit={false}
-				>
-					<Panel ref={nodeRef} role="tabpanel">
-						{activePanel?.panel}
-					</Panel>
-				</CSSTransition>
-			</SwitchTransition>
+			{loading ? (
+				<Loader />
+			) : (
+				<SwitchTransition>
+					<CSSTransition
+						classNames="fade"
+						timeout={200}
+						key={activeTab}
+						nodeRef={nodeRef}
+						exit={false}
+					>
+						<Panel ref={nodeRef} role="tabpanel">
+							{activePanel?.panel}
+						</Panel>
+					</CSSTransition>
+				</SwitchTransition>
+			)}
 		</TabWrapper>
 	);
 };

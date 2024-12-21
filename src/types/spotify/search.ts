@@ -35,7 +35,7 @@ interface Track {
 	is_local: boolean;
 }
 
-interface Artist {
+export interface Artist {
 	external_urls: {
 		spotify: string;
 	};
@@ -78,4 +78,10 @@ interface Image {
 	url: string;
 	height: number;
 	width: number;
+}
+
+export interface SearchProps {
+	search: string;
+	type: string[];
+	limit?: number;
 }

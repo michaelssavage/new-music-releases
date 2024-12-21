@@ -1,58 +1,17 @@
-import axios from "axios";
+import spotifyService from "../server/service/spotify.sevice.ts";
 import type { NewReleasesI } from "../types/spotify.ts";
-import { SPOTIFY_API_URL } from "../utils/constants.ts";
-import { getAccessToken } from "./getAccessToken.ts";
-import { getAlbumTracks } from "./getAlbumTracks.ts";
-import { fetchNewReleases } from "./getNewReleases.ts";
-import { getPlaylist } from "./getPlaylist.ts";
-
-const addTracksToPlaylist = async (
-	tracks: string[],
-	playlistId: string,
-	accessToken: string,
-) => {
-	if (tracks?.length === 0) {
-		console.log("No tracks to add.");
-		return;
-	}
-	try {
-		console.log("Adding tracks to playlist", { playlistId, tracks });
-
-		const { data } = await axios.post(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{ uris: tracks },
-			{
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					"Content-Type": "application/json",
-				},
-			},
-		);
-		console.log(`Tracks added to playlist! Snapshot ID: ${data.snapshot_id}`);
-	} catch (error: unknown) {
-		if (axios.isAxiosError(error)) {
-			console.error(
-				"Error adding tracks:",
-				error.response?.data || error.message,
-			);
-		} else if (error instanceof Error) {
-			console.error("Unexpected error:", error.message);
-		} else {
-			console.error("Unknown error occurred");
-		}
-	}
-};
 
 (async () => {
-	const accessToken = await getAccessToken();
-	const playlist = await getPlaylist(accessToken);
-	const newReleases: Array<NewReleasesI> = await fetchNewReleases(accessToken);
+	const accessToken = await spotifyService.getAccessToken();
+	const playlist = await spotifyService.getSpotifyPlaylist(accessToken);
+	const newReleases: Array<NewReleasesI> =
+		await spotifyService.fetchNewReleases(accessToken);
 
 	const trackUris = (
 		await Promise.all(
 			newReleases.map(async ({ uri, id }) => {
 				if (uri.includes("album")) {
-					return await getAlbumTracks(id, accessToken);
+					return await spotifyService.getAlbumTracks(id, accessToken);
 				}
 				return uri;
 			}),
@@ -60,5 +19,5 @@ const addTracksToPlaylist = async (
 	).flat();
 
 	console.log(trackUris);
-	await addTracksToPlaylist(trackUris, playlist.id, accessToken);
+	await spotifyService.addTracksToPlaylist(accessToken, trackUris, playlist.id);
 })();

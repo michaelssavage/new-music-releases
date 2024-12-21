@@ -1,6 +1,7 @@
 import { Global } from "@emotion/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { TabsContextProvider } from "./context/tabs.context.tsx";
 import { App } from "./pages/App.tsx";
@@ -17,6 +18,7 @@ root.render(
 		<QueryClientProvider client={queryClient}>
 			<TabsContextProvider>
 				<Global styles={globalStyles()} />
+				<Toaster position="top-right" reverseOrder />
 				<App />
 			</TabsContextProvider>
 		</QueryClientProvider>

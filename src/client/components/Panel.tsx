@@ -7,7 +7,7 @@ interface Props {
 	show: boolean;
 }
 
-export const SearchPanel = ({ show, title, children }: Props) => {
+export const Panel = ({ show, title, children }: Props) => {
 	if (!show) return `No ${title} found`;
 
 	return (
