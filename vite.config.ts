@@ -11,4 +11,9 @@ export default defineConfig({
 	build: {
 		outDir: path.resolve(__dirname, "dist/client"),
 	},
+	resolve: {
+		alias: {
+			"@client": path.resolve(__dirname, "src/client"),
+		},
+	},
 });

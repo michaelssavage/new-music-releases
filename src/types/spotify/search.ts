@@ -1,7 +1,7 @@
 export interface SearchResponse {
 	tracks: Array<Track>;
 	artists: Array<Artist>;
-	albums: Album[];
+	albums: Array<Album>;
 }
 
 interface Track {

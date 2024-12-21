@@ -12,31 +12,39 @@ interface CardI {
 const CardWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 1;
+	width: 20%;
+	max-width: 200px;
+	flex-wrap: wrap;
+	border: 1px solid #a4b4c7;
+	border-radius: 4px;
 	img {
-		width: 10rem;
+		width: 100%;
+		border-radius: inherit;
 	}
 
   h2 {
-    padding: 0;
+    padding: 0 0.25rem;
+		text-align: center;
     margin: 0;
   }
 `;
 
 const Fact = styled.p`
   font-size: 1rem;
-  padding: 0;
+  padding: 0 0.25rem;
   margin: 0.25rem 0;
 `;
 
 const Genres = styled.p`
   font-size: 0.8rem;
+  padding: 0 0.25rem;
   display: flex;
   flex-wrap: wrap;
 `;
 
 const Artists = styled.p`
   font-size: 0.8rem;
+  padding: 0 0.25rem;
   display: flex;
   flex-wrap: wrap;
 `;
