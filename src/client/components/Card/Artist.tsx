@@ -1,9 +1,11 @@
-import { removeArtist, saveArtist } from "@client/lib/artist.ts";
+import { removeArtist, saveArtist } from "@client/lib/Spotify/artist.ts";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { useMutation } from "react-query";
 import type { Artist } from "src/types/spotify/search.ts";
 import noPhoto from "../../assets/no-photo.jpg";
+import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";
+import { Group } from "../Group.tsx";
 import { CardWrapper, Content, Fact, Genres } from "./Card.styled.ts";
 
 interface CardI {
@@ -19,9 +21,16 @@ export const ArtistCard = ({
 	isSaved,
 	refetchArtists,
 }: CardI) => {
-	const { id, name, uri, genres, followers } = artist;
+	const {
+		id,
+		name,
+		uri,
+		genres,
+		followers = null,
+		external_urls: { spotify: link },
+	} = artist;
 
-	const { isLoading: loadingSave, mutate: mutateSave } = useMutation({
+	const { isPending: loadingSave, mutate: mutateSave } = useMutation({
 		mutationFn: saveArtist,
 		onSuccess: () => {
 			toast.success("Artist saved!");
@@ -29,7 +38,7 @@ export const ArtistCard = ({
 		},
 	});
 
-	const { isLoading: loadingRemove, mutate: mutateRemove } = useMutation({
+	const { isPending: loadingRemove, mutate: mutateRemove } = useMutation({
 		mutationFn: removeArtist,
 		onSuccess: () => {
 			toast.success("Artist removed!");
@@ -49,14 +58,19 @@ export const ArtistCard = ({
 			<h2>{name}</h2>
 
 			<Content>
-				<Fact>{`${followers.total.toLocaleString()} Followers`}</Fact>
+				{followers && (
+					<Fact>{`${followers.total.toLocaleString()} Followers`}</Fact>
+				)}
 				{genres?.length ? <Genres>Genres: {genres.join(", ")}</Genres> : null}
-				<Button
-					onClick={handleAction}
-					variant={isSaved ? "remove" : ""}
-					text={`${isSaved ? "Remove" : "Save"} Artist`}
-					loading={loadingSave || loadingRemove}
-				/>
+				<Group>
+					<Button
+						onClick={handleAction}
+						variant={isSaved ? "remove" : ""}
+						text={`${isSaved ? "Remove" : "Save"} Artist`}
+						loading={loadingSave || loadingRemove}
+					/>
+					{link && <Anchor link={link} text="Open Artist" isExternal />}
+				</Group>
 			</Content>
 		</CardWrapper>
 	);

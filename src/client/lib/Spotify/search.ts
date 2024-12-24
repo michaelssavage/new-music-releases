@@ -6,12 +6,12 @@ export const fetchSearchResults = async ({
 	type,
 	limit = 10,
 }: SearchProps) => {
-	const { data } = await axios.get("http://localhost:5000/api/search", {
+	const res = await axios.get("http://localhost:5000/api/search", {
 		params: {
 			q: search,
 			type: type.join(","),
 			limit: limit,
 		},
 	});
-	return data;
+	return res.data;
 };

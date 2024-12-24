@@ -1,4 +1,4 @@
-import spotifyService from "../server/service/spotify.sevice.ts";
+import spotifyService from "../server/service/OLD spotify.sevice.ts";
 import type { NewReleasesI } from "../types/spotify.ts";
 
 (async () => {

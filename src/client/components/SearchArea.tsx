@@ -1,11 +1,11 @@
-import { fetchSearchResults } from "@client/lib/fetchSearchResults.ts";
+import { fetchSearchResults } from "@client/lib/Spotify/search.ts";
 import { getActiveTabKey } from "@client/utils/activeKeys.ts";
 import styled from "@emotion/styled";
+import { useMutation } from "@tanstack/react-query";
 import { type ChangeEvent, useState } from "react";
-import { useMutation } from "react-query";
 import Select, { type MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
-import type { SearchProps, SearchResponse } from "src/types/spotify/search.ts";
+import type { SearchResponse } from "src/types/spotify/search.ts";
 import { useTabs } from "../context/tabs.context.tsx";
 import {
 	type TypeI,
@@ -90,35 +90,33 @@ export const SearchArea = ({
 		setType(newValue as TypeI[]);
 	};
 
-	const { isLoading, mutate } = useMutation(
-		({ search, type }: SearchProps) => fetchSearchResults({ search, type }),
-		{
-			onMutate: () => setLoading(true),
-			onSuccess: (data) => {
-				const {
-					artists: { items: artists = [] },
-					albums: { items: albums = [] },
-					tracks: { items: tracks = [] },
-				} = data;
+	const { isPending, mutate } = useMutation({
+		mutationFn: fetchSearchResults,
+		onMutate: () => setLoading(true),
+		onSuccess: (data) => {
+			const {
+				artists: { items: artists = [] },
+				albums: { items: albums = [] },
+				tracks: { items: tracks = [] },
+			} = data;
 
-				setResults({ artists, albums, tracks });
-				setActiveTab(getActiveTabKey({ artists, albums, tracks }));
-				setLoading(false);
-			},
-			onError: (error) => {
-				console.error(error);
-				setResults(defaultResults);
-				setLoading(false);
-			},
+			setResults({ artists, albums, tracks });
+			setActiveTab(getActiveTabKey({ artists, albums, tracks }));
+			setLoading(false);
 		},
-	);
+		onError: (error) => {
+			console.error(error);
+			setResults(defaultResults);
+			setLoading(false);
+		},
+	});
 
 	const handleClick = () => {
 		mutate({ search, type: type.map((t) => t.value) });
 		refetchArtists();
 	};
 
-	const disableSearch = !search || type.length === 0 || isLoading;
+	const disableSearch = !search || type.length === 0 || isPending;
 
 	return (
 		<Wrapper>
@@ -148,7 +146,7 @@ export const SearchArea = ({
 					/>
 				</Group>
 				<Button type="button" disabled={disableSearch} onClick={handleClick}>
-					{isLoading ? "Searching..." : "Search"}
+					{isPending ? "Searching..." : "Search"}
 				</Button>
 			</Group>
 		</Wrapper>

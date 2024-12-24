@@ -1,12 +1,15 @@
+import { SpotifyController } from "@server/controllers/spotify.controller.ts";
 import express from "express";
-import spotifyController from "../controllers/spotify.controller.ts";
 
 const router = express.Router();
+const spotifyController = SpotifyController();
 
 router.get("/search", spotifyController.searchHandler);
 
-router.post("/save-artists", spotifyController.saveArtists);
-router.get("/get-artists", spotifyController.getSavedArtists);
+router.post("/save-artists", spotifyController.fetchAndSaveArtists);
+router.get("/get-artist/:id", spotifyController.getSingleArtist);
+router.get("/get-artists", spotifyController.getAllArtistsIds);
+
 router.delete("/remove-artist/:id", spotifyController.removeSavedArtist);
 
 export default router;

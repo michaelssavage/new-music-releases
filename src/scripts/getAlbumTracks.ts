@@ -1,4 +1,4 @@
-import spotifyService from "../server/service/spotify.sevice.ts";
+import spotifyService from "../server/service/OLD spotify.sevice.ts";
 
 (async () => {
 	const albumId = "1C1Q5jK1Q8AHYJ2CzLqLME";

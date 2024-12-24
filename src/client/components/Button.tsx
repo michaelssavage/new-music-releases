@@ -1,13 +1,19 @@
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { Spinner } from "./Icons/Spinner.tsx";
+import type { ReactNode } from "react";
+import { Spinner, SpinnerStyled } from "./Icons/Spinner.tsx";
 
-const ButtonStyled = styled.button<{ variant?: string; loading?: boolean }>`
+const Content = styled.div``;
+const Text = styled.span``;
+
+const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 	margin: 0.5rem 0;
 	padding: 0.5rem 0.75rem;
 	border-radius: 4px;
+	transition: all 0.2s ease-in-out;
+
 	${({ variant }) => {
-		if (variant === "remove")
+		if (variant === "remove") {
 			return css`
         color: #f5faf7;
         background-color: #e63946;
@@ -17,6 +23,26 @@ const ButtonStyled = styled.button<{ variant?: string; loading?: boolean }>`
           background-color: #7f0f18;
         }
         `;
+		}
+
+		if (variant === "ghost") {
+			return css`
+        color: #1e1e1e;
+				border: 1px solid transparent;
+        background-color: transparent;
+				margin: 0;
+
+				${Text} {
+					visibility: hidden;
+				}
+
+				&:hover:not(:disabled) {
+					${Text} {
+						visibility: visible;
+					}
+				}
+        `;
+		}
 
 		return css`
       background-color: #0cb57c;
@@ -37,17 +63,22 @@ const ButtonStyled = styled.button<{ variant?: string; loading?: boolean }>`
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;  
 
-  span {
+  ${Content} {
     grid-column: 1;
     grid-row: 1;
-    opacity: ${({ loading }) => (loading ? 0 : 1)};
+		opacity: ${({ isLoading }) => (isLoading ? 0 : 1)};
     transition: opacity 0.2s;
+
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 0.5rem;
   }
 
-  svg {
+  ${SpinnerStyled} {
     grid-column: 1;
     grid-row: 1;
-    opacity: ${({ loading }) => (loading ? 1 : 0)};
+		opacity: ${({ isLoading }) => (isLoading ? 1 : 0)};
     transition: opacity 0.2s;
     height: 24px;
     width: 24px;
@@ -59,7 +90,8 @@ interface Props {
 	onClick: () => void;
 	variant?: string;
 	type?: "button" | "submit" | "reset";
-	text: string;
+	text?: string;
+	icon?: ReactNode;
 	loading?: boolean;
 	disabled?: boolean;
 }
@@ -69,6 +101,7 @@ export const Button = ({
 	variant,
 	type = "button",
 	text,
+	icon,
 	loading,
 	disabled,
 }: Props) => {
@@ -77,10 +110,13 @@ export const Button = ({
 			onClick={onClick}
 			variant={variant}
 			type={type}
-			loading={loading}
+			isLoading={loading}
 			disabled={disabled}
 		>
-			<span>{text}</span>
+			<Content>
+				{text && <Text>{text}</Text>}
+				{icon ? icon : null}
+			</Content>
 			<Spinner />
 		</ButtonStyled>
 	);

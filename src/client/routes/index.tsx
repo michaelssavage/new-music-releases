@@ -1,9 +1,10 @@
 import { AlbumCard } from "@client/components/Card/Album.tsx";
 import { ArtistCard } from "@client/components/Card/Artist.tsx";
-import { getSavedArtists } from "@client/lib/getSavedArtists.ts";
+import { getSavedArtists } from "@client/lib/Spotify/getSavedArtists.ts";
 import styled from "@emotion/styled";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "react-query";
 import type { SearchResponse } from "src/types/spotify/search.ts";
 import { Card } from "../components/Card.tsx";
 import { Panel } from "../components/Panel.tsx";
@@ -12,10 +13,14 @@ import { type Tab, Tabs } from "../components/Tabs.tsx";
 import { defaultOptions, defaultResults } from "../utils/defaults.ts";
 
 const Content = styled.div`
-	padding: 2rem;
+  padding: 2rem;
 `;
 
-export const App = () => {
+export const Route = createFileRoute("/")({
+	component: App,
+});
+
+function App() {
 	const [loading, setLoading] = useState(false);
 	const [type, setType] = useState(defaultOptions);
 	const [results, setResults] = useState<SearchResponse>(defaultResults);
@@ -23,6 +28,8 @@ export const App = () => {
 	const { data: artistIds = [], refetch: refetchArtists } = useQuery({
 		queryKey: ["savedArtists"],
 		queryFn: getSavedArtists,
+		enabled: results !== defaultResults,
+		refetchOnWindowFocus: false,
 	});
 
 	const data: Array<Tab> = [
@@ -39,7 +46,7 @@ export const App = () => {
 								key={artist.id}
 								image={artist?.images?.[0]?.url}
 								artist={artist}
-								isSaved={artistIds.includes(artist.id)}
+								isSaved={artistIds.some(({ id }) => id === artist.id)}
 								refetchArtists={refetchArtists}
 							/>
 						))}
@@ -101,4 +108,4 @@ export const App = () => {
 			</Content>
 		</div>
 	);
-};
+}

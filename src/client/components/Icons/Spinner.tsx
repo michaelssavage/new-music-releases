@@ -26,7 +26,7 @@ const dash = keyframes`
   }
 `;
 
-const SpinnerStyled = styled.svg`
+export const SpinnerStyled = styled.svg`
   display: block;
   margin: 0 auto;
   transform-origin: center;

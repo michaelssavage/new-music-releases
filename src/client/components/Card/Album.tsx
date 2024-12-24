@@ -1,6 +1,13 @@
+import { getArtist } from "@client/lib/Spotify/artist.ts";
+import { getSavedArtists } from "@client/lib/Spotify/getSavedArtists.ts";
 import styled from "@emotion/styled";
-import type { MouseEventHandler } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import type { Artist } from "src/types/spotify/search.ts";
 import noPhoto from "../../assets/no-photo.jpg";
+import { Loader } from "../Loader.tsx";
+import { Modal } from "../Modal.tsx";
+import { ArtistCard } from "./Artist.tsx";
 import { CardWrapper } from "./Card.styled.ts";
 
 interface CardI {
@@ -8,8 +15,7 @@ interface CardI {
 	name: string;
 	type: string;
 	genres?: Array<string>;
-	artists?: Array<{ name: string }>;
-	onClick?: MouseEventHandler<HTMLButtonElement>;
+	artists?: Array<Artist>;
 }
 
 const Content = styled.div`
@@ -25,23 +31,97 @@ const Artists = styled.p`
   margin: 0.25rem 0;
   display: flex;
   flex-wrap: wrap;
+	align-items: center;
+	> p {
+		padding: 0;
+	}
+	> button {
+		color: #1ed4b6;
+		text-decoration: underline #1ed4b6 2px;
+		border: none;
+		background-color: transparent;
+
+		&:hover {
+			color: #0d6153;
+			text-decoration: underline #0d6153 2px;
+		}
+	}
 `;
 
 export const AlbumCard = ({ image, name, type, artists }: CardI) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const [artistId, setArtistId] = useState<string>();
+
+	const handleArtistClick = (id: string) => {
+		setIsOpen(true);
+		setArtistId(id);
+	};
+
+	const {
+		data: artistData,
+		isLoading,
+		isError,
+	} = useQuery({
+		queryKey: ["artist", artistId],
+		queryFn: () => getArtist(artistId),
+		enabled: artistId !== undefined,
+		refetchOnWindowFocus: false,
+	});
+
+	const { data: artistIds = [], refetch: refetchArtists } = useQuery<
+		Array<Artist>
+	>({
+		queryKey: ["data"],
+		queryFn: getSavedArtists,
+		enabled: artistId !== undefined,
+		refetchOnWindowFocus: false,
+	});
+
+	const renderArtist = () => {
+		if (!artistData) return null;
+		if (isLoading) return <Loader />;
+		if (isError) return <p>Error fetching Artist, please try again</p>;
+
+		return (
+			<ArtistCard
+				image={artistData.images?.[0].url}
+				artist={artistData}
+				refetchArtists={refetchArtists}
+				isSaved={artistIds.some(({ id }) => id === artistData.id)}
+			/>
+		);
+	};
+
 	return (
 		<CardWrapper>
 			<img src={image ? image : noPhoto} alt={name} />
 
-			<h2>Album: {name}</h2>
+			<h2>{name}</h2>
 
 			<Content>
 				{artists?.length ? (
 					<Artists>
-						Artists: {artists.map((artist) => artist.name).join(", ")}
+						<p>Artists:</p>
+						{artists.map((artist, index) => (
+							<>
+								<button
+									key={artist.id}
+									type="button"
+									onClick={() => handleArtistClick(artist.id)}
+								>
+									{artist.name}
+								</button>
+								{index < artists.length - 1 && ", "}
+							</>
+						))}
 					</Artists>
 				) : null}
 				<Fact>{`Album Type: ${type}`}</Fact>
 			</Content>
+
+			<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+				{renderArtist()}
+			</Modal>
 		</CardWrapper>
 	);
 };

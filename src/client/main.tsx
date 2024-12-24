@@ -1,26 +1,33 @@
-import { Global } from "@emotion/react";
-import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
-import { Toaster } from "react-hot-toast";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { TabsContextProvider } from "./context/tabs.context.tsx";
-import { App } from "./pages/App.tsx";
-import { globalStyles } from "./styles/global.styled.ts";
-
-const root = ReactDOM.createRoot(
-	document.getElementById("root") as HTMLElement,
-);
+import { routeTree } from "./routeTree.gen.ts";
 
 const queryClient = new QueryClient();
 
-root.render(
-	<React.StrictMode>
+const router = createRouter({
+	routeTree,
+	context: {
+		queryClient,
+	},
+	defaultPreload: "intent",
+	defaultPreloadStaleTime: 0,
+});
+
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: typeof router;
+	}
+}
+
+// biome-ignore lint/style/noNonNullAssertion: <explanation>
+const rootElement = document.getElementById("root")!;
+
+if (!rootElement.innerHTML) {
+	const root = ReactDOM.createRoot(rootElement);
+	root.render(
 		<QueryClientProvider client={queryClient}>
-			<TabsContextProvider>
-				<Global styles={globalStyles()} />
-				<Toaster position="top-right" reverseOrder />
-				<App />
-			</TabsContextProvider>
-		</QueryClientProvider>
-	</React.StrictMode>,
-);
+			<RouterProvider router={router} />
+		</QueryClientProvider>,
+	);
+}
