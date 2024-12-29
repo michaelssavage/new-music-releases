@@ -1,12 +1,12 @@
 import { AlbumCard } from "@client/components/Card/Album.tsx";
 import { ArtistCard } from "@client/components/Card/Artist.tsx";
-import { getSavedArtists } from "@client/lib/Spotify/getSavedArtists.ts";
+import { TrackCard } from "@client/components/Card/Track.tsx";
+import { getSavedArtists } from "@client/lib/Spotify/artist.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import type { SearchResponse } from "src/types/spotify/search.ts";
-import { Card } from "../components/Card.tsx";
 import { Panel } from "../components/Panel.tsx";
 import { SearchArea } from "../components/SearchArea.tsx";
 import { type Tab, Tabs } from "../components/Tabs.tsx";
@@ -82,11 +82,12 @@ function App() {
 					{results.tracks
 						.filter((track) => track.album.images.length)
 						.map((track) => (
-							<Card
+							<TrackCard
 								key={track.id}
 								image={track?.album?.images?.[0]?.url}
 								name={track.name}
-								fact={`Artists: ${track.artists.map((artist) => artist.name).join(", ")}`}
+								artists={track.artists}
+								track={track}
 							/>
 						))}
 				</Panel>

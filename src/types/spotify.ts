@@ -1,12 +1,15 @@
-export interface ArtistI {
-	id: string;
-	name: string;
-	uri: string;
+import type { SpotifyPlaylistI } from "./spotify/playlist.ts";
+import type { Artist } from "./spotify/search.ts";
+import type { PlaylistTracksI } from "./spotify/tracks.ts";
+
+export interface SpotifyDataProps {
+	playlistItems: PlaylistTracksI;
+	playlist: SpotifyPlaylistI;
 }
 
 export interface FollowedArtistsI {
 	artists: {
-		items: Array<ArtistI>;
+		items: Array<Artist>;
 		next: string | null;
 	};
 }

@@ -1,5 +1,6 @@
 import { type Collection, type Db, MongoClient } from "mongodb";
-import type { ArtistI } from "src/types/spotify.ts";
+import type { SpotifyPlaylistI } from "src/types/spotify/playlist.ts";
+import type { Artist } from "src/types/spotify/search.ts";
 
 export function SpotifyRepository(mongoUri: string) {
 	let client: MongoClient;
@@ -45,7 +46,7 @@ export function SpotifyRepository(mongoUri: string) {
 		);
 	}
 
-	async function fetchAndSaveArtists(artists: Array<ArtistI>) {
+	async function fetchAndSaveArtists(artists: Array<Artist>) {
 		const bulkOperations = artists.map((artist) => ({
 			updateOne: {
 				filter: { id: artist.id },
@@ -57,7 +58,7 @@ export function SpotifyRepository(mongoUri: string) {
 		return await artistDb.bulkWrite(bulkOperations);
 	}
 
-	async function resetArtists(artists: Array<ArtistI>) {
+	async function resetArtists(artists: Array<Artist>) {
 		await artistDb.deleteMany({});
 		return await artistDb.insertMany(artists);
 	}
@@ -71,10 +72,10 @@ export function SpotifyRepository(mongoUri: string) {
 	}
 
 	async function getPlaylist() {
-		return await playlistDb.findOne({});
+		return await playlistDb.findOne<SpotifyPlaylistI>({});
 	}
 
-	async function createPlaylist(playlist: { name: string; id: string }) {
+	async function createPlaylist(playlist: SpotifyPlaylistI) {
 		return await playlistDb.insertOne(playlist);
 	}
 

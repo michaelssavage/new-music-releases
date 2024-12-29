@@ -1,6 +1,7 @@
-import { SpotifyService } from "@server/service/spotify.sevice.ts";
+import { SpotifyService } from "@server/services/spotify.sevice.ts";
 import type { Request, Response } from "express";
-import type { ArtistI } from "src/types/spotify.ts";
+import type { Artist } from "src/types/spotify/search.ts";
+import type { PlaylistTracksI } from "src/types/spotify/tracks.ts";
 
 interface SearchQuery extends Request {
 	query: {
@@ -12,7 +13,7 @@ interface SearchQuery extends Request {
 
 interface SaveQuery extends Request {
 	body: {
-		artists: Array<ArtistI>;
+		artists: Array<Artist>;
 	};
 }
 
@@ -23,7 +24,7 @@ export function SpotifyController() {
 		console.error("Failed to initialize SpotifyService:", err);
 	});
 
-	async function searchHandler(req: SearchQuery, res: Response) {
+	async function searchHandler(req: SearchQuery, res: Response): Promise<void> {
 		const { q, type, limit } = req.query;
 
 		if (!q || !type) {
@@ -44,7 +45,10 @@ export function SpotifyController() {
 		}
 	}
 
-	async function fetchAndSaveArtists(req: SaveQuery, res: Response) {
+	async function fetchAndSaveArtists(
+		req: SaveQuery,
+		res: Response,
+	): Promise<void> {
 		const { artists } = req.body;
 
 		if (!artists || !artists.length || !Array.isArray(artists)) {
@@ -61,11 +65,11 @@ export function SpotifyController() {
 		}
 	}
 
-	async function getSingleArtist(req: Request, res: Response) {
+	async function getSingleArtist(req: Request, res: Response): Promise<void> {
 		const { id } = req.params;
 
 		if (!id) {
-			res.status(400).json({ error: "No artist id provided" });
+			res.status(400).json({ error: "No artist id provided to get artist" });
 			return;
 		}
 
@@ -78,7 +82,7 @@ export function SpotifyController() {
 		}
 	}
 
-	async function getAllArtistsIds(_req: Request, res: Response) {
+	async function getAllArtistsIds(_req: Request, res: Response): Promise<void> {
 		try {
 			const artistIds = await spotifyService.getAllArtistsIds();
 			res.json(artistIds);
@@ -88,11 +92,14 @@ export function SpotifyController() {
 		}
 	}
 
-	async function removeSavedArtist(req: SaveQuery, res: Response) {
+	async function removeSavedArtist(
+		req: SaveQuery,
+		res: Response,
+	): Promise<void> {
 		const { id } = req.params;
 
 		if (!id) {
-			res.status(400).json({ error: "No artist id provided" });
+			res.status(400).json({ error: "No artist id provided to remove artist" });
 			return;
 		}
 
@@ -105,11 +112,61 @@ export function SpotifyController() {
 		}
 	}
 
+	async function getSpotifyPlaylist(
+		_req: Request,
+		res: Response,
+	): Promise<void> {
+		try {
+			const playlist = await spotifyService.getSpotifyPlaylist();
+
+			if (!playlist) {
+				res.status(404).json({ error: "No playlist found" });
+				return;
+			}
+
+			const playlistItems = await spotifyService.getSpotifyPlaylistItems(
+				playlist.id,
+			);
+
+			if (!playlistItems) {
+				res.json({ playlist, playlistItems: {} as PlaylistTracksI });
+				return;
+			}
+
+			res.json({ playlist, playlistItems });
+		} catch (error) {
+			console.error("Error retrieving playlist:", error);
+			res.status(500).json({ error: "Failed to retrieve playlist" });
+		}
+	}
+
+	async function updateSpotifyPlaylistReleases(
+		_req: Request,
+		res: Response,
+	): Promise<void> {
+		try {
+			const playlist = await spotifyService.getSpotifyPlaylist();
+
+			if (!playlist) {
+				res.status(404).json({ error: "No playlist found" });
+				return;
+			}
+
+			const data = await spotifyService.updateSpotifyPlaylistReleases(playlist);
+			res.json(data);
+		} catch (error) {
+			console.error("Error updating playlist releases:", error);
+			res.status(500).json({ error: "Failed to update playlist releases" });
+		}
+	}
+
 	return {
 		searchHandler,
 		fetchAndSaveArtists,
 		getSingleArtist,
 		getAllArtistsIds,
 		removeSavedArtist,
+		getSpotifyPlaylist,
+		updateSpotifyPlaylistReleases,
 	};
 }

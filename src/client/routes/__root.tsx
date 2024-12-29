@@ -1,3 +1,4 @@
+import ErrorBoundary from "@client/components/ErrorBoundary.tsx";
 import { Navbar } from "@client/components/Navbar.tsx";
 import { TabsContextProvider } from "@client/context/tabs.context.tsx";
 import { globalStyles } from "@client/styles/global.styled.ts";
@@ -16,7 +17,9 @@ function RootComponent() {
 			<Global styles={globalStyles()} />
 			<Toaster position="top-right" reverseOrder />
 			<Navbar />
-			<Outlet />
+			<ErrorBoundary>
+				<Outlet />
+			</ErrorBoundary>
 			<TanStackRouterDevtools position="bottom-right" />
 		</TabsContextProvider>
 	);

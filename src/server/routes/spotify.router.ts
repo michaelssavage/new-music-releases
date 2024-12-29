@@ -12,4 +12,10 @@ router.get("/get-artists", spotifyController.getAllArtistsIds);
 
 router.delete("/remove-artist/:id", spotifyController.removeSavedArtist);
 
+router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
+router.get(
+	"/update-playlist-releases",
+	spotifyController.updateSpotifyPlaylistReleases,
+);
+
 export default router;

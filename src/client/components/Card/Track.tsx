@@ -3,7 +3,7 @@ import { getSavedArtists } from "@client/lib/Spotify/artist.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import type { Artist } from "src/types/spotify/search.ts";
+import type { Artist, Track } from "src/types/spotify/search.ts";
 import noPhoto from "../../assets/no-photo.jpg";
 import { Loader } from "../Loader.tsx";
 import { Modal } from "../Modal.tsx";
@@ -13,18 +13,13 @@ import { CardWrapper } from "./Card.styled.ts";
 interface CardI {
 	image: string;
 	name: string;
-	type: string;
-	genres?: Array<string>;
 	artists?: Array<Artist>;
+	track: Track;
 }
 
 const Content = styled.div`
 	padding: 0.5rem;
   font-size: 1rem;
-`;
-
-const Fact = styled.p`
-  margin: 0.25rem 0;
 `;
 
 const Artists = styled.p`
@@ -48,7 +43,7 @@ const Artists = styled.p`
 	}
 `;
 
-export const AlbumCard = ({ image, name, type, artists }: CardI) => {
+export const TrackCard = ({ image, name, artists }: CardI) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [artistId, setArtistId] = useState<string>();
 
@@ -116,7 +111,6 @@ export const AlbumCard = ({ image, name, type, artists }: CardI) => {
 						))}
 					</Artists>
 				) : null}
-				<Fact>{`Album Type: ${type}`}</Fact>
 			</Content>
 
 			<Modal isOpen={isOpen} setIsOpen={setIsOpen}>

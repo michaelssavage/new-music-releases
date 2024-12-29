@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Group } from "./Group.tsx";
 
 interface Props {
-	title: string;
+	title?: string;
 	children: ReactNode;
 	show: boolean;
 }
@@ -12,7 +12,7 @@ export const Panel = ({ show, title, children }: Props) => {
 
 	return (
 		<Group direction="column" align="flex-start" width="100%">
-			<h1>{title}</h1>
+			{title && <h1>{title}</h1>}
 			<Group align="flex-start" justify="flex-start">
 				{children}
 			</Group>

@@ -25,6 +25,18 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
         `;
 		}
 
+		if (variant === "secondary") {
+			return css`
+				color: #ebedf5;
+				background-color: #1a6e63;
+
+				&:hover:not(:disabled) {
+					color: #d2d4db;
+					background-color: #08433b;
+				}
+				`;
+		}
+
 		if (variant === "ghost") {
 			return css`
         color: #1e1e1e;

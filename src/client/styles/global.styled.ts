@@ -30,5 +30,4 @@ export const globalStyles = () => css`
   h6 {
     text-wrap: balance;
   }
-
 `;

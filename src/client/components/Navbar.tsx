@@ -7,7 +7,7 @@ import { MenuIcon } from "./Icons/Menu.tsx";
 const NavbarContainer = styled.nav`
   background-color: #8090c0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
 
   @media (max-width: 768px) {
@@ -22,8 +22,8 @@ const NavItems = styled.div<{ isOpen: boolean }>`
   background-color: #333;
   color: white;
   padding: 1rem;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
   
   display: flex;
   flex-direction: row;
@@ -42,21 +42,24 @@ const NavItems = styled.div<{ isOpen: boolean }>`
   }
 `;
 
-const NavLink = styled(Link)<{ isOpen: boolean; isActive: boolean }>`
+const NavLink = styled(Link, {
+	shouldForwardProp: (prop) => prop !== "isOpen" && prop !== "isActive",
+})<{ isOpen: boolean; isActive: boolean }>`
+  text-decoration: none;
+  font-size: 1.4rem;
+  transition: transform 0.3s ease;
+    
   ${({ isActive }) =>
 		isActive
 			? css`
-        color: #7fd1dd;
-        text-decoration: underline;
+        color: #bababa;
       `
 			: css`
         color: white;
-        text-decoration: none;
       `};
-  font-size: 1.4rem;
 
   &:hover {
-    text-decoration: underline;
+    transform: scale(1.1);
   }
 
   @media (max-width: 768px) {
@@ -67,7 +70,6 @@ const NavLink = styled(Link)<{ isOpen: boolean; isActive: boolean }>`
     transition: opacity 0.3s ease, transform 0.3s ease;
 
     &:hover {
-      text-decoration: none;
       color: #c5cccb;
     }
   }
@@ -83,8 +85,8 @@ const Menu = styled(MenuIcon)`
 `;
 
 const navItems = [
-	{ label: "Home", link: "/" },
-	{ label: "Profile", link: "/profile" },
+	{ label: "Releases", link: "/releases" },
+	{ label: "Search", link: "/" },
 ];
 
 export const Navbar = () => {

@@ -24,25 +24,43 @@ const LinkStyle = styled.a<IStyle>`
 
   ${({ variant }) => {
 		switch (variant) {
+			case "secondary":
+				return css`
+          border: none;
+          padding: 0.5rem 0.75rem;
+          border-radius: 4px;
+          cursor: pointer;
+          gap: 0.5rem;
+          color: #ebedf5;
+          background-color: #1a6e63;
+          transition: transform 0.25s, background-color 0.25s;
+          &:hover {
+            background-color: #c1cbec;
+            svg {
+              transform: translate(5px, -5px);
+              transition: transform 0.25s;
+            }
+          }
+        `;
 			case "button":
 				return css`
-      border: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 4px;
-      cursor: pointer;
-      gap: 0.5rem;
-      color: #1e1e1e;
-      background-color: #ebedf5;
-      border: 1px solid #505050;
-      transition: transform 0.25s, background-color 0.25s;
-      &:hover {
-      background-color: #c1cbec;
-      svg {
-        transform: translate(5px, -5px);
-        transition: transform 0.25s;
-      }
-      }
-    `;
+          border: none;
+          padding: 0.5rem 0.75rem;
+          border-radius: 4px;
+          cursor: pointer;
+          gap: 0.5rem;
+          color: #1e1e1e;
+          background-color: #ebedf5;
+          border: 1px solid #505050;
+          transition: transform 0.25s, background-color 0.25s;
+          &:hover {
+            background-color: #c1cbec;
+            svg {
+              transform: translate(5px, -5px);
+              transition: transform 0.25s;
+            }
+          }
+        `;
 			case "link":
 				return css`
           color: blue;
@@ -56,7 +74,7 @@ const LinkStyle = styled.a<IStyle>`
             z-index: -1;
             width: 100%;
             height: 0%;
-            background: #ababde;
+            background: #e1e1ed;
             bottom: 0;
             left: 0;
             position: absolute;
@@ -76,7 +94,7 @@ const LinkStyle = styled.a<IStyle>`
 	}}
 `;
 
-type AnchorVariants = "button" | "link" | "text";
+type AnchorVariants = "button" | "link" | "text" | "secondary";
 
 interface Props {
 	link: string;

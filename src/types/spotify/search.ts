@@ -1,10 +1,10 @@
 export interface SearchResponse {
-	tracks: Array<Track>;
-	artists: Array<Artist>;
-	albums: Array<Album>;
+	tracks?: Array<Track>;
+	artists?: Array<Artist>;
+	albums?: Array<Album>;
 }
 
-interface Track {
+export interface Track {
 	album: Album;
 	artists: Array<Artist>;
 	available_markets: string[];

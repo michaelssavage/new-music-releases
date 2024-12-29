@@ -1,7 +1,8 @@
-import spotifyService from "../server/service/OLD spotify.sevice.ts";
+import { SpotifyService } from "../server/services/spotify.sevice.ts";
+
+const spotifyService = SpotifyService();
 
 (async () => {
-	const accessToken = await spotifyService.getAccessToken();
-	const artists = await spotifyService.getFollowedArtists(accessToken);
-	await spotifyService.overwriteArtists(artists);
+	const artists = await spotifyService.getFollowedArtists();
+	await spotifyService.resetArtists(artists);
 })();

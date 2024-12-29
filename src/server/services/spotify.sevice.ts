@@ -4,10 +4,12 @@ import axios, { type AxiosResponse } from "axios";
 import dotenv from "dotenv";
 import type {
 	ArtistAlbumsI,
-	ArtistI,
 	FollowedArtistsI,
 	NewReleasesI,
 } from "src/types/spotify.ts";
+import type { SpotifyPlaylistI } from "src/types/spotify/playlist.ts";
+import type { Artist, SearchResponse } from "src/types/spotify/search.ts";
+import type { PlaylistTracksI } from "src/types/spotify/tracks.ts";
 import { SPOTIFY_API_URL } from "src/utils/constants.ts";
 
 dotenv.config();
@@ -39,7 +41,7 @@ export function SpotifyService() {
 		await repository.disconnect();
 	}
 
-	async function getAuthToken() {
+	async function getAuthToken(): Promise<string> {
 		const token = await repository.getToken();
 		if (token && new Date(token.expires_at) > new Date()) {
 			return token.access_token;
@@ -64,7 +66,11 @@ export function SpotifyService() {
 		return data.access_token;
 	}
 
-	async function searchItem(query: string, type: Array<string>, limit: number) {
+	async function searchItem(
+		query: string,
+		type: Array<string>,
+		limit: number,
+	): Promise<SearchResponse> {
 		try {
 			const token = await getAuthToken();
 			const { data } = await axios.get(
@@ -77,11 +83,11 @@ export function SpotifyService() {
 			return data;
 		} catch (error: unknown) {
 			logError(error);
-			return { total: 0, items: [] };
+			return {};
 		}
 	}
 
-	async function fetchAndSaveArtists(artists: Array<ArtistI>) {
+	async function fetchAndSaveArtists(artists: Array<Artist>) {
 		try {
 			if (artists.length === 0) {
 				console.log("No artists to save.");
@@ -97,7 +103,7 @@ export function SpotifyService() {
 		}
 	}
 
-	async function resetArtists(artists: Array<ArtistI>) {
+	async function resetArtists(artists: Array<Artist>) {
 		try {
 			if (artists.length === 0) {
 				console.log("No artists to save after reset.");
@@ -116,7 +122,7 @@ export function SpotifyService() {
 	}
 
 	async function getFollowedArtists() {
-		let artists: Array<ArtistI> = [];
+		let artists: Array<Artist> = [];
 
 		try {
 			const token = await getAuthToken();
@@ -137,7 +143,13 @@ export function SpotifyService() {
 
 			console.log(`${artists} followed artists fetched from spotify.`);
 
-			return artists.map(({ id, name, uri }) => ({ id, name, uri }));
+			return artists.map(({ id, name, uri, external_urls, images }) => ({
+				id,
+				name,
+				uri,
+				url: external_urls.spotify,
+				images: images?.[0]?.url,
+			}));
 		} catch (error) {
 			logError(error);
 			return artists;
@@ -256,6 +268,7 @@ export function SpotifyService() {
 			return [];
 		}
 	}
+
 	async function addTracksToPlaylist(
 		playlistId: string,
 		trackUris: Array<string>,
@@ -276,11 +289,38 @@ export function SpotifyService() {
 
 			if (data.snapshot_id) {
 				console.log(`Added ${trackUris.length} tracks to playlist.`);
-				return data;
+				return { tracks: trackUris };
 			}
 
-			console.log(`Added ${data.length} tracks to playlist.`);
+			console.error("Failed to add tracks to playlist.");
 			return data;
+		} catch (error: unknown) {
+			logError(error);
+			return null;
+		}
+	}
+
+	async function updateSpotifyPlaylistReleases(playlist: SpotifyPlaylistI) {
+		try {
+			const newReleases: Array<NewReleasesI> = await fetchNewReleases();
+
+			if (newReleases.length === 0) {
+				console.log("No new releases found.");
+				return [];
+			}
+
+			const trackUris = (
+				await Promise.all(
+					newReleases.map(async ({ uri, id }) => {
+						if (uri.includes("album")) {
+							return await getAlbumTracks(id);
+						}
+						return uri;
+					}),
+				)
+			).flat();
+
+			return await addTracksToPlaylist(playlist.id, trackUris);
 		} catch (error: unknown) {
 			logError(error);
 			return null;
@@ -297,7 +337,7 @@ export function SpotifyService() {
 
 			const userId = userProfile.id;
 
-			const { data: playlist } = await axios.post(
+			const { data: playlist } = await axios.post<SpotifyPlaylistI>(
 				`${SPOTIFY_API_URL}/users/${userId}/playlists`,
 				{
 					name: "New Music Releases",
@@ -309,7 +349,7 @@ export function SpotifyService() {
 
 			console.log("Playlist created in Spotify:", playlist);
 
-			return { id: playlist.id, name: playlist.name };
+			return playlist;
 		} catch (error) {
 			logError(error);
 			return null;
@@ -327,9 +367,31 @@ export function SpotifyService() {
 			const newPlaylist = await createSpotifyPlaylist();
 
 			if (newPlaylist) {
-				await repository.createPlaylist(newPlaylist);
+				const res = await repository.createPlaylist(newPlaylist);
+				if (res.acknowledged) {
+					console.log("Playlist created in MongoDB:", newPlaylist.name);
+					return newPlaylist;
+				}
 			}
 			return null;
+		} catch (error) {
+			logError(error);
+			return null;
+		}
+	}
+
+	async function getSpotifyPlaylistItems(playlistId: string) {
+		try {
+			const token = await getAuthToken();
+
+			const { data: playlistItems } = await axios.get<PlaylistTracksI>(
+				`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				},
+			);
+
+			return playlistItems;
 		} catch (error) {
 			logError(error);
 			return null;
@@ -353,8 +415,10 @@ export function SpotifyService() {
 		getNewReleasesForArtist,
 		fetchNewReleases,
 		addTracksToPlaylist,
+		updateSpotifyPlaylistReleases,
 		// Playlist
 		createSpotifyPlaylist,
 		getSpotifyPlaylist,
+		getSpotifyPlaylistItems,
 	};
 }

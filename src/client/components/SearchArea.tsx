@@ -2,7 +2,7 @@ import { fetchSearchResults } from "@client/lib/Spotify/search.ts";
 import { getActiveTabKey } from "@client/utils/activeKeys.ts";
 import styled from "@emotion/styled";
 import { useMutation } from "@tanstack/react-query";
-import { type ChangeEvent, useState } from "react";
+import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 import Select, { type MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
 import type { SearchResponse } from "src/types/spotify/search.ts";
@@ -111,6 +111,10 @@ export const SearchArea = ({
 		},
 	});
 
+	const handleEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") handleClick();
+	};
+
 	const handleClick = () => {
 		mutate({ search, type: type.map((t) => t.value) });
 		refetchArtists();
@@ -120,7 +124,7 @@ export const SearchArea = ({
 
 	return (
 		<Wrapper>
-			<h1>New Music Releases</h1>
+			<h1>Track Artist Releases</h1>
 
 			<Group justify="flex-start" align="flex-end">
 				<Group direction="column" gap="0.2rem" align="flex-start">
@@ -130,6 +134,7 @@ export const SearchArea = ({
 						type="text"
 						placeholder="Search for an artist"
 						onChange={handleSearch}
+						onKeyDown={handleEnter}
 					/>
 				</Group>
 
