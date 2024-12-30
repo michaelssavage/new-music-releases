@@ -2,6 +2,7 @@ import { AlbumCard } from "@client/components/Card/Album.tsx";
 import { ArtistCard } from "@client/components/Card/Artist.tsx";
 import { TrackCard } from "@client/components/Card/Track.tsx";
 import { getSavedArtists } from "@client/lib/Spotify/artist.ts";
+import { requireAuth } from "@client/utils/isAuthenticated.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -17,6 +18,7 @@ const Content = styled.div`
 `;
 
 export const Route = createFileRoute("/")({
+	beforeLoad: async () => await requireAuth(),
 	component: App,
 });
 

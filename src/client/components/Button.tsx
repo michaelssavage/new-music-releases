@@ -57,6 +57,7 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 		}
 
 		return css`
+			color: #f5f5f5;
       background-color: #0cb57c;
 
       &:hover:not(:disabled) {

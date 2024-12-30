@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
 	type NextFunction,
@@ -11,6 +12,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api", spotifyRouter);

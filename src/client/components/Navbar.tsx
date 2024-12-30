@@ -5,9 +5,13 @@ import { useState } from "react";
 import { MenuIcon } from "./Icons/Menu.tsx";
 
 const NavbarContainer = styled.nav`
-  background-color: #8090c0;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
 
   @media (max-width: 768px) {
@@ -21,9 +25,9 @@ const NavbarContainer = styled.nav`
 const NavItems = styled.div<{ isOpen: boolean }>`
   background-color: #333;
   color: white;
-  padding: 1rem;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  margin-top: 0.4rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
   
   display: flex;
   flex-direction: row;
@@ -52,15 +56,17 @@ const NavLink = styled(Link, {
   ${({ isActive }) =>
 		isActive
 			? css`
-        color: #bababa;
+        color: white;
+        text-decoration: underline;
       `
 			: css`
-        color: white;
+        color: #bababa;
+        
+        &:hover {
+          transform: scale(1.1);
+        }
       `};
 
-  &:hover {
-    transform: scale(1.1);
-  }
 
   @media (max-width: 768px) {
     font-size: 1.2rem;

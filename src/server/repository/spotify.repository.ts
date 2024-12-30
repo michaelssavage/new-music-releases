@@ -5,7 +5,6 @@ import type { Artist } from "src/types/spotify/search.ts";
 export function SpotifyRepository(mongoUri: string) {
 	let client: MongoClient;
 	let db: Db;
-	let tokenDb: Collection;
 	let artistDb: Collection;
 	let playlistDb: Collection;
 
@@ -13,7 +12,6 @@ export function SpotifyRepository(mongoUri: string) {
 		client = new MongoClient(mongoUri);
 		await client.connect();
 		db = client.db("spotify");
-		tokenDb = db.collection("tokens");
 		artistDb = db.collection("saved_artists");
 		playlistDb = db.collection("playlist");
 		console.log("Connected to MongoDB.");
@@ -24,26 +22,6 @@ export function SpotifyRepository(mongoUri: string) {
 			await client.close();
 			console.log("Disconnected from MongoDB.");
 		}
-	}
-
-	async function getToken() {
-		return await tokenDb.findOne({});
-	}
-
-	async function setToken(expires_in: number, access_token: string) {
-		const expiresAt = new Date();
-		expiresAt.setSeconds(expiresAt.getSeconds() + expires_in);
-
-		return await tokenDb.updateOne(
-			{},
-			{
-				$set: {
-					access_token: access_token,
-					expires_at: expiresAt.toISOString(),
-				},
-			},
-			{ upsert: true },
-		);
 	}
 
 	async function fetchAndSaveArtists(artists: Array<Artist>) {
@@ -82,8 +60,6 @@ export function SpotifyRepository(mongoUri: string) {
 	return {
 		connect,
 		disconnect,
-		getToken,
-		setToken,
 		fetchAndSaveArtists,
 		resetArtists,
 		removeSavedArtist,

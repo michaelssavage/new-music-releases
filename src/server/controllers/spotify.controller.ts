@@ -1,4 +1,5 @@
 import { SpotifyService } from "@server/services/spotify.sevice.ts";
+import { getAuthorizationUrl } from "@server/utils/auth.ts";
 import type { Request, Response } from "express";
 import type { Artist } from "src/types/spotify/search.ts";
 import type { PlaylistTracksI } from "src/types/spotify/tracks.ts";
@@ -17,6 +18,8 @@ interface SaveQuery extends Request {
 	};
 }
 
+const { SPOTIFY_CLIENT_ID, REDIRECT_URI } = process.env;
+
 export function SpotifyController() {
 	const spotifyService = SpotifyService();
 
@@ -24,16 +27,84 @@ export function SpotifyController() {
 		console.error("Failed to initialize SpotifyService:", err);
 	});
 
+	async function loginHandler(_req: Request, res: Response): Promise<void> {
+		const url = getAuthorizationUrl(
+			REDIRECT_URI as string,
+			SPOTIFY_CLIENT_ID as string,
+		);
+		res.redirect(url);
+	}
+
+	async function callbackHandler(req: Request, res: Response): Promise<void> {
+		const code = req.query.code;
+
+		try {
+			const { access_token, refresh_token, frontend_uri } =
+				await spotifyService.getTokens(code as string);
+
+			res.redirect(
+				`${frontend_uri}/callback?access_token=${access_token}&refresh_token=${refresh_token}`,
+			);
+		} catch (error) {
+			console.error("Error fetching tokens:", error);
+			res.status(500).send("Authentication failed.");
+		}
+	}
+
+	async function refreshToken(req: Request, res: Response): Promise<void> {
+		const refresh_token = req.query.refresh_token as string;
+
+		if (!refresh_token) {
+			res.status(400).json({ error: "Missing refresh token" });
+			return;
+		}
+
+		try {
+			const response = await spotifyService.refreshToken(refresh_token);
+			res.json(response.data);
+		} catch (error) {
+			console.error("Error refreshing token:", error);
+			res.status(500).send("Failed to refresh token.");
+		}
+	}
+
+	async function validateToken(req: Request, res: Response): Promise<void> {
+		const token = req.headers.authorization?.split(" ")[1];
+
+		if (!token) {
+			res.status(400).json({ error: "Missing token" });
+			return;
+		}
+
+		try {
+			const response = await spotifyService.validateToken(token);
+			if (response.status === 200) {
+				res.sendStatus(200);
+			} else {
+				res.sendStatus(401);
+			}
+		} catch (error) {
+			res.status(401).json({ error: "Invalid token" });
+		}
+	}
+
 	async function searchHandler(req: SearchQuery, res: Response): Promise<void> {
 		const { q, type, limit } = req.query;
+		const { spotify_access_token } = req.headers;
 
 		if (!q || !type) {
 			res.status(400).json({ error: "Missing required parameters" });
 			return;
 		}
 
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+
 		try {
 			const data = await spotifyService.searchItem(
+				spotify_access_token as string,
 				q,
 				type.split(","),
 				Number(limit) || 10,
@@ -67,14 +138,23 @@ export function SpotifyController() {
 
 	async function getSingleArtist(req: Request, res: Response): Promise<void> {
 		const { id } = req.params;
+		const { spotify_access_token } = req.headers;
 
 		if (!id) {
 			res.status(400).json({ error: "No artist id provided to get artist" });
 			return;
 		}
 
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+
 		try {
-			const artist = await spotifyService.getSingleArtist(id as string);
+			const artist = await spotifyService.getSingleArtist(
+				spotify_access_token as string,
+				id as string,
+			);
 			res.json(artist);
 		} catch (error) {
 			console.error("Error retrieving artist:", error);
@@ -113,11 +193,20 @@ export function SpotifyController() {
 	}
 
 	async function getSpotifyPlaylist(
-		_req: Request,
+		req: Request,
 		res: Response,
 	): Promise<void> {
+		const { spotify_access_token } = req.headers;
+
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+
 		try {
-			const playlist = await spotifyService.getSpotifyPlaylist();
+			const playlist = await spotifyService.getSpotifyPlaylist(
+				spotify_access_token as string,
+			);
 
 			if (!playlist) {
 				res.status(404).json({ error: "No playlist found" });
@@ -125,6 +214,7 @@ export function SpotifyController() {
 			}
 
 			const playlistItems = await spotifyService.getSpotifyPlaylistItems(
+				spotify_access_token as string,
 				playlist.id,
 			);
 
@@ -141,18 +231,30 @@ export function SpotifyController() {
 	}
 
 	async function updateSpotifyPlaylistReleases(
-		_req: Request,
+		req: Request,
 		res: Response,
 	): Promise<void> {
+		const { spotify_access_token } = req.headers;
+
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+
 		try {
-			const playlist = await spotifyService.getSpotifyPlaylist();
+			const playlist = await spotifyService.getSpotifyPlaylist(
+				spotify_access_token as string,
+			);
 
 			if (!playlist) {
 				res.status(404).json({ error: "No playlist found" });
 				return;
 			}
 
-			const data = await spotifyService.updateSpotifyPlaylistReleases(playlist);
+			const data = await spotifyService.updateSpotifyPlaylistReleases(
+				spotify_access_token as string,
+				playlist,
+			);
 			res.json(data);
 		} catch (error) {
 			console.error("Error updating playlist releases:", error);
@@ -161,6 +263,10 @@ export function SpotifyController() {
 	}
 
 	return {
+		loginHandler,
+		callbackHandler,
+		refreshToken,
+		validateToken,
 		searchHandler,
 		fetchAndSaveArtists,
 		getSingleArtist,

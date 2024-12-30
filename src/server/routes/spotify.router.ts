@@ -4,6 +4,11 @@ import express from "express";
 const router = express.Router();
 const spotifyController = SpotifyController();
 
+router.get("/login", spotifyController.loginHandler);
+router.get("/callback", spotifyController.callbackHandler);
+router.get("/refresh", spotifyController.refreshToken);
+router.get("/validate-token", spotifyController.validateToken);
+
 router.get("/search", spotifyController.searchHandler);
 
 router.post("/save-artists", spotifyController.fetchAndSaveArtists);
