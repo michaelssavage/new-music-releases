@@ -30,6 +30,7 @@ const Artists = styled.p`
 	align-items: center;
 	> p {
 		padding: 0;
+		margin-right: 0.25rem;
 	}
 `;
 
@@ -86,7 +87,7 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 			<Content>
 				{artists?.length ? (
 					<Artists>
-						<p>Artists:</p>
+						<p>Artists: </p>
 						{artists.map((artist, index) => (
 							<>
 								<Button

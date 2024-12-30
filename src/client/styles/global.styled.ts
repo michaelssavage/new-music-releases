@@ -1,4 +1,5 @@
 import { css } from "@emotion/react";
+import styled from "@emotion/styled";
 import { resetStyles } from "./abstracts/reset.styled.ts";
 
 export const globalStyles = () => css`
@@ -30,4 +31,9 @@ export const globalStyles = () => css`
   h6 {
     text-wrap: balance;
   }
+`;
+
+export const Wrapper = styled.div<{ color?: string }>`
+  padding: 3rem 2rem;
+  background-color: ${({ color }) => color || "#8090c0"};
 `;

@@ -8,8 +8,21 @@ const NavBox = styled.div`
   background-color: #8090c0;
 `;
 
-const Wrapper = styled.div`
-  padding: 3rem 2rem;
+const Page = styled.div`
+  margin: 5rem auto 1rem;
+	max-width: 500px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 1rem;
+
+	h1, button {
+		font-size: 1.4rem;
+	}
+
+	button {
+		white-space: nowrap;
+	}
 `;
 
 export const Route = createFileRoute("/login")({
@@ -26,10 +39,15 @@ function Login() {
 		<div>
 			<NavBox />
 
-			<Wrapper>
-				<h1>Sign in to Spotify</h1>
-				<Button onClick={handleSignIn} text="Sign in" />
-			</Wrapper>
+			<Page>
+				<h1>
+					Add new music releases to a spotify playlist based on your saved
+					favourite artists.
+				</h1>
+				<div>
+					<Button onClick={handleSignIn} text="Sign in" />
+				</div>
+			</Page>
 		</div>
 	);
 }

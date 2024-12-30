@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { type KeyboardEvent, type ReactNode, useRef } from "react";
+import { type KeyboardEvent, type ReactNode, useEffect, useRef } from "react";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
 import { useTabs } from "../context/tabs.context.tsx";
 import { Loader } from "./Loader.tsx";
@@ -13,6 +13,7 @@ export interface Tab {
 
 interface TabsProps {
 	data: Tab[];
+	defaultTab?: string;
 	loading?: boolean;
 }
 
@@ -69,11 +70,16 @@ const Panel = styled.div`
   padding: 1.5rem 0rem;
 `;
 
-export const Tabs = ({ data, loading = false }: TabsProps) => {
+export const Tabs = ({ data, defaultTab, loading = false }: TabsProps) => {
 	const tabsRef = useRef<Array<null | HTMLButtonElement>>([]);
 	const nodeRef = useRef(null);
 
 	const { activeTab, setActiveTab } = useTabs();
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		if (defaultTab) setActiveTab(defaultTab);
+	}, [defaultTab]);
 
 	const onKeyDown = ({ code }: KeyboardEvent) => {
 		let index = data.findIndex(({ key }) => key === activeTab);

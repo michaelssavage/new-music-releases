@@ -7,7 +7,6 @@ const Content = styled.div``;
 const Text = styled.span``;
 
 const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
-	margin: 0.5rem 0;
 	padding: 0.5rem 0.75rem;
 	border-radius: 4px;
 	transition: all 0.2s ease-in-out;

@@ -79,12 +79,19 @@ const ArtistDetail = styled.div`
   }
 
 	img {
-		max-width: 500px;
+		max-width: 300px;
 	}
 
 	a {
 		margin-top: 1rem;
 	}
+`;
+
+const Content = styled.div`
+	display: flex;
+	flex-direction: column;
+	max-width: 500px;
+	gap: 1rem;
 `;
 
 export const ArtistTable = () => {
@@ -168,7 +175,7 @@ export const ArtistTable = () => {
 					<Button
 						onClick={() => handleAction({ isSaved, data: info.row.original })}
 						text={`${isSaved ? "Remove" : "Save"}`}
-						variant={isSaved ? "remove" : ""}
+						variant={isSaved ? "remove" : undefined}
 						loading={isSaved && (loadingSave || loadingRemove)}
 					/>
 				);
@@ -193,8 +200,17 @@ export const ArtistTable = () => {
 			return (
 				<ArtistDetail>
 					{image && <img src={image} alt={artistData.name} />}
-					<div>
-						<h2>{artistData.name}</h2>
+					<Content>
+						<Group>
+							<h2>{artistData.name}</h2>
+							{/* <Button
+								onClick={() => setArtistId(undefined)}
+								variant="ghost"
+								aria-label="Close Modal"
+								text="Close"
+								icon={<CloseIcon />}
+							/> */}
+						</Group>
 						<p>{artistData.followers.total.toLocaleString()} Followers</p>
 						<p>Genres: {artistData.genres.join(", ")}</p>
 
@@ -203,7 +219,7 @@ export const ArtistTable = () => {
 							text="Open in Spotify"
 							isExternal
 						/>
-					</div>
+					</Content>
 				</ArtistDetail>
 			);
 		}

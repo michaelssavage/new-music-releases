@@ -8,9 +8,8 @@ import {
 import Cookies from "js-cookie";
 import { useEffect } from "react";
 
-export const Wrapper = styled.div`
+export const Page = styled.div`
 	margin-top: 2rem;
-	padding: 2rem;
 `;
 
 export const Route = createFileRoute("/callback")({
@@ -40,9 +39,9 @@ function Callback() {
 	}, [navigate, searchParams]);
 
 	return (
-		<Wrapper>
+		<Page>
 			<Loader />
 			<h1>Processing authentication...</h1>
-		</Wrapper>
+		</Page>
 	);
 }

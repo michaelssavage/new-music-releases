@@ -35,7 +35,8 @@ const LinkStyle = styled.a<IStyle>`
           background-color: #1a6e63;
           transition: transform 0.25s, background-color 0.25s;
           &:hover {
-            background-color: #c1cbec;
+            color: #d2d4db;
+            background-color: #08433b;
             svg {
               transform: translate(5px, -5px);
               transition: transform 0.25s;

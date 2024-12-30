@@ -11,6 +11,7 @@ import {
 	getSpotifyPlaylist,
 	updateSpotifyPlaylistReleases,
 } from "@client/lib/Spotify/playlist.ts";
+import { Wrapper } from "@client/styles/global.styled.ts";
 import { requireAuth } from "@client/utils/isAuthenticated.ts";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -22,11 +23,6 @@ export const Route = createFileRoute("/releases")({
 	beforeLoad: async () => await requireAuth(),
 	component: Releases,
 });
-
-const Wrapper = styled.div`
-  padding: 3rem 2rem;
-  background-color: #8090c0;
-`;
 
 const Content = styled.div`
   padding: 2rem;
@@ -60,11 +56,29 @@ function Releases() {
 			key: "playlist",
 			tab: "Playlist Updates",
 			panel: (
-				<Panel title="New releases" show>
+				<Panel title="New releases" direction="column">
+					<Group justify="center" width="100%">
+						<Button
+							onClick={mutate}
+							text="Fetch new releases"
+							variant="secondary"
+							loading={isPending}
+						/>
+
+						{data?.playlist && (
+							<Anchor
+								link={data?.playlist.external_urls.spotify}
+								text="Open playlist"
+								variant="secondary"
+								isExternal
+							/>
+						)}
+					</Group>
+
 					{data ? (
 						<PlaylistTable tracks={data?.playlistItems.items} />
 					) : (
-						<TrackTable />
+						<p>No tracks found</p>
 					)}
 				</Panel>
 			),
@@ -73,7 +87,7 @@ function Releases() {
 			key: "artists",
 			tab: "Saved Artists",
 			panel: (
-				<Panel show>
+				<Panel>
 					<ArtistTable />
 				</Panel>
 			),
@@ -82,7 +96,7 @@ function Releases() {
 			key: "liked",
 			tab: "Liked Songs",
 			panel: (
-				<Panel show>
+				<Panel>
 					<TrackTable />
 				</Panel>
 			),
@@ -91,30 +105,10 @@ function Releases() {
 
 	return (
 		<div>
-			<Wrapper>
-				<h1>New Releases</h1>
-
-				<Group justify="flex-start">
-					<Button
-						onClick={mutate}
-						text="Fetch new releases"
-						variant="secondary"
-						loading={isPending}
-					/>
-
-					{data?.playlist && (
-						<Anchor
-							link={data?.playlist.external_urls.spotify}
-							text="Open playlist"
-							variant="secondary"
-							isExternal
-						/>
-					)}
-				</Group>
-			</Wrapper>
+			<Wrapper color="#1ed4b6" />
 
 			<Content>
-				<Tabs data={tabs} />
+				<Tabs data={tabs} defaultTab="playlist" />
 			</Content>
 		</div>
 	);

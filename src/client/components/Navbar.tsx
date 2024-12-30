@@ -27,7 +27,7 @@ const NavbarContainer = styled.nav`
 const NavItems = styled.div<{ isOpen: boolean }>`
   background-color: #333;
   color: white;
-  margin-top: 0.4rem;
+  margin-top: 1rem;
   padding: 0.75rem 1rem;
   border-radius: 10px;
   

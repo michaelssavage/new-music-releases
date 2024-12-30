@@ -54,20 +54,6 @@ const Field = styled.div`
   font-weight: 500;
 `;
 
-const LoadMoreButton = styled.button`
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background: #4338ca;
-  }
-`;
-
 const ArtistBtn = styled.div`
   flex-wrap: nowrap;
   display: flex;
@@ -131,11 +117,6 @@ export const TrackTable = () => {
 	};
 
 	const columns = [
-		columnHelper.accessor((row) => row.track.name, {
-			id: "trackName",
-			header: "Track Name",
-			cell: (info) => <Field>{info.getValue()}</Field>,
-		}),
 		columnHelper.accessor((row) => row.track.artists, {
 			id: "artists",
 			header: "Artists",
@@ -153,6 +134,11 @@ export const TrackTable = () => {
 					))}
 				</Group>
 			),
+		}),
+		columnHelper.accessor((row) => row.track.name, {
+			id: "trackName",
+			header: "Track Name",
+			cell: (info) => <Field>{info.getValue()}</Field>,
 		}),
 		columnHelper.accessor((row) => row.track.album.name, {
 			id: "albumName",
@@ -222,9 +208,11 @@ export const TrackTable = () => {
 					</table>
 				</TableWrapper>
 				{nextUrl && (
-					<LoadMoreButton onClick={loadMoreTracks} disabled={isLoadingMore}>
-						{isLoadingMore ? "Loading..." : "Load More"}
-					</LoadMoreButton>
+					<Button
+						onClick={loadMoreTracks}
+						text={isLoadingMore ? "Loading..." : "Load More"}
+						disabled={isLoadingMore}
+					/>
 				)}
 			</TableContainer>
 

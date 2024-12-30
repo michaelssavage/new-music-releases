@@ -8,7 +8,7 @@ export interface PlaylistTracksI {
 	items: ShowItem[];
 }
 
-interface ShowItem {
+export interface ShowItem {
 	added_at: string;
 	added_by: {
 		external_urls: {

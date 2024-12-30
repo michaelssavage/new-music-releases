@@ -26,6 +26,7 @@ export const Content = styled.div`
 
 export const Fact = styled.p`
   font-size: 1rem;
+  padding: 0 0.5rem;
   margin: 0.25rem 0;
 `;
 

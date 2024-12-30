@@ -65,7 +65,7 @@ export const ArtistCard = ({
 				<Group>
 					<Button
 						onClick={handleAction}
-						variant={isSaved ? "remove" : ""}
+						variant={isSaved ? "remove" : undefined}
 						text={`${isSaved ? "Remove" : "Save"} Artist`}
 						loading={loadingSave || loadingRemove}
 					/>
