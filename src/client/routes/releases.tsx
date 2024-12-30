@@ -5,8 +5,8 @@ import { Info } from "@client/components/InfoToast.tsx";
 import { Panel } from "@client/components/Panel.tsx";
 import { ArtistTable } from "@client/components/Table/Artist.tsx";
 import { PlaylistTable } from "@client/components/Table/Playlist.tsx";
+import { TrackTable } from "@client/components/Table/Track.tsx";
 import { type Tab, Tabs } from "@client/components/Tabs.tsx";
-import { getSavedArtists } from "@client/lib/Spotify/artist.ts";
 import {
 	getSpotifyPlaylist,
 	updateSpotifyPlaylistReleases,
@@ -33,13 +33,7 @@ const Content = styled.div`
 `;
 
 function Releases() {
-	const { data: artistIds = [], refetch: refetchSavedArtists } = useQuery({
-		queryKey: ["savedArtists"],
-		queryFn: getSavedArtists,
-		refetchOnWindowFocus: false,
-	});
-
-	const { data: spotifyPlaylist, refetch } = useQuery<SpotifyDataProps | null>({
+	const { data, refetch } = useQuery<SpotifyDataProps | null>({
 		queryKey: ["playlist"],
 		queryFn: getSpotifyPlaylist,
 		refetchOnWindowFocus: false,
@@ -48,7 +42,7 @@ function Releases() {
 	const { isPending, mutate } = useMutation({
 		mutationFn: updateSpotifyPlaylistReleases,
 		onSuccess: ({ tracks }) => {
-			if (tracks.length > 0) {
+			if (Array.isArray(tracks) && tracks?.length > 0) {
 				toast.success("Fetched new playlist releases");
 				refetch();
 			} else {
@@ -61,29 +55,35 @@ function Releases() {
 		},
 	});
 
-	const data: Array<Tab> = [
+	const tabs: Array<Tab> = [
+		{
+			key: "playlist",
+			tab: "Playlist Updates",
+			panel: (
+				<Panel title="New releases" show>
+					{data ? (
+						<PlaylistTable tracks={data?.playlistItems.items} />
+					) : (
+						<TrackTable />
+					)}
+				</Panel>
+			),
+		},
 		{
 			key: "artists",
 			tab: "Saved Artists",
 			panel: (
 				<Panel show>
-					<ArtistTable
-						data={artistIds}
-						refetchSavedArtists={refetchSavedArtists}
-					/>
+					<ArtistTable />
 				</Panel>
 			),
 		},
 		{
-			key: "playlist",
-			tab: "Saved Playlist",
+			key: "liked",
+			tab: "Liked Songs",
 			panel: (
-				<Panel title="Saved Playlist" show>
-					{spotifyPlaylist ? (
-						<PlaylistTable tracks={spotifyPlaylist?.playlistItems.items} />
-					) : (
-						<p>No tracks found</p>
-					)}
+				<Panel show>
+					<TrackTable />
 				</Panel>
 			),
 		},
@@ -102,9 +102,9 @@ function Releases() {
 						loading={isPending}
 					/>
 
-					{spotifyPlaylist?.playlist && (
+					{data?.playlist && (
 						<Anchor
-							link={spotifyPlaylist?.playlist.external_urls.spotify}
+							link={data?.playlist.external_urls.spotify}
 							text="Open playlist"
 							variant="secondary"
 							isExternal
@@ -114,7 +114,7 @@ function Releases() {
 			</Wrapper>
 
 			<Content>
-				<Tabs data={data} />
+				<Tabs data={tabs} />
 			</Content>
 		</div>
 	);

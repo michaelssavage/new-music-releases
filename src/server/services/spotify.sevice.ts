@@ -105,6 +105,18 @@ export function SpotifyService() {
 		return data;
 	}
 
+	async function getSavedTracks(token: string) {
+		const { data } = await axios.get(`${SPOTIFY_API_URL}/me/tracks`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+
+		console.log("Saved tracks fetched from Spotify.", data);
+		if (!data) {
+			createHttpError(404, "No saved tracks found.");
+		}
+		return data;
+	}
+
 	async function fetchAndSaveArtists(artists: Array<Artist>) {
 		if (artists.length === 0) {
 			console.log("No artists to save.");
@@ -348,6 +360,7 @@ export function SpotifyService() {
 		refreshToken,
 		validateToken,
 		searchItem,
+		getSavedTracks,
 		// Artists
 		getFollowedArtists,
 		fetchAndSaveArtists,

@@ -1,3 +1,5 @@
+import { Loader } from "@client/components/Loader.tsx";
+import styled from "@emotion/styled";
 import {
 	createFileRoute,
 	useNavigate,
@@ -6,6 +8,11 @@ import {
 import Cookies from "js-cookie";
 import { useEffect } from "react";
 
+export const Wrapper = styled.div`
+	margin-top: 2rem;
+	padding: 2rem;
+`;
+
 export const Route = createFileRoute("/callback")({
 	component: Callback,
 });
@@ -13,8 +20,6 @@ export const Route = createFileRoute("/callback")({
 function Callback() {
 	const navigate = useNavigate();
 	const searchParams = useSearch({ from: Route.fullPath });
-
-	console.log("searchParams", searchParams);
 
 	useEffect(() => {
 		const accessToken = searchParams.access_token;
@@ -34,5 +39,10 @@ function Callback() {
 		}
 	}, [navigate, searchParams]);
 
-	return <div>Processing authentication...</div>;
+	return (
+		<Wrapper>
+			<Loader />
+			<h1>Processing authentication...</h1>
+		</Wrapper>
+	);
 }

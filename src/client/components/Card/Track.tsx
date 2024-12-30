@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import type { Artist, Track } from "src/types/spotify/search.ts";
 import noPhoto from "../../assets/no-photo.jpg";
+import { Button } from "../Button.tsx";
 import { Loader } from "../Loader.tsx";
 import { Modal } from "../Modal.tsx";
 import { ArtistCard } from "./Artist.tsx";
@@ -29,17 +30,6 @@ const Artists = styled.p`
 	align-items: center;
 	> p {
 		padding: 0;
-	}
-	> button {
-		color: #1ed4b6;
-		text-decoration: underline #1ed4b6 2px;
-		border: none;
-		background-color: transparent;
-
-		&:hover {
-			color: #0d6153;
-			text-decoration: underline #0d6153 2px;
-		}
 	}
 `;
 
@@ -99,13 +89,12 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 						<p>Artists:</p>
 						{artists.map((artist, index) => (
 							<>
-								<button
+								<Button
 									key={artist.id}
-									type="button"
+									variant="link"
 									onClick={() => handleArtistClick(artist.id)}
-								>
-									{artist.name}
-								</button>
+									text={artist.name}
+								/>
 								{index < artists.length - 1 && ", "}
 							</>
 						))}

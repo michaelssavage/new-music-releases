@@ -11,6 +11,8 @@ router.get("/validate-token", spotifyController.validateToken);
 
 router.get("/search", spotifyController.searchHandler);
 
+router.get("/saved-tracks", spotifyController.getSavedTracks);
+
 router.post("/save-artists", spotifyController.fetchAndSaveArtists);
 router.get("/get-artist/:id", spotifyController.getSingleArtist);
 router.get("/get-artists", spotifyController.getAllArtistsIds);

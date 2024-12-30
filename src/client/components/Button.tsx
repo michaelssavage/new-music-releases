@@ -37,6 +37,20 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 				`;
 		}
 
+		if (variant === "link") {
+			return css`
+				color: #2650f6;
+				background-color: transparent;
+				padding: 0;
+				margin: 0;
+
+				&:hover:not(:disabled) {
+					color: #1945e3;
+					text-decoration: underline;
+				}
+			`;
+		}
+
 		if (variant === "ghost") {
 			return css`
         color: #1e1e1e;
@@ -101,7 +115,7 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 
 interface Props {
 	onClick: () => void;
-	variant?: string;
+	variant?: "primary" | "secondary" | "remove" | "link" | "ghost";
 	type?: "button" | "submit" | "reset";
 	text?: string;
 	icon?: ReactNode;

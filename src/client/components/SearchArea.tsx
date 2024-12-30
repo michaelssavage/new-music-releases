@@ -26,7 +26,7 @@ const TextInput = styled.input`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  min-height: 38px;
+  max-height: 38px;
   outline: 0 !important;
   background-color: hsl(0, 0%, 100%);
   border-color: hsl(0, 0%, 80%);

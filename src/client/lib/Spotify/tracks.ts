@@ -1,22 +1,18 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import type { SpotifyDataProps } from "src/types/spotify.ts";
 
-export const getSpotifyPlaylist = async () => {
+export const getUserTracks = async () => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
 	try {
-		const res = await axios.get<SpotifyDataProps>(
-			"http://localhost:5000/api/get-playlist",
-			{
-				headers: { spotify_access_token },
-			},
-		);
+		const res = await axios.get("http://localhost:5000/api/saved-tracks", {
+			headers: { spotify_access_token },
+		});
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			console.error(
-				"Failed to get playlist:",
+				"Failed to get user tracks:",
 				error.response?.data || error.message,
 			);
 		} else {
@@ -26,21 +22,21 @@ export const getSpotifyPlaylist = async () => {
 	}
 };
 
-export const updateSpotifyPlaylistReleases = async () => {
+export const getNextTracks = async (nextUrl: string) => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
 	try {
-		const res = await axios.get(
-			"http://localhost:5000/api/update-playlist-releases",
-			{
-				headers: { spotify_access_token },
+		const res = await axios.get(nextUrl, {
+			headers: {
+				Authorization: `Bearer ${spotify_access_token}`,
 			},
-		);
+		});
+
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			console.error(
-				"Failed to get spotify playlist releases:",
+				"Failed to get next tracks:",
 				error.response?.data || error.message,
 			);
 		} else {

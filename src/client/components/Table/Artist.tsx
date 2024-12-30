@@ -1,5 +1,6 @@
 import {
 	getArtist,
+	getSavedArtists,
 	removeArtist,
 	saveArtist,
 } from "@client/lib/Spotify/artist.ts";
@@ -14,14 +15,10 @@ import {
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import type { Artist } from "src/types/spotify/search.ts";
+import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";
 import { Group } from "../Group.tsx";
 import { Loader } from "../Loader.tsx";
-
-interface ArtistProps {
-	data: Array<Artist>;
-	refetchSavedArtists: () => void;
-}
 
 const TableContainer = styled.div`
   background: white;
@@ -68,10 +65,38 @@ const ArtistName = styled.div`
   font-weight: 500;
 `;
 
-export const ArtistTable = ({ data, refetchSavedArtists }: ArtistProps) => {
+const ArtistDetail = styled.div`
+	position: sticky;
+	top: 2rem;
+
+	display: flex;
+	flex-direction: row;
+	gap: 1rem;
+	
+
+  @media (max-width: 768px) {
+		flex-direction: column;
+  }
+
+	img {
+		max-width: 500px;
+	}
+
+	a {
+		margin-top: 1rem;
+	}
+`;
+
+export const ArtistTable = () => {
 	const columnHelper = createColumnHelper<Artist>();
 	const [artistId, setArtistId] = useState<string>();
 	const [removedArtists, setRemovedArtists] = useState<string[]>([]);
+
+	const { data = [], refetch: refetchSavedArtists } = useQuery({
+		queryKey: ["savedArtists"],
+		queryFn: getSavedArtists,
+		refetchOnWindowFocus: false,
+	});
 
 	const {
 		data: artistData,
@@ -162,16 +187,24 @@ export const ArtistTable = ({ data, refetchSavedArtists }: ArtistProps) => {
 
 		if (isError) return <div>Couldn't fetch artist details</div>;
 
-		const image = artistData?.images?.[0]?.url;
-
 		if (artistData) {
+			const image = artistData?.images?.[0]?.url;
+
 			return (
-				<div>
+				<ArtistDetail>
 					{image && <img src={image} alt={artistData.name} />}
-					<h2>{artistData.name}</h2>
-					<p>{artistData.followers.total.toLocaleString()} Followers</p>
-					<p>Genres: {artistData.genres.join(", ")}</p>
-				</div>
+					<div>
+						<h2>{artistData.name}</h2>
+						<p>{artistData.followers.total.toLocaleString()} Followers</p>
+						<p>Genres: {artistData.genres.join(", ")}</p>
+
+						<Anchor
+							link={artistData.external_urls.spotify}
+							text="Open in Spotify"
+							isExternal
+						/>
+					</div>
+				</ArtistDetail>
 			);
 		}
 	};

@@ -9,6 +9,7 @@ const NavbarContainer = styled.nav`
   top: 0;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 100;
 
   display: flex;
   justify-content: center;
@@ -16,6 +17,7 @@ const NavbarContainer = styled.nav`
 
   @media (max-width: 768px) {
     padding: 1rem;
+    position: static;
     flex-direction: column;
     align-items: flex-start;
     background-color: #333;
@@ -91,8 +93,8 @@ const Menu = styled(MenuIcon)`
 `;
 
 const navItems = [
-	{ label: "Releases", link: "/releases" },
 	{ label: "Search", link: "/" },
+	{ label: "Releases", link: "/releases" },
 ];
 
 export const Navbar = () => {

@@ -116,6 +116,24 @@ export function SpotifyController() {
 		}
 	}
 
+	async function getSavedTracks(req: Request, res: Response): Promise<void> {
+		const { spotify_access_token } = req.headers;
+
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+		try {
+			const tracks = await spotifyService.getSavedTracks(
+				spotify_access_token as string,
+			);
+			res.json(tracks);
+		} catch (error) {
+			console.error("Error retrieving saved tracks:", error);
+			res.status(500).json({ error: "Failed to retrieve saved tracks" });
+		}
+	}
+
 	async function fetchAndSaveArtists(
 		req: SaveQuery,
 		res: Response,
@@ -267,7 +285,9 @@ export function SpotifyController() {
 		callbackHandler,
 		refreshToken,
 		validateToken,
+
 		searchHandler,
+		getSavedTracks,
 		fetchAndSaveArtists,
 		getSingleArtist,
 		getAllArtistsIds,

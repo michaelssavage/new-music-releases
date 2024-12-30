@@ -1,7 +1,8 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 import type { Artist } from "src/types/spotify/search.ts";
 
-export const saveArtist = async (data: Artist) => {
+export const saveArtist = async (data: Pick<Artist, "name" | "id" | "uri">) => {
 	try {
 		console.log(`Saving ${data.name}`, data);
 		return await axios.post("http://localhost:5000/api/save-artists", {
@@ -19,7 +20,10 @@ export const saveArtist = async (data: Artist) => {
 	}
 };
 
-export const removeArtist = async ({ name, id }: Omit<Artist, "uri">) => {
+export const removeArtist = async ({
+	name,
+	id,
+}: Pick<Artist, "name" | "id">) => {
 	try {
 		console.log(`Removing Artist ${name} with id ${id}`);
 		await axios.delete(`http://localhost:5000/api/remove-artist/${id}`);
@@ -37,9 +41,14 @@ export const removeArtist = async ({ name, id }: Omit<Artist, "uri">) => {
 };
 
 export const getArtist = async (id?: string) => {
+	const spotify_access_token = Cookies.get("spotify_access_token");
+
 	try {
 		const res = await axios.get<Artist>(
 			`http://localhost:5000/api/get-artist/${id}`,
+			{
+				headers: { spotify_access_token },
+			},
 		);
 		return res.data;
 	} catch (error) {
