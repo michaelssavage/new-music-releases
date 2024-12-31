@@ -16,13 +16,6 @@ const NavbarContainer = styled.nav`
   justify-content: center;
   align-items: center;
 
-  @media (max-width: 768px) {
-    padding: 1rem;
-    position: static;
-    flex-direction: column;
-    align-items: flex-start;
-    background-color: #333;
-  }
 `;
 
 const NavItems = styled.div<{ isOpen: boolean }>`
@@ -37,16 +30,6 @@ const NavItems = styled.div<{ isOpen: boolean }>`
   align-items: center;
   gap: 2rem;
 
-  @media (max-width: 768px) {
-    padding: 0;
-    flex-direction: column;
-    border-radius: 0;
-    width: 100%;
-    max-height: ${({ isOpen }) => (isOpen ? "500px" : "0")};
-    opacity: ${({ isOpen }) => (isOpen ? "1" : "0")};
-    overflow: hidden;
-    transition: all 0.3s ease-in-out;
-  }
 `;
 
 const NavLink = styled(Link)<{ isOpen: boolean; isActive: boolean }>`
@@ -68,26 +51,10 @@ const NavLink = styled(Link)<{ isOpen: boolean; isActive: boolean }>`
           }
         `};
 
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-    padding: 10px;
-    opacity: ${({ isOpen }) => (isOpen ? "1" : "0")};
-    transform: translateY(${({ isOpen }) => (isOpen ? "0" : "-20px")});
-    transition: opacity 0.3s ease, transform 0.3s ease;
-
-    &:hover {
-      color: #c5cccb;
-    }
-  }
 `;
 
 const Menu = styled(MenuIcon)`
   display: none;
-
-  @media (max-width: 768px) {
-    display: block;
-    cursor: pointer;
-  }
 `;
 
 const LogoutButton = styled.button`
@@ -99,14 +66,6 @@ const LogoutButton = styled.button`
 
   &:hover {
     color: white;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-    padding: 10px;
-    opacity: ${({ isOpen }: { isOpen: boolean }) => (isOpen ? "1" : "0")};
-    transform: translateY(${({ isOpen }: { isOpen: boolean }) => (isOpen ? "0" : "-20px")});
-    transition: opacity 0.3s ease, transform 0.3s ease;
   }
 `;
 
@@ -142,9 +101,7 @@ export const Navbar = () => {
 					</NavLink>
 				))}
 				{isAuthenticated && (
-					<LogoutButton isOpen={isOpen} onClick={handleLogout}>
-						Logout
-					</LogoutButton>
+					<LogoutButton onClick={handleLogout}>Logout</LogoutButton>
 				)}
 			</NavItems>
 		</NavbarContainer>
