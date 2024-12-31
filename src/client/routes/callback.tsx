@@ -1,11 +1,11 @@
 import { Loader } from "@client/components/Loader.tsx";
+import { useAuthStore } from "@client/store/authStore.ts";
 import styled from "@emotion/styled";
 import {
 	createFileRoute,
 	useNavigate,
 	useSearch,
 } from "@tanstack/react-router";
-import Cookies from "js-cookie";
 import { useEffect } from "react";
 
 export const Page = styled.div`
@@ -19,24 +19,17 @@ export const Route = createFileRoute("/callback")({
 function Callback() {
 	const navigate = useNavigate();
 	const searchParams = useSearch({ from: Route.fullPath });
+	const { login } = useAuthStore();
 
 	useEffect(() => {
 		const accessToken = searchParams.access_token;
 		const refreshToken = searchParams.refresh_token;
 
 		if (accessToken && refreshToken) {
-			Cookies.set("spotify_access_token", accessToken, {
-				secure: true,
-				sameSite: "Strict",
-			});
-			Cookies.set("spotify_refresh_token", refreshToken, {
-				secure: true,
-				sameSite: "Strict",
-			});
-
+			login(accessToken, refreshToken);
 			navigate({ to: "/" });
 		}
-	}, [navigate, searchParams]);
+	}, [navigate, login, searchParams]);
 
 	return (
 		<Page>

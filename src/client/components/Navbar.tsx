@@ -1,7 +1,8 @@
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { Link, useMatchRoute } from "@tanstack/react-router";
+import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useAuthStore } from "../store/authStore.ts";
 import { MenuIcon } from "./Icons/Menu.tsx";
 
 const NavbarContainer = styled.nav`
@@ -48,27 +49,24 @@ const NavItems = styled.div<{ isOpen: boolean }>`
   }
 `;
 
-const NavLink = styled(Link, {
-	shouldForwardProp: (prop) => prop !== "isOpen" && prop !== "isActive",
-})<{ isOpen: boolean; isActive: boolean }>`
+const NavLink = styled(Link)<{ isOpen: boolean; isActive: boolean }>`
   text-decoration: none;
   font-size: 1.4rem;
   transition: transform 0.3s ease;
-    
+
   ${({ isActive }) =>
 		isActive
 			? css`
-        color: white;
-        text-decoration: underline;
-      `
+          color: white;
+          text-decoration: underline;
+        `
 			: css`
-        color: #bababa;
-        
-        &:hover {
-          transform: scale(1.1);
-        }
-      `};
+          color: #bababa;
 
+          &:hover {
+            transform: scale(1.1);
+          }
+        `};
 
   @media (max-width: 768px) {
     font-size: 1.2rem;
@@ -92,14 +90,41 @@ const Menu = styled(MenuIcon)`
   }
 `;
 
+const LogoutButton = styled.button`
+  background: none;
+  border: none;
+  color: #bababa;
+  font-size: 1.4rem;
+  cursor: pointer;
+
+  &:hover {
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    padding: 10px;
+    opacity: ${({ isOpen }: { isOpen: boolean }) => (isOpen ? "1" : "0")};
+    transform: translateY(${({ isOpen }: { isOpen: boolean }) => (isOpen ? "0" : "-20px")});
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+`;
+
 const navItems = [
 	{ label: "Search", link: "/" },
 	{ label: "Releases", link: "/releases" },
 ];
 
 export const Navbar = () => {
+	const navigate = useNavigate();
 	const [isOpen, setIsOpen] = useState(false);
 	const matchRoute = useMatchRoute();
+	const { isAuthenticated, logout } = useAuthStore();
+
+	const handleLogout = () => {
+		logout();
+		navigate({ to: "/login" });
+	};
 
 	return (
 		<NavbarContainer>
@@ -116,6 +141,11 @@ export const Navbar = () => {
 						{label}
 					</NavLink>
 				))}
+				{isAuthenticated && (
+					<LogoutButton isOpen={isOpen} onClick={handleLogout}>
+						Logout
+					</LogoutButton>
+				)}
 			</NavItems>
 		</NavbarContainer>
 	);

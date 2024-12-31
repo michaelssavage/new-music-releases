@@ -13,3 +13,7 @@ Backend (scripts at the moment but want to make a [CSR pattern](https://devtut.g
 - Get new releases if released that day
 
 Vite / React / Typescript / Express/ MongoDB
+
+TODO:
+
+- store refresh token for CRON Job to call update playlist every day.

@@ -61,7 +61,13 @@ export function SpotifyController() {
 
 		try {
 			const response = await spotifyService.refreshToken(refresh_token);
-			res.json(response.data);
+			const { access_token } = response.data;
+
+			if (access_token) {
+				res.json({ access_token });
+			} else {
+				res.status(500).json({ error: "Failed to refresh token" });
+			}
 		} catch (error) {
 			console.error("Error refreshing token:", error);
 			res.status(500).send("Failed to refresh token.");

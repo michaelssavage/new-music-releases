@@ -12,7 +12,7 @@ import {
 	updateSpotifyPlaylistReleases,
 } from "@client/lib/Spotify/playlist.ts";
 import { Wrapper } from "@client/styles/global.styled.ts";
-import { requireAuth } from "@client/utils/isAuthenticated.ts";
+import { requireAuth } from "@client/utils/auth.ts";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";

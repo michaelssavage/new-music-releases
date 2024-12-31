@@ -1,5 +1,5 @@
 import { Button } from "@client/components/Button.tsx";
-import { requireUnauth } from "@client/utils/isAuthenticated.ts";
+import { requireUnauth } from "@client/utils/auth.ts";
 import styled from "@emotion/styled";
 import { createFileRoute } from "@tanstack/react-router";
 
