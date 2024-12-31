@@ -1,3 +1,4 @@
+import { displayDate } from "@client/utils/dates.ts";
 import styled from "@emotion/styled";
 import {
 	type SortingFn,
@@ -11,6 +12,7 @@ import {
 import { useState } from "react";
 import type { ShowItem } from "src/types/spotify/tracks.ts";
 import { Anchor } from "../Anchor.tsx";
+import { SpotifyIcon } from "../Icons/Spotify.tsx";
 
 interface PlaylistTableProps {
 	tracks: Array<ShowItem>;
@@ -62,23 +64,6 @@ const TableHeader = styled.button`
 	align-items: center;
 `;
 
-const displayDate = (val: string) => {
-	const date = new Date(val);
-	const today = new Date();
-	const isToday =
-		date.getDate() === today.getDate() &&
-		date.getMonth() === today.getMonth() &&
-		date.getFullYear() === today.getFullYear();
-
-	const formatter = new Intl.DateTimeFormat("en-GB", {
-		day: "2-digit",
-		month: "short",
-		year: "numeric",
-	});
-
-	return <span>{isToday ? "Today" : formatter.format(date)}</span>;
-};
-
 const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
 	const dateA = new Date(rowA.original.added_at).getTime();
 	const dateB = new Date(rowB.original.added_at).getTime();
@@ -111,7 +96,7 @@ export const PlaylistTable = ({ tracks }: PlaylistTableProps) => {
 		columnHelper.accessor((row) => row.added_at, {
 			id: "added_at",
 			header: "Date Added",
-			cell: (info) => displayDate(info.getValue()),
+			cell: (info) => <span>{displayDate(info.getValue())}</span>,
 			sortingFn: sortDateFn,
 		}),
 		columnHelper.display({
@@ -120,8 +105,9 @@ export const PlaylistTable = ({ tracks }: PlaylistTableProps) => {
 			cell: (info) => (
 				<Anchor
 					link={info.row.original.track.external_urls.spotify}
-					text="Open in Spotify"
+					text="Open"
 					variant="link"
+					icon={<SpotifyIcon />}
 					isExternal
 				/>
 			),

@@ -1,6 +1,7 @@
 import { Anchor } from "@client/components/Anchor.tsx";
 import { Button } from "@client/components/Button.tsx";
 import { Group } from "@client/components/Group.tsx";
+import { SpotifyIcon } from "@client/components/Icons/Spotify.tsx";
 import { Info } from "@client/components/InfoToast.tsx";
 import { Panel } from "@client/components/Panel.tsx";
 import { ArtistTable } from "@client/components/Table/Artist.tsx";
@@ -70,6 +71,7 @@ function Releases() {
 								link={data?.playlist.external_urls.spotify}
 								text="Open playlist"
 								variant="secondary"
+								icon={<SpotifyIcon />}
 								isExternal
 							/>
 						)}

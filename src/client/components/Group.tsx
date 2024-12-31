@@ -2,7 +2,12 @@ import styled from "@emotion/styled";
 
 interface GroupI {
 	direction?: "row" | "column" | "row-reverse" | "column-reverse";
-	justify?: "flex-start" | "center" | "flex-end";
+	justify?:
+		| "flex-start"
+		| "center"
+		| "flex-end"
+		| "space-between"
+		| "space-around";
 	align?: "flex-start" | "center" | "flex-end";
 	gap?: string;
 	width?: string;

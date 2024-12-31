@@ -33,14 +33,10 @@ const LinkStyle = styled.a<IStyle>`
           gap: 0.5rem;
           color: #ebedf5;
           background-color: #1a6e63;
-          transition: transform 0.25s, background-color 0.25s;
+          transition: background-color 0.25s;
           &:hover {
             color: #d2d4db;
             background-color: #08433b;
-            svg {
-              transform: translate(5px, -5px);
-              transition: transform 0.25s;
-            }
           }
         `;
 			case "button":
@@ -53,40 +49,20 @@ const LinkStyle = styled.a<IStyle>`
           color: #1e1e1e;
           background-color: #ebedf5;
           border: 1px solid #505050;
-          transition: transform 0.25s, background-color 0.25s;
+          transition: background-color 0.25s;
           &:hover {
             background-color: #c1cbec;
-            svg {
-              transform: translate(5px, -5px);
-              transition: transform 0.25s;
-            }
           }
         `;
 			case "link":
 				return css`
           color: blue;
-          text-decoration: underline;
           text-decoration-color: blue;
           position: relative;
           transition: all 0.25s;
           z-index: 4;
-          &:before {
-            content: "";
-            z-index: -1;
-            width: 100%;
-            height: 0%;
-            background: #e1e1ed;
-            bottom: 0;
-            left: 0;
-            position: absolute;
-            transition: height 0.25s;
-          }
           &:hover {
-            border-color: transparent;
-            text-decoration: none;
-            &:before {
-              height: 100%;
-            }
+            text-decoration: underline;
           }
         `;
 			default:

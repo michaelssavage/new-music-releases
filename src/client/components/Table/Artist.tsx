@@ -18,6 +18,8 @@ import type { Artist } from "src/types/spotify/search.ts";
 import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";
 import { Group } from "../Group.tsx";
+import { CloseIcon } from "../Icons/Close.tsx";
+import { SpotifyIcon } from "../Icons/Spotify.tsx";
 import { Loader } from "../Loader.tsx";
 
 const TableContainer = styled.div`
@@ -67,7 +69,7 @@ const ArtistName = styled.div`
 
 const ArtistDetail = styled.div`
 	position: sticky;
-	top: 2rem;
+	top: 5rem;
 
 	display: flex;
 	flex-direction: row;
@@ -201,24 +203,26 @@ export const ArtistTable = () => {
 				<ArtistDetail>
 					{image && <img src={image} alt={artistData.name} />}
 					<Content>
-						<Group>
+						<Group align="center" justify="space-between">
 							<h2>{artistData.name}</h2>
-							{/* <Button
+							<Button
 								onClick={() => setArtistId(undefined)}
 								variant="ghost"
 								aria-label="Close Modal"
 								text="Close"
 								icon={<CloseIcon />}
-							/> */}
+							/>
 						</Group>
 						<p>{artistData.followers.total.toLocaleString()} Followers</p>
 						<p>Genres: {artistData.genres.join(", ")}</p>
-
-						<Anchor
-							link={artistData.external_urls.spotify}
-							text="Open in Spotify"
-							isExternal
-						/>
+						<div>
+							<Anchor
+								link={artistData.external_urls.spotify}
+								text="Open"
+								icon={<SpotifyIcon />}
+								isExternal
+							/>
+						</div>
 					</Content>
 				</ArtistDetail>
 			);

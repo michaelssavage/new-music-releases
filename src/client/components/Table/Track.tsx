@@ -11,9 +11,12 @@ import {
 import { useEffect, useState } from "react";
 import type { LikedTracksI, ShowItem } from "src/types/spotify/liked-tracks.ts";
 import type { Artist } from "src/types/spotify/search.ts";
+import { displayDate } from "../../utils/dates.ts";
+import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";
 import { ArtistCard } from "../Card/Artist.tsx";
 import { Group } from "../Group.tsx";
+import { SpotifyIcon } from "../Icons/Spotify.tsx";
 import { Loader } from "../Loader.tsx";
 import { Modal } from "../Modal.tsx";
 
@@ -144,6 +147,24 @@ export const TrackTable = () => {
 			id: "albumName",
 			header: "Album Name",
 			cell: (info) => <Field>{info.getValue()}</Field>,
+		}),
+		columnHelper.accessor((row) => row.track.album.release_date, {
+			id: "releaseDate",
+			header: "Release Date",
+			cell: (info) => <Field>{displayDate(info.getValue())}</Field>,
+		}),
+		columnHelper.accessor((row) => row.track.external_urls.spotify, {
+			id: "externalLink",
+			header: "Spotify Link",
+			cell: (info) => (
+				<Anchor
+					link={info.getValue()}
+					variant="link"
+					text="Open"
+					icon={<SpotifyIcon />}
+					isExternal
+				/>
+			),
 		}),
 	];
 
