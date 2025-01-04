@@ -1,6 +1,6 @@
 import { type Collection, type Db, MongoClient } from "mongodb";
 import type { SpotifyPlaylistI } from "types/spotify/playlist.ts";
-import type { Artist } from "types/spotify/search.ts";
+import type { Artist, SavedArtistI } from "types/spotify/search.ts";
 
 export function SpotifyRepository(mongoUri: string) {
 	let client: MongoClient;
@@ -36,7 +36,7 @@ export function SpotifyRepository(mongoUri: string) {
 		return await artistDb.bulkWrite(bulkOperations);
 	}
 
-	async function resetArtists(artists: Array<Artist>) {
+	async function resetArtists(artists: Array<SavedArtistI>) {
 		await artistDb.deleteMany({});
 		return await artistDb.insertMany(artists);
 	}

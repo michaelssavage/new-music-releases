@@ -35,6 +35,14 @@ export interface Track {
 	is_local: boolean;
 }
 
+export interface SavedArtistI {
+	id: string;
+	name: string;
+	uri: string;
+	url: string;
+	images: string;
+}
+
 export interface Artist {
 	external_urls: {
 		spotify: string;

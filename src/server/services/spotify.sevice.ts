@@ -10,7 +10,7 @@ import type {
   NewReleasesI,
 } from "../../types/spotify.ts";
 import type { SpotifyPlaylistI } from "../../types/spotify/playlist.ts";
-import type { Artist, SearchResponse } from "../../types/spotify/search.ts";
+import type { Artist, SavedArtistI, SearchResponse } from "../../types/spotify/search.ts";
 import type { PlaylistTracksI } from "../../types/spotify/tracks.ts";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants.ts";
 import { SpotifyRepository } from "server/repository/spotify.repository.ts";
@@ -134,7 +134,7 @@ export function SpotifyService() {
 		return result;
 	}
 
-	async function resetArtists(artists: Array<Artist>) {
+	async function resetArtists(artists: Array<SavedArtistI>) {
 		if (artists.length === 0) {
 			console.log("No artists to save after reset.");
 			return null;
@@ -145,7 +145,7 @@ export function SpotifyService() {
 		return result;
 	}
 
-	async function getFollowedArtists(token: string) {
+	async function getFollowedArtists(token: string): Promise<Array<SavedArtistI>> {
 		let artists: Array<Artist> = [];
 
 		let nextUrl: string | null =

@@ -1,39 +1,24 @@
-// {
-// 	"compilerOptions": {
-// 		"target": "ES2022", // Target latest version of ECMAScript
-// 		"moduleResolution": "NodeNext", // Search under node_modules for non-relative imports
-// 		"esModuleInterop": true, // Import non-ES modules as default imports
-// 		"strict": true, // Enable strict type checking
-// 		"noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements
-// 		"resolveJsonModule": true, // Allow JSON imports
-// 		"module": "NodeNext", // Use Node's module resolution strategy
-// 		"isolatedModules": true, // Ensure each file can be safely transpiled without relying on other imports
-// 		"sourceMap": true, // Include sourcemap files for debugging
-// 		"outDir": "./dist", // Specify output directory
-// 		"rootDir": "./src", // Specify root directory of input files
-// 		"removeComments": true, // Remove comments from output
-// 		"skipLibCheck": true, // Skip type checking of declaration files
-// 		"jsx": "react-jsx", // Add JSX support
-// 		"lib": ["DOM", "DOM.Iterable", "ESNext"], // Add DOM typings for browser environment
-// 		"allowImportingTsExtensions": true, // Allow importing TypeScript files without specifying the extension
-// 		"noEmit": true, // Do not emit output files
-// 		"baseUrl": "src", // Base directory to resolve non-relative module names
-// 	},
-// 	"include": ["src/**/*", "src/server", "src/client", "src/scripts", "src/utils"],
-// 	"exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
-// }
-
 {
-  "compilerOptions": {
-    "target": "ES2022",
+	"compilerOptions": {
+		"target": "ES2022", // Target latest version of ECMAScript
+		"moduleResolution": "NodeNext", // Search under node_modules for non-relative imports
+		"esModuleInterop": true, // Import non-ES modules as default imports
+		"strict": true, // Enable strict type checking
+		"noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements
+		"resolveJsonModule": true, // Allow JSON imports
 		"module": "NodeNext", // Use Node's module resolution strategy
-    "moduleResolution": "NodeNext", // Search under node_modules for non-relative imports
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+		"isolatedModules": true, // Ensure each file can be safely transpiled without relying on other imports
+		"sourceMap": true, // Include sourcemap files for debugging
+		"outDir": "./dist", // Specify output directory
+		"rootDir": "./src", // Specify root directory of input files
+		"removeComments": true, // Remove comments from output
+		"skipLibCheck": true, // Skip type checking of declaration files
+		"jsx": "react-jsx", // Add JSX support
+		"lib": ["DOM", "DOM.Iterable", "ESNext"], // Add DOM typings for browser environment
 		"allowImportingTsExtensions": true, // Allow importing TypeScript files without specifying the extension
 		"noEmit": true, // Do not emit output files
-    "baseUrl": "src"
-  },
-  "exclude": ["node_modules", "dist", "build"]
+		"baseUrl": "src", // Base directory to resolve non-relative module names
+	},
+	"include": ["src/**/*", "src/server", "src/client", "src/scripts", "src/utils"],
+	"exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
 }

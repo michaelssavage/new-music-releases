@@ -1,18 +1,19 @@
-import { SpotifyService } from "../../server/services/spotify.sevice.ts";
+import { SpotifyService } from "server/services/spotify.sevice.ts";
 import type { NewReleasesI } from "../types/spotify.ts";
 
 const spotifyService = SpotifyService();
+const accessToken = "x";
 
 (async () => {
-	const playlist = await spotifyService.getSpotifyPlaylist();
+	const playlist = await spotifyService.getSpotifyPlaylist(accessToken);
 	const newReleases: Array<NewReleasesI> =
-		await spotifyService.fetchNewReleases();
+		await spotifyService.fetchNewReleases(accessToken);
 
 	const trackUris = (
 		await Promise.all(
 			newReleases.map(async ({ uri, id }) => {
 				if (uri.includes("album")) {
-					return await spotifyService.getAlbumTracks(id);
+					return await spotifyService.getAlbumTracks(accessToken, id);
 				}
 				return uri;
 			}),
@@ -21,6 +22,6 @@ const spotifyService = SpotifyService();
 
 	console.log(trackUris);
 	if (playlist) {
-		await spotifyService.addTracksToPlaylist(playlist.id, trackUris);
+		await spotifyService.addTracksToPlaylist(accessToken, playlist.id, trackUris);
 	}
 })();
