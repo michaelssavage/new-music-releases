@@ -1,24 +1,24 @@
-import { Anchor } from "@client/components/Anchor.tsx";
-import { Button } from "@client/components/Button.tsx";
-import { Group } from "@client/components/Group.tsx";
-import { SpotifyIcon } from "@client/components/Icons/Spotify.tsx";
-import { Info } from "@client/components/InfoToast.tsx";
-import { Panel } from "@client/components/Panel.tsx";
-import { ArtistTable } from "@client/components/Table/Artist.tsx";
-import { PlaylistTable } from "@client/components/Table/Playlist.tsx";
-import { TrackTable } from "@client/components/Table/Track.tsx";
-import { type Tab, Tabs } from "@client/components/Tabs.tsx";
+import { Anchor } from "client/components/Anchor.tsx";
+import { Button } from "client/components/Button.tsx";
+import { Group } from "client/components/Group.tsx";
+import { SpotifyIcon } from "client/components/Icons/Spotify.tsx";
+import { Info } from "client/components/InfoToast.tsx";
+import { Panel } from "client/components/Panel.tsx";
+import { ArtistTable } from "client/components/Table/Artist.tsx";
+import { PlaylistTable } from "client/components/Table/Playlist.tsx";
+import { TrackTable } from "client/components/Table/Track.tsx";
+import { type Tab, Tabs } from "client/components/Tabs.tsx";
 import {
 	getSpotifyPlaylist,
 	updateSpotifyPlaylistReleases,
-} from "@client/lib/Spotify/playlist.ts";
-import { Wrapper } from "@client/styles/global.styled.ts";
-import { requireAuth } from "@client/utils/auth.ts";
+} from "client/lib/spotify.ts";
+import { Wrapper } from "client/styles/global.styled.ts";
+import { requireAuth } from "client/utils/auth.ts";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "react-hot-toast";
-import type { SpotifyDataProps } from "src/types/spotify.ts";
+import type { SpotifyDataProps } from "types/spotify.ts";
 
 export const Route = createFileRoute("/releases")({
 	beforeLoad: async () => await requireAuth(),

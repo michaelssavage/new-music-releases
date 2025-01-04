@@ -3,7 +3,7 @@ import {
 	getSavedArtists,
 	removeArtist,
 	saveArtist,
-} from "@client/lib/Spotify/artist.ts";
+} from "client/lib/spotify.ts";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import type { Artist } from "src/types/spotify/search.ts";
+import type { Artist } from "types/spotify/search.ts";
 import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";
 import { Group } from "../Group.tsx";

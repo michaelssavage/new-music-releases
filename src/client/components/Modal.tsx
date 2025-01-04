@@ -1,5 +1,5 @@
-import { slideInAnimation } from "@client/styles/abstracts/animations.styled.ts";
-import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled.ts";
+import { slideInAnimation } from "client/styles/abstracts/animations.styled.ts";
+import { forPhoneOnly } from "client/styles/abstracts/mixins.styled.ts";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { type ReactNode, useCallback, useEffect, useRef } from "react";

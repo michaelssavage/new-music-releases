@@ -1,5 +1,9 @@
-import { getArtist, getSavedArtists } from "@client/lib/Spotify/artist.ts";
-import { getNextTracks, getUserTracks } from "@client/lib/Spotify/tracks.ts";
+import {
+	getArtist,
+	getNextTracks,
+	getSavedArtists,
+	getUserTracks,
+} from "client/lib/spotify.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -9,8 +13,8 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import type { LikedTracksI, ShowItem } from "src/types/spotify/liked-tracks.ts";
-import type { Artist } from "src/types/spotify/search.ts";
+import type { LikedTracksI, ShowItem } from "types/spotify/liked-tracks.ts";
+import type { Artist } from "types/spotify/search.ts";
 import { displayDate } from "../../utils/dates.ts";
 import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";

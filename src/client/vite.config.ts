@@ -2,6 +2,9 @@ import path from "path";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import dotenv from 'dotenv';
+
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 export default defineConfig({
 	plugins: [
@@ -19,10 +22,5 @@ export default defineConfig({
 	},
 	build: {
 		outDir: path.resolve(__dirname, "dist/client"),
-	},
-	resolve: {
-		alias: {
-			"@client": path.resolve(__dirname, "src/client"),
-		},
 	},
 });

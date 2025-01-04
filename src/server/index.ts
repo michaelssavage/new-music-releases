@@ -8,6 +8,7 @@ import express, {
 import spotifyRouter from "./routes/spotify.router.ts";
 import { SpotifyService } from "./services/spotify.sevice.ts";
 
+
 const app = express();
 const port = process.env.PORT || 3001;
 

@@ -1,4 +1,4 @@
-import type { SearchResponse } from "src/types/spotify/search.ts";
+import type { SearchResponse } from "types/spotify/search.ts";
 
 export const getActiveTabKey = ({
 	artists,

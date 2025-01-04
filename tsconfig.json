@@ -17,13 +17,8 @@
 		"lib": ["DOM", "DOM.Iterable", "ESNext"], // Add DOM typings for browser environment
 		"allowImportingTsExtensions": true, // Allow importing TypeScript files without specifying the extension
 		"noEmit": true, // Do not emit output files
-		"baseUrl": ".", // Base directory to resolve non-relative module names
-		"paths": {
-			"@server/*": ["src/server/*"],
-			"@client/*": ["src/client/*"],
-			"@shared/*": ["src/shared/*"]
-		}
+		"baseUrl": "src", // Base directory to resolve non-relative module names
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "src/server", "src/client", "src/scripts", "src/utils"],
 	"exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
 }

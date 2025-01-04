@@ -1,5 +1,5 @@
-import { Loader } from "@client/components/Loader.tsx";
-import { useAuthStore } from "@client/store/authStore.ts";
+import { Loader } from "client/components/Loader.tsx";
+import { useAuthStore } from "client/store/authStore.ts";
 import styled from "@emotion/styled";
 import {
 	createFileRoute,

@@ -1,7 +1,7 @@
-import { removeArtist, saveArtist } from "@client/lib/Spotify/artist.ts";
+import { removeArtist, saveArtist } from "client/lib/spotify.ts";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import type { Artist } from "src/types/spotify/search.ts";
+import type { Artist } from "types/spotify/search.ts";
 import noPhoto from "../../assets/no-photo.jpg";
 import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";

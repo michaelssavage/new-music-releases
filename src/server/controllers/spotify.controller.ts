@@ -1,8 +1,8 @@
-import { SpotifyService } from "@server/services/spotify.sevice.ts";
-import { getAuthorizationUrl } from "@server/utils/auth.ts";
+import { SpotifyService } from "server/services/spotify.sevice.ts";
+import { getAuthorizationUrl } from "server/utils/auth.ts";
 import type { Request, Response } from "express";
-import type { Artist } from "src/types/spotify/search.ts";
-import type { PlaylistTracksI } from "src/types/spotify/tracks.ts";
+import type { Artist } from "types/spotify/search.ts";
+import type { PlaylistTracksI } from "types/spotify/tracks.ts";
 
 interface SearchQuery extends Request {
 	query: {

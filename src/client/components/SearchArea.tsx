@@ -1,11 +1,10 @@
-import { fetchSearchResults } from "@client/lib/Spotify/search.ts";
-import { Wrapper } from "@client/styles/global.styled.ts";
-import { getActiveTabKey } from "@client/utils/activeKeys.ts";
+import { Wrapper } from "client/styles/global.styled.ts";
+import { getActiveTabKey } from "client/utils/activeKeys.ts";
 import styled from "@emotion/styled";
 import { useMutation } from "@tanstack/react-query";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 import type { MultiValue } from "react-select";
-import type { SearchResponse } from "src/types/spotify/search.ts";
+import type { SearchResponse } from "types/spotify/search.ts";
 import { useTabs } from "../context/tabs.context.tsx";
 import {
 	type TypeI,
@@ -16,6 +15,7 @@ import { Button } from "./Button.tsx";
 import { Select } from "./Form/Select.tsx";
 import { TextInput } from "./Form/TextInput.tsx";
 import { Group } from "./Group.tsx";
+import { fetchSearchResults } from "../lib/spotify.ts";
 
 const Content = styled.div`
 	padding: 2rem;

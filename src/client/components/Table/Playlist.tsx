@@ -1,4 +1,4 @@
-import { displayDate } from "@client/utils/dates.ts";
+import { displayDate } from "client/utils/dates.ts";
 import styled from "@emotion/styled";
 import {
 	type SortingFn,
@@ -10,7 +10,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import type { ShowItem } from "src/types/spotify/tracks.ts";
+import type { ShowItem } from "types/spotify/tracks.ts";
 import { Anchor } from "../Anchor.tsx";
 import { SpotifyIcon } from "../Icons/Spotify.tsx";
 

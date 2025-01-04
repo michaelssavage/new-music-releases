@@ -1,9 +1,8 @@
-import { getArtist } from "@client/lib/Spotify/artist.ts";
-import { getSavedArtists } from "@client/lib/Spotify/artist.ts";
+import { getArtist, getSavedArtists } from "client/lib/spotify.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import type { Artist } from "src/types/spotify/search.ts";
+import type { Artist } from "types/spotify/search.ts";
 import noPhoto from "../../assets/no-photo.jpg";
 import { Loader } from "../Loader.tsx";
 import { Modal } from "../Modal.tsx";

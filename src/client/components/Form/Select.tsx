@@ -1,4 +1,4 @@
-import type { TypeI } from "@client/utils/defaults.ts";
+import type { TypeI } from "client/utils/defaults.ts";
 import styled from "@emotion/styled";
 import ReactSelect, { type MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";

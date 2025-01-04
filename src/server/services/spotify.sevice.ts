@@ -1,18 +1,24 @@
-import { SpotifyRepository } from "@server/repository/spotify.repository.ts";
 import axios, { type AxiosResponse } from "axios";
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
+import path from "path";
+import { fileURLToPath } from "url";
 import createHttpError from "http-errors";
-import type {
-	ArtistAlbumsI,
-	FollowedArtistsI,
-	NewReleasesI,
-} from "src/types/spotify.ts";
-import type { SpotifyPlaylistI } from "src/types/spotify/playlist.ts";
-import type { Artist, SearchResponse } from "src/types/spotify/search.ts";
-import type { PlaylistTracksI } from "src/types/spotify/tracks.ts";
-import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "src/utils/constants.ts";
 
-dotenv.config();
+import type {
+  ArtistAlbumsI,
+  FollowedArtistsI,
+  NewReleasesI,
+} from "../../types/spotify.ts";
+import type { SpotifyPlaylistI } from "../../types/spotify/playlist.ts";
+import type { Artist, SearchResponse } from "../../types/spotify/search.ts";
+import type { PlaylistTracksI } from "../../types/spotify/tracks.ts";
+import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants.ts";
+import { SpotifyRepository } from "server/repository/spotify.repository.ts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 const {
 	MONGO_URI,

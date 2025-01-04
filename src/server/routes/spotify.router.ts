@@ -1,4 +1,4 @@
-import { SpotifyController } from "@server/controllers/spotify.controller.ts";
+import { SpotifyController } from "server/controllers/spotify.controller.ts";
 import express from "express";
 
 const router = express.Router();

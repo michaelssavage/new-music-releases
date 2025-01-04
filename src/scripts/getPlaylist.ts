@@ -1,4 +1,4 @@
-import { SpotifyService } from "../server/services/spotify.sevice.ts";
+import { SpotifyService } from "../../server/services/spotify.sevice.ts";
 
 const spotifyService = SpotifyService();
 
