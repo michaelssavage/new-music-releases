@@ -2,24 +2,32 @@
 	"name": "new-music-releases",
 	"author": "Michael Savage",
 	"version": "1.0.0",
-	"description": "",
-	"main": "index.tsx",
+	"description": "new music releases from Spotify",
+	"private": true,
 	"type": "module",
 	"workspaces": ["src/client", "src/server"],
 	"scripts": {
-		"dev": "concurrently \"npm run dev --workspace=src/client\" \"npm run dev --workspace=src/server\"",
-		"dev:client": "npm run dev --workspace=src/client",
-		"dev:server": "npm run dev --workspace=src/server",
-		"build": "npm run build --workspaces",
-		"start": "npm run start --workspaces",
-		"lint": "biome lint --error-on-warnings ./src",
-		"format": "biome format ./src",
-		"get-followed-artists": "tsx ./src/scripts/fetchFollowedArtists.ts",
-		"get-new-releases": "tsx ./src/scripts/getNewReleases.ts",
-		"get-playlist": "tsx ./src/scripts/getPlaylist.ts",
-		"add-tracks": "tsx ./src/scripts/addTracksToPlaylist.ts",
-		"get-album-tracks": "tsx ./src/scripts/getAlbumTracks.ts"
-	},
+    "dev": "concurrently \"npm run dev --workspace=src/client\" \"npm run dev --workspace=src/server\"",
+    "dev:client": "npm run dev --workspace=src/client",
+    "dev:server": "npm run dev --workspace=src/server",
+    
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "npm run build --workspace=src/client",
+    "build:server": "tsc --project src/server/tsconfig.json",
+    
+    "start": "concurrently \"npm run start:client\" \"npm run start:server\"",
+    "start:client": "npm run start --workspace=src/client",
+    "start:server": "npm run start --workspace=src/server",
+    
+    "lint": "biome lint --error-on-warnings ./src",
+    "format": "biome format ./src",
+    
+    "get-followed-artists": "tsx ./src/scripts/fetchFollowedArtists.ts",
+    "get-new-releases": "tsx ./src/scripts/getNewReleases.ts",
+    "get-playlist": "tsx ./src/scripts/getPlaylist.ts",
+    "add-tracks": "tsx ./src/scripts/addTracksToPlaylist.ts",
+    "get-album-tracks": "tsx ./src/scripts/getAlbumTracks.ts"
+  },
 	"devDependencies": {
 		"concurrently": "^9.1.2"
 	}

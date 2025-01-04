@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist",
+    "sourceMap": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+  },
+  "include": ["./**/*", "../types/**/*", "../utils/**/*"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+}
