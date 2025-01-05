@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import { type KeyboardEvent, type ReactNode, useEffect, useRef } from "react";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
-import { useTabs } from "../context/tabs.context.tsx";
-import { Loader } from "./Loader.tsx";
+import { useTabs } from "../context/tabs.context";
+import { Loader } from "./Loader";
 
 export interface Tab {
 	key: string;

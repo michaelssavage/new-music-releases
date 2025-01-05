@@ -2,8 +2,8 @@ import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useAuthStore } from "../store/authStore.ts";
-import { MenuIcon } from "./Icons/Menu.tsx";
+import { useAuthStore } from "../store/authStore";
+import { MenuIcon } from "./Icons/Menu";
 
 const NavbarContainer = styled.nav`
   position: fixed;
@@ -32,7 +32,10 @@ const NavItems = styled.div<{ isOpen: boolean }>`
 
 `;
 
-const NavLink = styled(Link)<{ isOpen: boolean; isActive: boolean }>`
+const NavLink = styled(Link)<{
+	isOpen: boolean;
+	isActive: boolean | Record<never, string>;
+}>`
   text-decoration: none;
   font-size: 1.4rem;
   transition: transform 0.3s ease;

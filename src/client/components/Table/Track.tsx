@@ -13,19 +13,19 @@ import {
 	getNextTracks,
 	getSavedArtists,
 	getUserTracks,
-} from "client/lib/spotify.ts";
+} from "client/lib/spotify";
 import { useEffect, useState } from "react";
-import type { LikedTracksI, ShowItem } from "types/spotify/liked-tracks.ts";
-import type { Artist } from "types/spotify/search.ts";
-import { displayDate } from "../../utils/dates.ts";
-import { Anchor } from "../Anchor.tsx";
-import { Button } from "../Button.tsx";
-import { ArtistCard } from "../Card/Artist.tsx";
-import { Group } from "../Group.tsx";
-import { SortIcon } from "../Icons/Sort.tsx";
-import { SpotifyIcon } from "../Icons/Spotify.tsx";
-import { Loader } from "../Loader.tsx";
-import { Modal } from "../Modal.tsx";
+import type { LikedTracksI, ShowItem } from "types/spotify/liked-tracks";
+import type { Artist } from "types/spotify/search";
+import { displayDate } from "../../utils/dates";
+import { Anchor } from "../Anchor";
+import { Button } from "../Button";
+import { ArtistCard } from "../Card/Artist";
+import { Group } from "../Group";
+import { SortIcon } from "../Icons/Sort";
+import { SpotifyIcon } from "../Icons/Spotify";
+import { Loader } from "../Loader";
+import { Modal } from "../Modal";
 
 const TableContainer = styled.div`
   background: white;

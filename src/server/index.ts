@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
@@ -5,10 +7,8 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
-import spotifyRouter from "./routes/spotify.router.ts";
-import { SpotifyService } from "./services/spotify.sevice.ts";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import spotifyRouter from "./routes/spotify.router";
+import { SpotifyService } from "./services/spotify.sevice";
 
 const app = express();
 const port = process.env.PORT || 3001;

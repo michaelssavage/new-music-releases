@@ -1,6 +1,6 @@
 import { type Collection, type Db, MongoClient } from "mongodb";
-import type { SpotifyPlaylistI } from "types/spotify/playlist.ts";
-import type { Artist, SavedArtistI } from "types/spotify/search.ts";
+import type { SpotifyPlaylistI } from "types/spotify/playlist";
+import type { Artist, SavedArtistI } from "types/spotify/search";
 
 export function SpotifyRepository(mongoUri: string) {
 	let client: MongoClient;

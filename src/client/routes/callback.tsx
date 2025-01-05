@@ -1,12 +1,17 @@
-import { Loader } from "client/components/Loader.tsx";
-import { useAuthStore } from "client/store/authStore.ts";
 import styled from "@emotion/styled";
 import {
 	createFileRoute,
 	useNavigate,
 	useSearch,
 } from "@tanstack/react-router";
+import { Loader } from "client/components/Loader";
+import { useAuthStore } from "client/store/authStore";
 import { useEffect } from "react";
+
+interface AuthSearchParams {
+	access_token: string;
+	refresh_token: string;
+}
 
 export const Page = styled.div`
 	margin-top: 2rem;
@@ -18,7 +23,10 @@ export const Route = createFileRoute("/callback")({
 
 function Callback() {
 	const navigate = useNavigate();
-	const searchParams = useSearch({ from: Route.fullPath });
+	const searchParams = useSearch({
+		from: Route.fullPath,
+		select: (search) => search as AuthSearchParams,
+	});
 	const { login } = useAuthStore();
 
 	useEffect(() => {

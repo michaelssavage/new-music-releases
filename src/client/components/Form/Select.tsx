@@ -1,8 +1,8 @@
-import type { TypeI } from "client/utils/defaults.ts";
 import styled from "@emotion/styled";
+import type { TypeI } from "client/utils/defaults";
 import ReactSelect, { type MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
-import { Group } from "../Group.tsx";
+import { Group } from "../Group";
 
 interface Props {
 	id: string;

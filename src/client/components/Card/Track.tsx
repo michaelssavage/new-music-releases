@@ -1,14 +1,14 @@
-import { getArtist, getSavedArtists } from "client/lib/spotify.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
+import { getArtist, getSavedArtists } from "client/lib/spotify";
 import { useState } from "react";
-import type { Artist, Track } from "types/spotify/search.ts";
+import type { Artist, Track } from "types/spotify/search";
 import noPhoto from "../../assets/no-photo.jpg";
-import { Button } from "../Button.tsx";
-import { Loader } from "../Loader.tsx";
-import { Modal } from "../Modal.tsx";
-import { ArtistCard } from "./Artist.tsx";
-import { CardWrapper } from "./Card.styled.ts";
+import { Button } from "../Button";
+import { Loader } from "../Loader";
+import { Modal } from "../Modal";
+import { ArtistCard } from "./Artist";
+import { CardWrapper } from "./Card.styled";
 
 interface CardI {
 	image: string;

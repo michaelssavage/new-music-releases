@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { ReactNode } from "react";
-import { Spinner, SpinnerStyled } from "./Icons/Spinner.tsx";
+import { Spinner, SpinnerStyled } from "./Icons/Spinner";
 
 const Content = styled.div``;
 const Text = styled.span``;

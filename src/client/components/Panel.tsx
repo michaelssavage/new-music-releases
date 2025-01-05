@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Group } from "./Group.tsx";
+import { Group } from "./Group";
 
 interface Props {
 	title?: string;

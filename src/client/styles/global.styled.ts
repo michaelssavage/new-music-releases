@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { resetStyles } from "./abstracts/reset.styled.ts";
+import { resetStyles } from "./abstracts/reset.styled";
 
 export const globalStyles = () => css`
   ${resetStyles}

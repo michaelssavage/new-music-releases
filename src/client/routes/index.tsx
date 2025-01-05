@@ -1,17 +1,17 @@
-import { AlbumCard } from "client/components/Card/Album.tsx";
-import { ArtistCard } from "client/components/Card/Artist.tsx";
-import { TrackCard } from "client/components/Card/Track.tsx";
-import { getSavedArtists } from "client/lib/spotify.ts";
-import { requireAuth } from "client/utils/auth.ts";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { AlbumCard } from "client/components/Card/Album";
+import { ArtistCard } from "client/components/Card/Artist";
+import { TrackCard } from "client/components/Card/Track";
+import { getSavedArtists } from "client/lib/spotify";
+import { requireAuth } from "client/utils/auth";
 import { useState } from "react";
-import type { SearchResponse } from "types/spotify/search.ts";
-import { Panel } from "../components/Panel.tsx";
-import { SearchArea } from "../components/SearchArea.tsx";
-import { type Tab, Tabs } from "../components/Tabs.tsx";
-import { defaultOptions, defaultResults } from "../utils/defaults.ts";
+import type { SearchResponse } from "types/spotify/search";
+import { Panel } from "../components/Panel";
+import { SearchArea } from "../components/SearchArea";
+import { type Tab, Tabs } from "../components/Tabs";
+import { defaultOptions, defaultResults } from "../utils/defaults";
 
 const Content = styled.div`
   padding: 2rem;

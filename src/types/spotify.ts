@@ -1,6 +1,6 @@
-import type { SpotifyPlaylistI } from "./spotify/playlist.ts";
-import type { Artist } from "./spotify/search.ts";
-import type { PlaylistTracksI } from "./spotify/tracks.ts";
+import type { SpotifyPlaylistI } from "./spotify/playlist";
+import type { Artist } from "./spotify/search";
+import type { PlaylistTracksI } from "./spotify/tracks";
 
 export interface SpotifyDataProps {
 	playlistItems: PlaylistTracksI;

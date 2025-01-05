@@ -1,12 +1,12 @@
-import { removeArtist, saveArtist } from "client/lib/spotify.ts";
 import { useMutation } from "@tanstack/react-query";
+import { removeArtist, saveArtist } from "client/lib/spotify";
 import { toast } from "react-hot-toast";
-import type { Artist } from "types/spotify/search.ts";
+import type { Artist } from "types/spotify/search";
 import noPhoto from "../../assets/no-photo.jpg";
-import { Anchor } from "../Anchor.tsx";
-import { Button } from "../Button.tsx";
-import { Group } from "../Group.tsx";
-import { CardWrapper, Content, Fact, Genres } from "./Card.styled.ts";
+import { Anchor } from "../Anchor";
+import { Button } from "../Button";
+import { Group } from "../Group";
+import { CardWrapper, Content, Fact, Genres } from "./Card.styled";
 
 interface CardI {
 	image: string;

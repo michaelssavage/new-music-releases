@@ -1,21 +1,17 @@
-import { Wrapper } from "client/styles/global.styled.ts";
-import { getActiveTabKey } from "client/utils/activeKeys.ts";
 import styled from "@emotion/styled";
 import { useMutation } from "@tanstack/react-query";
+import { Wrapper } from "client/styles/global.styled";
+import { getActiveTabKey } from "client/utils/activeKeys";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 import type { MultiValue } from "react-select";
-import type { SearchResponse } from "types/spotify/search.ts";
-import { useTabs } from "../context/tabs.context.tsx";
-import {
-	type TypeI,
-	defaultOptions,
-	defaultResults,
-} from "../utils/defaults.ts";
-import { Button } from "./Button.tsx";
-import { Select } from "./Form/Select.tsx";
-import { TextInput } from "./Form/TextInput.tsx";
-import { Group } from "./Group.tsx";
-import { fetchSearchResults } from "../lib/spotify.ts";
+import type { SearchResponse } from "types/spotify/search";
+import { useTabs } from "../context/tabs.context";
+import { fetchSearchResults } from "../lib/spotify";
+import { type TypeI, defaultOptions, defaultResults } from "../utils/defaults";
+import { Button } from "./Button";
+import { Select } from "./Form/Select";
+import { TextInput } from "./Form/TextInput";
+import { Group } from "./Group";
 
 const Content = styled.div`
 	padding: 2rem;

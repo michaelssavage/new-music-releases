@@ -1,6 +1,6 @@
 import type { SerializedStyles } from "@emotion/react";
 import { type ReactElement, memo } from "react";
-import { ExternalLinkIcon } from "./Icons/ExternalLink.tsx";
+import { ExternalLinkIcon } from "./Icons/ExternalLink";
 
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";

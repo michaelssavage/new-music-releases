@@ -11,16 +11,16 @@ import {
 	getSavedArtists,
 	removeArtist,
 	saveArtist,
-} from "client/lib/spotify.ts";
+} from "client/lib/spotify";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import type { Artist } from "types/spotify/search.ts";
-import { Anchor } from "../Anchor.tsx";
-import { Button } from "../Button.tsx";
-import { Group } from "../Group.tsx";
-import { CloseIcon } from "../Icons/Close.tsx";
-import { SpotifyIcon } from "../Icons/Spotify.tsx";
-import { Loader } from "../Loader.tsx";
+import type { Artist } from "types/spotify/search";
+import { Anchor } from "../Anchor";
+import { Button } from "../Button";
+import { Group } from "../Group";
+import { CloseIcon } from "../Icons/Close";
+import { SpotifyIcon } from "../Icons/Spotify";
+import { Loader } from "../Loader";
 
 const TableContainer = styled.div`
   background: white;

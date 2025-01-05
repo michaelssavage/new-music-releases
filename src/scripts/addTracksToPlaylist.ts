@@ -1,5 +1,5 @@
-import { SpotifyService } from "server/services/spotify.sevice.ts";
-import type { NewReleasesI } from "../types/spotify.ts";
+import { SpotifyService } from "server/services/spotify.sevice";
+import type { NewReleasesI } from "../types/spotify";
 
 const spotifyService = SpotifyService();
 const accessToken = "x";
@@ -22,6 +22,10 @@ const accessToken = "x";
 
 	console.log(trackUris);
 	if (playlist) {
-		await spotifyService.addTracksToPlaylist(accessToken, playlist.id, trackUris);
+		await spotifyService.addTracksToPlaylist(
+			accessToken,
+			playlist.id,
+			trackUris,
+		);
 	}
 })();

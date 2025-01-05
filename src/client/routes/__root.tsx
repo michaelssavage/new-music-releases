@@ -1,11 +1,11 @@
-import ErrorBoundary from "client/components/ErrorBoundary.tsx";
-import { Navbar } from "client/components/Navbar.tsx";
-import { TabsContextProvider } from "client/context/tabs.context.tsx";
-import { globalStyles } from "client/styles/global.styled.ts";
-import { setupAuthRefresh } from "client/utils/auth.ts";
 import { Global } from "@emotion/react";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import ErrorBoundary from "client/components/ErrorBoundary";
+import { Navbar } from "client/components/Navbar";
+import { TabsContextProvider } from "client/context/tabs.context";
+import { globalStyles } from "client/styles/global.styled";
+import { setupAuthRefresh } from "client/utils/auth";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 

@@ -8,12 +8,12 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { displayDate } from "client/utils/dates.ts";
+import { displayDate } from "client/utils/dates";
 import { useState } from "react";
-import type { ShowItem } from "types/spotify/tracks.ts";
-import { Anchor } from "../Anchor.tsx";
-import { SortIcon } from "../Icons/Sort.tsx";
-import { SpotifyIcon } from "../Icons/Spotify.tsx";
+import type { ShowItem } from "types/spotify/tracks";
+import { Anchor } from "../Anchor";
+import { SortIcon } from "../Icons/Sort";
+import { SpotifyIcon } from "../Icons/Spotify";
 
 interface PlaylistTableProps {
 	tracks: Array<ShowItem>;

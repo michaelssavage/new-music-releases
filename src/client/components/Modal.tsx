@@ -1,12 +1,12 @@
-import { slideInAnimation } from "client/styles/abstracts/animations.styled.ts";
-import { forPhoneOnly } from "client/styles/abstracts/mixins.styled.ts";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
+import { slideInAnimation } from "client/styles/abstracts/animations.styled";
+import { forPhoneOnly } from "client/styles/abstracts/mixins.styled";
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { CSSTransition } from "react-transition-group";
-import { Button } from "./Button.tsx";
-import { CloseIcon } from "./Icons/Close.tsx";
+import { Button } from "./Button";
+import { CloseIcon } from "./Icons/Close";
 
 const Backdrop = styled.div`
   background-color: rgba(0, 0, 0, 0.7);

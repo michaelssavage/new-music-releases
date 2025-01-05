@@ -1,7 +1,7 @@
-import { Button } from "client/components/Button.tsx";
-import { requireUnauth } from "client/utils/auth.ts";
 import styled from "@emotion/styled";
 import { createFileRoute } from "@tanstack/react-router";
+import { Button } from "client/components/Button";
+import { requireUnauth } from "client/utils/auth";
 
 const NavBox = styled.div`
   padding: 3rem 2rem;

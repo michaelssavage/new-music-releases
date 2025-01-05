@@ -1,7 +1,7 @@
-// authUtils.ts
+// authUtils
 import { redirect } from "@tanstack/react-router";
 import Cookies from "js-cookie";
-import { isAuthValid, refreshAuthToken } from "../lib/spotify.ts";
+import { isAuthValid, refreshAuthToken } from "../lib/spotify";
 
 interface AuthState {
 	isAuthenticated: boolean;

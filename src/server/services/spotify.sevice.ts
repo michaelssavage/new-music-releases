@@ -1,19 +1,23 @@
-import axios, { type AxiosResponse } from "axios";
-import dotenv from 'dotenv';
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import axios, { type AxiosResponse } from "axios";
+import dotenv from "dotenv";
 import createHttpError from "http-errors";
 
+import { SpotifyRepository } from "server/repository/spotify.repository";
 import type {
-  ArtistAlbumsI,
-  FollowedArtistsI,
-  NewReleasesI,
-} from "../../types/spotify.ts";
-import type { SpotifyPlaylistI } from "../../types/spotify/playlist.ts";
-import type { Artist, SavedArtistI, SearchResponse } from "../../types/spotify/search.ts";
-import type { PlaylistTracksI } from "../../types/spotify/tracks.ts";
-import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants.ts";
-import { SpotifyRepository } from "server/repository/spotify.repository.ts";
+	ArtistAlbumsI,
+	FollowedArtistsI,
+	NewReleasesI,
+} from "../../types/spotify";
+import type { SpotifyPlaylistI } from "../../types/spotify/playlist";
+import type {
+	Artist,
+	SavedArtistI,
+	SearchResponse,
+} from "../../types/spotify/search";
+import type { PlaylistTracksI } from "../../types/spotify/tracks";
+import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -145,7 +149,9 @@ export function SpotifyService() {
 		return result;
 	}
 
-	async function getFollowedArtists(token: string): Promise<Array<SavedArtistI>> {
+	async function getFollowedArtists(
+		token: string,
+	): Promise<Array<SavedArtistI>> {
 		let artists: Array<Artist> = [];
 
 		let nextUrl: string | null =

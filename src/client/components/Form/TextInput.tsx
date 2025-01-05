@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import type { ChangeEvent, KeyboardEvent } from "react";
-import { Group } from "../Group.tsx";
+import { Group } from "../Group";
 
 interface Props {
 	id: string;
