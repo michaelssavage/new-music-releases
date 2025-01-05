@@ -1,17 +1,19 @@
+import styled from "@emotion/styled";
+import { useQuery } from "@tanstack/react-query";
+import {
+	type SortingState,
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+	getSortedRowModel,
+	useReactTable,
+} from "@tanstack/react-table";
 import {
 	getArtist,
 	getNextTracks,
 	getSavedArtists,
 	getUserTracks,
 } from "client/lib/spotify.ts";
-import styled from "@emotion/styled";
-import { useQuery } from "@tanstack/react-query";
-import {
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-	useReactTable,
-} from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import type { LikedTracksI, ShowItem } from "types/spotify/liked-tracks.ts";
 import type { Artist } from "types/spotify/search.ts";
@@ -20,6 +22,7 @@ import { Anchor } from "../Anchor.tsx";
 import { Button } from "../Button.tsx";
 import { ArtistCard } from "../Card/Artist.tsx";
 import { Group } from "../Group.tsx";
+import { SortIcon } from "../Icons/Sort.tsx";
 import { SpotifyIcon } from "../Icons/Spotify.tsx";
 import { Loader } from "../Loader.tsx";
 import { Modal } from "../Modal.tsx";
@@ -66,8 +69,20 @@ const ArtistBtn = styled.div`
   display: flex;
 `;
 
+const SortableHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+
+  &:hover {
+    color: #4b5563;
+  }
+`;
+
 export const TrackTable = () => {
 	const columnHelper = createColumnHelper<ShowItem>();
+	const [sorting, setSorting] = useState<SortingState>([]);
 
 	const [tracks, setTracks] = useState<ShowItem[]>([]);
 	const [nextUrl, setNextUrl] = useState<string | null>(null);
@@ -126,7 +141,12 @@ export const TrackTable = () => {
 	const columns = [
 		columnHelper.accessor((row) => row.track.artists, {
 			id: "artists",
-			header: "Artists",
+			header: ({ column }) => (
+				<SortableHeader onClick={() => column.toggleSorting()}>
+					Artists
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
 			cell: (info) => (
 				<Group align="flex-start" gap="0.25rem">
 					{info.getValue().map((artist, index) => (
@@ -144,17 +164,32 @@ export const TrackTable = () => {
 		}),
 		columnHelper.accessor((row) => row.track.name, {
 			id: "trackName",
-			header: "Track Name",
+			header: ({ column }) => (
+				<SortableHeader onClick={() => column.toggleSorting()}>
+					Track Name
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
 			cell: (info) => <Field>{info.getValue()}</Field>,
 		}),
 		columnHelper.accessor((row) => row.track.album.name, {
 			id: "albumName",
-			header: "Album Name",
+			header: ({ column }) => (
+				<SortableHeader onClick={() => column.toggleSorting()}>
+					Album Name
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
 			cell: (info) => <Field>{info.getValue()}</Field>,
 		}),
 		columnHelper.accessor((row) => row.track.album.release_date, {
 			id: "releaseDate",
-			header: "Release Date",
+			header: ({ column }) => (
+				<SortableHeader onClick={() => column.toggleSorting()}>
+					Release Date
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
 			cell: (info) => <Field>{displayDate(info.getValue())}</Field>,
 		}),
 		columnHelper.accessor((row) => row.track.external_urls.spotify, {
@@ -175,7 +210,12 @@ export const TrackTable = () => {
 	const table = useReactTable({
 		data: tracks,
 		columns,
+		state: {
+			sorting,
+		},
+		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
 	});
 
 	const renderArtist = () => {

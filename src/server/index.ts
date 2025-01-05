@@ -7,10 +7,15 @@ import express, {
 } from "express";
 import spotifyRouter from "./routes/spotify.router.ts";
 import { SpotifyService } from "./services/spotify.sevice.ts";
-
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientPath = path.resolve(__dirname, "../../client/dist");
 
 app.use(cors());
 app.use(cookieParser());
@@ -20,6 +25,12 @@ app.use("/api", spotifyRouter);
 
 app.get("/health", (_req, res) => {
 	res.status(200).json({ status: "UP" });
+});
+
+app.use(express.static(clientPath));
+
+app.get("*", (req, res) => {
+	res.sendFile(path.join(clientPath, "index.html"));
 });
 
 app.use((_req: Request, res: Response, _next: NextFunction) => {

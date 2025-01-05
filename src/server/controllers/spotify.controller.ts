@@ -90,6 +90,7 @@ export function SpotifyController() {
 				res.sendStatus(401);
 			}
 		} catch (error) {
+			console.log("Error validating token:", error);
 			res.status(401).json({ error: "Invalid token" });
 		}
 	}

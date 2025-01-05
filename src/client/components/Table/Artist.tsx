@@ -1,9 +1,3 @@
-import {
-	getArtist,
-	getSavedArtists,
-	removeArtist,
-	saveArtist,
-} from "client/lib/spotify.ts";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -12,6 +6,12 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import {
+	getArtist,
+	getSavedArtists,
+	removeArtist,
+	saveArtist,
+} from "client/lib/spotify.ts";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import type { Artist } from "types/spotify/search.ts";
@@ -165,7 +165,7 @@ export const ArtistTable = () => {
 		columnHelper.display({
 			id: "View More",
 			cell: (info) => (
-				<Button onClick={() => setArtistId(info.row.original.id)} text="Open" />
+				<Button onClick={() => setArtistId(info.row.original.id)} text="View" />
 			),
 		}),
 		columnHelper.display({

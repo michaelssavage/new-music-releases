@@ -23,6 +23,7 @@
 		"vite": "^6.0.3"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
 		"@types/cookie-parser": "^1.4.8",
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",

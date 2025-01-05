@@ -1,4 +1,3 @@
-import { displayDate } from "client/utils/dates.ts";
 import styled from "@emotion/styled";
 import {
 	type SortingFn,
@@ -9,9 +8,11 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { displayDate } from "client/utils/dates.ts";
 import { useState } from "react";
 import type { ShowItem } from "types/spotify/tracks.ts";
 import { Anchor } from "../Anchor.tsx";
+import { SortIcon } from "../Icons/Sort.tsx";
 import { SpotifyIcon } from "../Icons/Spotify.tsx";
 
 interface PlaylistTableProps {
@@ -51,17 +52,15 @@ const TableWrapper = styled.div`
 	}
 `;
 
-const SortIndicator = styled.span`
-  margin-left: 0.5rem;
-`;
-
-const TableHeader = styled.button`
-	background: none;
-	border: none;
-	color: inherit;
-	cursor: pointer;
+const SortableHeader = styled.div`
 	display: flex;
 	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+
+&:hover {
+	color: #4b5563;
+}
 `;
 
 const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
@@ -95,7 +94,12 @@ export const PlaylistTable = ({ tracks }: PlaylistTableProps) => {
 		}),
 		columnHelper.accessor((row) => row.added_at, {
 			id: "added_at",
-			header: "Date Added",
+			header: ({ column }) => (
+				<SortableHeader onClick={column.getToggleSortingHandler()}>
+					Date Added
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
 			cell: (info) => <span>{displayDate(info.getValue())}</span>,
 			sortingFn: sortDateFn,
 		}),
@@ -134,21 +138,10 @@ export const PlaylistTable = ({ tracks }: PlaylistTableProps) => {
 							<tr key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<th key={header.id}>
-										<TableHeader
-											onClick={header.column.getToggleSortingHandler()}
-											type="button"
-										>
-											{flexRender(
-												header.column.columnDef.header,
-												header.getContext(),
-											)}
-											<SortIndicator>
-												{{
-													asc: "↑",
-													desc: "↓",
-												}[header.column.getIsSorted() as string] ?? ""}
-											</SortIndicator>
-										</TableHeader>
+										{flexRender(
+											header.column.columnDef.header,
+											header.getContext(),
+										)}
 									</th>
 								))}
 							</tr>
