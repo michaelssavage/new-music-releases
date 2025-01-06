@@ -11,7 +11,8 @@ import spotifyRouter from "./routes/spotify.router.js";
 import { SpotifyService } from "./services/spotify.sevice.js";
 
 const app = express();
-const port = process.env.PORT || 5000;
+const HOST = "0.0.0.0";
+const PORT = Number(process.env.PORT) || 5000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,8 +49,8 @@ async function startServer() {
 	try {
 		await spotifyService.initialize();
 
-		app.listen(port, () => {
-			console.log(`Server is running on port ${port}`);
+		app.listen(PORT, HOST, () => {
+			console.log(`Server is running at http://${HOST}:${PORT}`);
 		});
 	} catch (error) {
 		console.error("Failed to initialize SpotifyService:", error);
