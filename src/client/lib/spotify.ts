@@ -4,10 +4,9 @@ import type { SpotifyDataProps } from "types/spotify";
 import type { SearchProps } from "types/spotify/search";
 import type { Artist } from "types/spotify/search";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE_URL = import.meta.env.SERVER_URL || "http://localhost:5000";
 
 // Auth
-
 export const isAuthValid = async (accessToken: string) => {
 	const res = await axios.get(`${BASE_URL}/api/validate-token`, {
 		headers: {

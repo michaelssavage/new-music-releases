@@ -29,7 +29,7 @@ const {
 	SPOTIFY_CLIENT_ID,
 	SPOTIFY_CLIENT_SECRET,
 	SPOTIFY_REFRESH_TOKEN,
-	REDIRECT_URI,
+	SERVER_URL,
 	FRONTEND_URI,
 } = process.env;
 
@@ -39,7 +39,7 @@ export function SpotifyService() {
 		!SPOTIFY_CLIENT_ID ||
 		!SPOTIFY_CLIENT_SECRET ||
 		!SPOTIFY_REFRESH_TOKEN ||
-		!REDIRECT_URI
+		!SERVER_URL
 	) {
 		throw new Error("Missing environment variables.");
 	}
@@ -60,9 +60,9 @@ export function SpotifyService() {
 			new URLSearchParams({
 				grant_type: "authorization_code",
 				code: code as string,
-				redirect_uri: REDIRECT_URI as string,
-				client_id: SPOTIFY_CLIENT_ID as string,
-				client_secret: SPOTIFY_CLIENT_SECRET as string,
+				redirect_uri: `${SERVER_URL}/api/callback`,
+				client_id: `${SPOTIFY_CLIENT_ID}`,
+				client_secret: `${SPOTIFY_CLIENT_SECRET}`,
 			}),
 			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } },
 		);

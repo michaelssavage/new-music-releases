@@ -18,7 +18,7 @@ interface SaveQuery extends Request {
 	};
 }
 
-const { SPOTIFY_CLIENT_ID, REDIRECT_URI } = process.env;
+const { SPOTIFY_CLIENT_ID, SERVER_URL } = process.env;
 
 export function SpotifyController() {
 	const spotifyService = SpotifyService();
@@ -29,8 +29,8 @@ export function SpotifyController() {
 
 	async function loginHandler(_req: Request, res: Response): Promise<void> {
 		const url = getAuthorizationUrl(
-			REDIRECT_URI as string,
-			SPOTIFY_CLIENT_ID as string,
+			`${SERVER_URL}/api/callback`,
+			`${SPOTIFY_CLIENT_ID}`,
 		);
 		res.redirect(url);
 	}
