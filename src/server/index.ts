@@ -7,15 +7,15 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
-import spotifyRouter from "./routes/spotify.router";
-import { SpotifyService } from "./services/spotify.sevice";
+import spotifyRouter from "./routes/spotify.router.js";
+import { SpotifyService } from "./services/spotify.sevice.js";
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const clientPath = path.resolve(__dirname, "../../client/dist");
+const clientPath = path.resolve(__dirname, "../client");
 
 app.use(cors());
 app.use(cookieParser());
@@ -29,7 +29,7 @@ app.get("/health", (_req, res) => {
 
 app.use(express.static(clientPath));
 
-app.get("*", (req, res) => {
+app.get("*", (_req, res) => {
 	res.sendFile(path.join(clientPath, "index.html"));
 });
 

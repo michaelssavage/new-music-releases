@@ -16,14 +16,19 @@
 		"skipLibCheck": true, // Skip type checking of declaration files
 		"jsx": "react-jsx", // Add JSX support
 		"lib": ["DOM", "DOM.Iterable", "ESNext"], // Add DOM typings for browser environment
-		"noEmit": false // Do not emit output files
+		"noEmit": false // Emit output files
+	},
+	"tsc-alias": {
+		"resolveFullPaths": true,
+		"verbose": false
 	},
 	"include": [
 		"src/**/*",
 		"src/server",
 		"src/client",
 		"src/scripts",
-		"src/utils"
+		"src/utils",
+		"replace-config.js"
 	],
 	"exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
 }
