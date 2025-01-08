@@ -1,6 +1,12 @@
 {
 	"compilerOptions": {
-		"baseUrl": "src", // Base directory to resolve non-relative module names
+		"baseUrl": "./", // Base directory to resolve non-relative module names
+		"paths": {
+			"@client/*": ["client/*"],
+			"@server/*": ["server/*"],
+			"@scripts/*": ["scripts/*"],
+			"@model/*": ["model/*"]
+		},
 		"target": "ES2022", // Target latest version of ECMAScript
 		"module": "ES2022", // Use Node's module resolution strategy
 		"moduleResolution": "bundler", // Search under node_modules for non-relative imports
@@ -11,7 +17,7 @@
 		"isolatedModules": true, // Ensure each file can be safely transpiled without relying on other imports
 		"sourceMap": true, // Include sourcemap files for debugging
 		"outDir": "./dist", // Specify output directory
-		"rootDir": "./src", // Specify root directory of input files
+		"rootDir": "./", // Specify root directory of input files
 		"removeComments": true, // Remove comments from output
 		"skipLibCheck": true, // Skip type checking of declaration files
 		"jsx": "react-jsx", // Add JSX support
@@ -22,13 +28,6 @@
 		"resolveFullPaths": true,
 		"verbose": false
 	},
-	"include": [
-		"src/**/*",
-		"src/server",
-		"src/client",
-		"src/scripts",
-		"src/utils",
-		"replace-config.js"
-	],
+	"include": ["server", "client", "scripts", "model"],
 	"exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
 }
