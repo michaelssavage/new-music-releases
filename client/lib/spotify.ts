@@ -1,8 +1,7 @@
+import type { SpotifyDataProps } from "@model/spotify";
+import type { Artist, SearchProps } from "@model/spotify/search";
 import axios from "axios";
 import Cookies from "js-cookie";
-import type { SpotifyDataProps } from "model/spotify";
-import type { SearchProps } from "types/spotify/search";
-import type { Artist } from "types/spotify/search";
 
 const BASE_URL = import.meta.env.SERVER_URL || "http://localhost:5000";
 

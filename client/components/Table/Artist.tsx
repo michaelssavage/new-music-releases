@@ -107,8 +107,6 @@ export const ArtistTable = () => {
 		refetchOnWindowFocus: false,
 	});
 
-	console.log(data);
-
 	const {
 		data: artistData,
 		isLoading,

@@ -5,8 +5,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "nodemon",
-		"start": "node ../../dist/server/index.js",
-		"build": "tsc && tsc-alias --project ../../tsconfig.json"
+		"start": "node ../dist/server/index.js",
+		"build": "tsc && tsc-alias --project ../tsconfig.json"
 	},
 	"dependencies": {
 		"@vitejs/plugin-react": "^4.3.4",
