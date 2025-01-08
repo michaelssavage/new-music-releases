@@ -3,11 +3,9 @@ import type { Artist, SearchProps } from "@model/spotify/search";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const BASE_URL = import.meta.env.SERVER_URL || "http://localhost:5000";
-
 // Auth
 export const isAuthValid = async (accessToken: string) => {
-	const res = await axios.get(`${BASE_URL}/api/validate-token`, {
+	const res = await axios.get("/api/validate-token", {
 		headers: {
 			Authorization: `Bearer ${accessToken}`,
 		},
@@ -19,7 +17,7 @@ export async function refreshAuthToken(
 	refreshToken: string,
 ): Promise<string | null> {
 	try {
-		const { data } = await axios.post(`${BASE_URL}/api/refresh-token`, {
+		const { data } = await axios.post("/api/refresh-token", {
 			refresh_token: refreshToken,
 		});
 		const { access_token } = data;
@@ -39,7 +37,7 @@ export async function refreshAuthToken(
 export const saveArtist = async (data: Pick<Artist, "name" | "id" | "uri">) => {
 	try {
 		console.log(`Saving ${data.name}`, data);
-		return await axios.post(`${BASE_URL}/api/save-artists`, {
+		return await axios.post("/api/save-artists", {
 			artists: [data],
 		});
 	} catch (error) {
@@ -60,7 +58,7 @@ export const removeArtist = async ({
 }: Pick<Artist, "name" | "id">) => {
 	try {
 		console.log(`Removing Artist ${name} with id ${id}`);
-		await axios.delete(`${BASE_URL}/api/remove-artist/${id}`);
+		await axios.delete("/api/remove-artist/${id}");
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			console.error(
@@ -78,7 +76,7 @@ export const getArtist = async (id?: string) => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
 	try {
-		const res = await axios.get<Artist>(`${BASE_URL}/api/get-artist/${id}`, {
+		const res = await axios.get<Artist>(`/api/get-artist/${id}`, {
 			headers: { spotify_access_token },
 		});
 		return res.data;
@@ -97,7 +95,7 @@ export const getArtist = async (id?: string) => {
 
 export const getSavedArtists = async () => {
 	try {
-		const res = await axios.get<Array<Artist>>(`${BASE_URL}/api/get-artists`);
+		const res = await axios.get<Array<Artist>>("/api/get-artists");
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
@@ -118,7 +116,7 @@ export const getUserTracks = async () => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
 	try {
-		const res = await axios.get(`${BASE_URL}/api/saved-tracks`, {
+		const res = await axios.get("/api/saved-tracks", {
 			headers: { spotify_access_token },
 		});
 		return res.data;
@@ -168,7 +166,7 @@ export const fetchSearchResults = async ({
 }: SearchProps) => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
-	const res = await axios.get(`${BASE_URL}/api/search`, {
+	const res = await axios.get("/api/search", {
 		headers: { spotify_access_token },
 		params: {
 			q: search,
@@ -185,12 +183,9 @@ export const getSpotifyPlaylist = async () => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
 	try {
-		const res = await axios.get<SpotifyDataProps>(
-			`${BASE_URL}/api/get-playlist`,
-			{
-				headers: { spotify_access_token },
-			},
-		);
+		const res = await axios.get<SpotifyDataProps>("/api/get-playlist", {
+			headers: { spotify_access_token },
+		});
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
@@ -209,7 +204,7 @@ export const updateSpotifyPlaylistReleases = async () => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
 
 	try {
-		const res = await axios.get(`${BASE_URL}/api/update-playlist-releases`, {
+		const res = await axios.get("/api/update-playlist-releases", {
 			headers: { spotify_access_token },
 		});
 		return res.data;

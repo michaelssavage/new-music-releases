@@ -13,7 +13,7 @@
 		"build": "npm run build:client && npm run build:server",
 		"build:client": "npm run build --workspace=client",
 		"build:server": "npm run build --workspace=server",
-		"start": "concurrently \"npm run start:client\" \"npm run start:server\"",
+		"start": "npm run start --workspace=server",
 		"start:client": "npm run start --workspace=client",
 		"start:server": "npm run start --workspace=server",
 		"lint": "biome lint --error-on-warnings ./",

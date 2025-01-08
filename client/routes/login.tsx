@@ -32,7 +32,7 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
 	const handleSignIn = () => {
-		window.location.href = "http://localhost:5000/api/login";
+		window.location.href = "/api/login";
 	};
 
 	return (

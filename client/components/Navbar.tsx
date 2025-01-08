@@ -32,7 +32,7 @@ const NavItems = styled.div<{ isOpen: boolean }>`
 `;
 
 const NavLink = styled(Link, {
-	shouldForwardProp: (prop) => prop !== "isActive",
+	shouldForwardProp: (prop) => !["isActive", "isOpen"].includes(prop),
 })<{
 	isOpen: boolean;
 	isActive: boolean | Record<never, string>;
