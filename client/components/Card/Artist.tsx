@@ -19,9 +19,7 @@ export const ArtistCard = ({ image, artist, isSaved }: CardI) => {
 	const {
 		id,
 		name,
-		uri,
 		genres,
-		images,
 		followers = null,
 		external_urls: { spotify: link },
 	} = artist;
@@ -52,10 +50,8 @@ export const ArtistCard = ({ image, artist, isSaved }: CardI) => {
 	});
 
 	const handleAction = () => {
-		const data = { id, name, uri, images: images?.[0]?.url || "" };
-
 		if (isSaved) mutateRemove({ userId, name, id });
-		else mutateSave({ userId, data });
+		else mutateSave({ userId, data: artist });
 	};
 
 	return (

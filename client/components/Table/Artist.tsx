@@ -155,12 +155,7 @@ export const ArtistTable = () => {
 			setRemovedArtists((prev) => prev.filter((id) => id !== data.id));
 			mutateSave({
 				userId,
-				data: {
-					id: data.id,
-					name: data.name,
-					uri: data.uri,
-					images: data.images?.[0]?.url,
-				},
+				data,
 			});
 		}
 	};
