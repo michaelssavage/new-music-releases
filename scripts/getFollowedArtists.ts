@@ -1,9 +1,13 @@
-import { SpotifyService } from "server/services/spotify.sevice";
+import { logger } from "@client/utils/logger";
+import { SpotifyService } from "@server/module/spotify/spotify.sevice";
 
 const spotifyService = SpotifyService();
 const accessToken = "x";
 
 (async () => {
 	const artists = await spotifyService.getFollowedArtists(accessToken);
-	console.log(artists.map(({ name }) => name));
+	logger.info(
+		"Followed artists:",
+		artists.map(({ name }) => name),
+	);
 })();

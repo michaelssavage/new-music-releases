@@ -1,3 +1,4 @@
+import { logger } from "@client/utils/logger";
 import type { SpotifyDataProps } from "@model/spotify";
 import type { Artist, SavedArtistI, SearchProps } from "@model/spotify/search";
 import type { UserID } from "@model/spotify/user";
@@ -54,14 +55,14 @@ export const saveArtist = async ({
 	data,
 }: { userId: UserID; data: SavedArtistI }) => {
 	try {
-		console.log(`Saving ${data.name}`, data);
+		logger.info(`Saving ${data.name}`, data);
 		return await axios.post("/api/save-artists", {
 			userId,
 			artists: [data],
 		});
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to save artist:",
 				error.response?.data || error.message,
 			);
@@ -77,7 +78,7 @@ export const removeArtist = async ({
 	id,
 }: { userId: UserID; name: string; id: string }) => {
 	try {
-		console.log(`Removing Artist ${name} with id ${id}`);
+		logger.info(`Removing Artist ${name} with id ${id}`);
 		await axios.delete(`/api/remove-artist/${id}?userId=${userId}`);
 	} catch (error) {
 		if (axios.isAxiosError(error)) {

@@ -30,6 +30,7 @@ export interface User {
 	access_token: string;
 	refresh_token: string;
 	profile: SpotifyUserProfile;
+	saved_artists: Array<string>;
 }
 
 export type UserID = string | null;

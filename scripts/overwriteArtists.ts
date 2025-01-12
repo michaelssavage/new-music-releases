@@ -1,4 +1,4 @@
-import { SpotifyService } from "server/services/spotify.sevice";
+import { SpotifyService } from "@server/module/spotify/spotify.sevice";
 
 const spotifyService = SpotifyService();
 const userId = "1";

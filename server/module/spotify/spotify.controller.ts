@@ -1,6 +1,6 @@
 import type { Artist } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
-import { SpotifyService } from "@server/services/spotify.sevice";
+import { SpotifyService } from "@server/module/spotify/spotify.sevice";
 import { getAuthorizationUrl } from "@server/utils/auth";
 import type { Request, Response } from "express";
 
@@ -159,10 +159,7 @@ export function SpotifyController() {
 		}
 	}
 
-	async function fetchAndSaveArtists(
-		req: SaveQuery,
-		res: Response,
-	): Promise<void> {
+	async function saveArtists(req: SaveQuery, res: Response): Promise<void> {
 		const { artists, userId } = req.body;
 
 		if (!artists || !artists.length || !Array.isArray(artists)) {
@@ -176,7 +173,7 @@ export function SpotifyController() {
 		}
 
 		try {
-			await spotifyService.fetchAndSaveArtists(userId, artists);
+			await spotifyService.saveArtists(userId, artists);
 			res.status(201).json({ message: "Artists saved successfully" });
 		} catch (error) {
 			console.error("Error saving artists:", error);
@@ -347,7 +344,7 @@ export function SpotifyController() {
 
 		searchHandler,
 		getSavedTracks,
-		fetchAndSaveArtists,
+		saveArtists,
 		getSingleArtist,
 		getAllArtistsIds,
 		removeSavedArtist,

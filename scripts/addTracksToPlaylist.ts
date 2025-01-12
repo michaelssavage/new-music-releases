@@ -1,4 +1,5 @@
-import { SpotifyService } from "server/services/spotify.sevice";
+import { logger } from "@client/utils/logger";
+import { SpotifyService } from "@server/module/spotify/spotify.sevice";
 import type { NewReleasesI } from "../model/spotify";
 
 const spotifyService = SpotifyService();
@@ -21,7 +22,7 @@ const accessToken = "x";
 		)
 	).flat();
 
-	console.log(trackUris);
+	logger.info("track uris: ", trackUris);
 	if (playlist) {
 		await spotifyService.addTracksToPlaylist(
 			accessToken,

@@ -1,4 +1,5 @@
-import { SpotifyService } from "server/services/spotify.sevice";
+import { logger } from "@client/utils/logger";
+import { SpotifyService } from "@server/module/spotify/spotify.sevice";
 
 const spotifyService = SpotifyService();
 const userId = "1";
@@ -9,5 +10,5 @@ const accessToken = "x";
 		userId,
 		accessToken,
 	);
-	console.log("New Releases:", newReleases);
+	logger.info("New Releases:", newReleases);
 })();

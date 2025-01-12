@@ -7,8 +7,8 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
-import spotifyRouter from "./routes/spotify.router.js";
-import { SpotifyService } from "./services/spotify.sevice.js";
+import spotifyRouter from "./module/spotify/spotify.router.js";
+import { SpotifyService } from "./module/spotify/spotify.sevice.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;

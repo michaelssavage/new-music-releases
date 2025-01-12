@@ -3,6 +3,7 @@ import { Button } from "@client/components/Button";
 import { Group } from "@client/components/Group";
 import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { Info } from "@client/components/InfoToast";
+import { Loader } from "@client/components/Loader";
 import { Panel } from "@client/components/Panel";
 import { ArtistTable } from "@client/components/Table/Artist";
 import { PlaylistTable } from "@client/components/Table/Playlist";
@@ -33,7 +34,11 @@ const Content = styled.div`
 function Releases() {
 	const { userId } = useAppStore();
 
-	const { data, refetch: refetchPlaylist } = useQuery<SpotifyDataProps | null>({
+	const {
+		data,
+		refetch: refetchPlaylist,
+		isLoading,
+	} = useQuery<SpotifyDataProps | null>({
 		queryKey: ["playlist"],
 		queryFn: () => getSpotifyPlaylist(userId),
 		refetchOnWindowFocus: false,
@@ -41,8 +46,8 @@ function Releases() {
 
 	const { isPending, mutate } = useMutation({
 		mutationFn: updateSpotifyPlaylistReleases,
-		onSuccess: ({ tracks }) => {
-			if (Array.isArray(tracks) && tracks?.length > 0) {
+		onSuccess: (data) => {
+			if (Array.isArray(data.tracks) && data.tracks?.length > 0) {
 				toast.success("Fetched new playlist releases");
 				refetchPlaylist();
 			} else {
@@ -107,6 +112,10 @@ function Releases() {
 			),
 		},
 	];
+
+	if (isLoading) {
+		return <Loader />;
+	}
 
 	return (
 		<div>

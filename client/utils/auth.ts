@@ -2,6 +2,7 @@
 import { isAuthValid, refreshAuthToken } from "@client/lib/spotify";
 import { redirect } from "@tanstack/react-router";
 import Cookies from "js-cookie";
+import { logger } from "./logger";
 
 interface AuthState {
 	isAuthenticated: boolean;
@@ -68,7 +69,7 @@ export function setupAuthRefresh() {
 					if (status !== "OK") {
 						const newAccessToken = await refreshAuthToken(refreshToken);
 						if (newAccessToken) {
-							console.log("Access token refreshed successfully.");
+							logger.info("Access token refreshed successfully.");
 						}
 					}
 				} catch (error) {

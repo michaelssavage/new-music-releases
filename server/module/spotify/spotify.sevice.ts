@@ -17,13 +17,13 @@ import type {
 } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile, User } from "@model/spotify/user";
-import { SpotifyRepository } from "../repository/spotify.repository";
-import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
+import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants";
+import { SpotifyRepository } from "./spotify.repository";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 const {
 	MONGO_URI,
@@ -67,6 +67,7 @@ export function SpotifyService() {
 				access_token: tokens.access_token,
 				refresh_token: tokens.refresh_token,
 				profile: userProfile,
+				saved_artists: [],
 			});
 		}
 
@@ -173,18 +174,18 @@ export function SpotifyService() {
 		return data;
 	}
 
-	async function fetchAndSaveArtists(userId: string, artists: Array<Artist>) {
+	async function saveArtists(userId: string, artists: Array<Artist>) {
 		if (artists.length === 0) {
 			console.log("No artists to save.");
 			return null;
 		}
 
-		const result = await repository.fetchAndSaveArtists(userId, artists);
+		const result = await repository.saveArtists(userId, artists);
 		console.log(`${artists.length} artists added/updated in the database.`);
 		return result;
 	}
 
-	async function resetArtists(userId: string, artists: Array<SavedArtistI>) {
+	async function resetArtists(userId: string, artists: Array<Artist>) {
 		if (artists.length === 0) {
 			console.log("No artists to save after reset.");
 			return null;
@@ -430,7 +431,7 @@ export function SpotifyService() {
 		validateToken,
 		// Artists
 		getFollowedArtists,
-		fetchAndSaveArtists,
+		saveArtists,
 		resetArtists,
 		getSingleArtist,
 		removeSavedArtist,
