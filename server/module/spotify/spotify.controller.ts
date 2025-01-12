@@ -321,23 +321,12 @@ export function SpotifyController() {
 		}
 	}
 
-	async function updatePlaylistsForAllUsers() {
-		try {
-			const results = await spotifyService.updatePlaylistsForAllUsers();
-			console.log("All playlists updated:", results);
-		} catch (error) {
-			console.error("Error in updating playlists:", error);
-		} finally {
-		}
-	}
-
 	return {
 		loginHandler,
 		callbackHandler,
 		refreshToken,
 		validateToken,
 		getUser,
-
 		searchHandler,
 		getSavedTracks,
 		saveArtists,
@@ -346,6 +335,5 @@ export function SpotifyController() {
 		removeSavedArtist,
 		getSpotifyPlaylist,
 		updateNewReleases,
-		updatePlaylistsForAllUsers,
 	};
 }
