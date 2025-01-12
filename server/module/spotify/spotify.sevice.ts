@@ -405,6 +405,76 @@ export function SpotifyService() {
 		return playlistItems;
 	}
 
+	async function updateNewReleases(userId: string, token: string) {
+		const playlist = await getSpotifyPlaylist(userId, token);
+
+		if (!playlist) {
+			console.log("No playlist found for user:", userId);
+			return;
+		}
+
+		const updatedPlaylist = await updateSpotifyPlaylistReleases(
+			userId,
+			token,
+			playlist,
+		);
+
+		console.log("Playlist updated for user:", userId);
+		return updatedPlaylist;
+	}
+
+	async function updatePlaylistsForAllUsers() {
+		const users = await repository.getAllUsers();
+
+		if (!users || users.length === 0) {
+			console.log("No users found for updating playlists.");
+			return;
+		}
+
+		const results = await Promise.all(
+			users.map(async (user) => {
+				const { refresh_token, access_token, userId } = user;
+
+				try {
+					let validAccessToken = access_token;
+					if (!access_token) {
+						const { data } = await refreshToken(refresh_token);
+						validAccessToken = data.access_token;
+					}
+
+					const playlist = await getSpotifyPlaylist(userId, validAccessToken);
+
+					if (!playlist) {
+						console.log(`No playlist found for user: ${userId}`);
+						return;
+					}
+
+					const updatedPlaylist = await updateSpotifyPlaylistReleases(
+						userId,
+						validAccessToken,
+						playlist,
+					);
+
+					console.log(`Playlist updated for user: ${userId}`);
+					return updatedPlaylist;
+				} catch (error) {
+					console.error(`Error updating playlist for user ${userId}:`, error);
+					return null; // Continue with other users even if one fails
+				}
+			}),
+		);
+
+		const successfulUpdates = results.filter(
+			(result) => result.status === "fulfilled",
+		);
+		const errors = results.filter((result) => result.status === "rejected");
+
+		console.log(`Successful updates: ${successfulUpdates.length}`);
+		console.error(`Failed updates: ${errors.length}`);
+
+		return results;
+	}
+
 	return {
 		initialize,
 		shutdown,
@@ -429,7 +499,8 @@ export function SpotifyService() {
 		getNewReleasesForArtist,
 		fetchNewReleases,
 		addTracksToPlaylist,
-		updateSpotifyPlaylistReleases,
+		updateNewReleases,
+		updatePlaylistsForAllUsers,
 		// Playlist
 		createSpotifyPlaylist,
 		getSpotifyPlaylist,

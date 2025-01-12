@@ -295,10 +295,7 @@ export function SpotifyController() {
 		}
 	}
 
-	async function updateSpotifyPlaylistReleases(
-		req: Request,
-		res: Response,
-	): Promise<void> {
+	async function updateNewReleases(req: Request, res: Response): Promise<void> {
 		const spotify_access_token = req.headers.spotify_access_token as string;
 		const userId = req.query.userId as string;
 
@@ -313,25 +310,24 @@ export function SpotifyController() {
 		}
 
 		try {
-			const playlist = await spotifyService.getSpotifyPlaylist(
+			const data = spotifyService.updateNewReleases(
 				userId,
 				spotify_access_token,
-			);
-
-			if (!playlist) {
-				res.status(404).json({ error: "No playlist found" });
-				return;
-			}
-
-			const data = await spotifyService.updateSpotifyPlaylistReleases(
-				userId,
-				spotify_access_token,
-				playlist,
 			);
 			res.json(data);
 		} catch (error) {
 			console.error("Error updating playlist releases:", error);
 			res.status(500).json({ error: "Failed to update playlist releases" });
+		}
+	}
+
+	async function updatePlaylistsForAllUsers() {
+		try {
+			const results = await spotifyService.updatePlaylistsForAllUsers();
+			console.log("All playlists updated:", results);
+		} catch (error) {
+			console.error("Error in updating playlists:", error);
+		} finally {
 		}
 	}
 
@@ -349,6 +345,7 @@ export function SpotifyController() {
 		getAllArtistsIds,
 		removeSavedArtist,
 		getSpotifyPlaylist,
-		updateSpotifyPlaylistReleases,
+		updateNewReleases,
+		updatePlaylistsForAllUsers,
 	};
 }

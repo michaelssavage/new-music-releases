@@ -48,6 +48,10 @@ export function SpotifyRepository(mongoUri: string) {
 		return await userDb.findOne<User>({ userId: String(userId) });
 	}
 
+	async function getAllUsers() {
+		return await userDb.find<User>({}).toArray();
+	}
+
 	async function saveArtists(userId: string, artists: Array<Artist>) {
 		console.log(`${userId} is saving artists:`, {
 			userId,
@@ -129,6 +133,7 @@ export function SpotifyRepository(mongoUri: string) {
 		disconnect,
 		saveUser,
 		getUser,
+		getAllUsers,
 		saveArtists,
 		resetArtists,
 		removeSavedArtist,
