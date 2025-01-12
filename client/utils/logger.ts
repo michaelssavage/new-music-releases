@@ -18,7 +18,7 @@ class Logger {
 		data?: unknown,
 	): LogMessage {
 		return {
-			timestamp: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+			timestamp: format(new Date(), "dd-MM-yyyy HH:mm:ss"),
 			level,
 			message,
 			data,
