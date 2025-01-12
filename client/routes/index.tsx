@@ -4,13 +4,11 @@ import { TrackCard } from "@client/components/Card/Track";
 import { Panel } from "@client/components/Panel";
 import { SearchArea } from "@client/components/SearchArea";
 import { type Tab, Tabs } from "@client/components/Tabs";
-import { getSavedArtists } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
 import { defaultOptions, defaultResults } from "@client/utils/defaults";
 import styled from "@emotion/styled";
-import type { Artist, SearchResponse } from "@model/spotify/search";
-import { useQuery } from "@tanstack/react-query";
+import type { SearchResponse } from "@model/spotify/search";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -28,13 +26,7 @@ function App() {
 	const [type, setType] = useState(defaultOptions);
 	const [results, setResults] = useState<SearchResponse>(defaultResults);
 
-	const { savedArtists, userId } = useAppStore();
-
-	const { refetch: refetchArtists } = useQuery<Array<Artist>>({
-		queryKey: ["data", userId],
-		queryFn: () => getSavedArtists(userId),
-		enabled: false,
-	});
+	const { savedArtists } = useAppStore();
 
 	const data: Array<Tab> = [
 		{
@@ -51,7 +43,6 @@ function App() {
 								image={artist?.images?.[0]?.url}
 								artist={artist}
 								isSaved={savedArtists.some(({ id }) => id === artist.id)}
-								refetchArtists={refetchArtists}
 							/>
 						))}
 				</Panel>
@@ -106,7 +97,6 @@ function App() {
 				setResults={setResults}
 				type={type}
 				setType={setType}
-				refetchArtists={refetchArtists}
 			/>
 			<Content>
 				<Tabs data={data.filter(({ visible }) => visible)} loading={loading} />

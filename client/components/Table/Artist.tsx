@@ -104,7 +104,7 @@ export const ArtistTable = () => {
 
 	const { savedArtists, userId } = useAppStore();
 
-	const { refetch: refetchSavedArtists } = useQuery({
+	const { refetch: refetchArtists } = useQuery({
 		queryKey: ["artist", userId],
 		queryFn: () => getSavedArtists(userId),
 		enabled: false,
@@ -125,7 +125,7 @@ export const ArtistTable = () => {
 		mutationFn: saveArtist,
 		onSuccess: () => {
 			toast.success("Artist saved!");
-			refetchSavedArtists();
+			refetchArtists();
 		},
 	});
 
@@ -133,7 +133,7 @@ export const ArtistTable = () => {
 		mutationFn: removeArtist,
 		onSuccess: () => {
 			toast.success("Artist removed!");
-			refetchSavedArtists();
+			refetchArtists();
 		},
 		onError: () => {
 			toast.error("Couldn't remove artist");

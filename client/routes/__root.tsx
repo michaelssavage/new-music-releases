@@ -18,34 +18,26 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+	const { userId, setSavedArtists, setRefetchArtists } = useAppStore();
+
 	useEffect(() => {
 		setupAuthRefresh();
 	}, []);
 
-	const { userId, updateSavedArtists, fetchedArtists, setFetchedArtists } =
-		useAppStore();
-
-	const { refetch: refetchArtists } = useQuery<Array<Artist>>({
+	const { data, refetch } = useQuery<Array<Artist>>({
 		queryKey: ["root", userId],
-		queryFn: () => {
-			console.log("!!!root");
-			return getSavedArtists(userId);
-		},
-		enabled: false,
+		queryFn: () => getSavedArtists(userId),
+		enabled: userId !== null,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
 	});
 
 	useEffect(() => {
-		const userId = useAppStore.getState().userId;
-
-		if (userId && !fetchedArtists) {
-			refetchArtists().then((result) => {
-				if (result.data) {
-					updateSavedArtists(result.data);
-					setFetchedArtists(true);
-				}
-			});
+		if (data) {
+			setSavedArtists(data);
+			setRefetchArtists(refetch);
 		}
-	}, [fetchedArtists, setFetchedArtists, refetchArtists, updateSavedArtists]);
+	}, [data, setSavedArtists, setRefetchArtists, refetch]);
 
 	return (
 		<TabsContextProvider>

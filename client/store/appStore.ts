@@ -6,19 +6,18 @@ interface StoreState {
 	isAuthenticated: boolean;
 	userId: string | null;
 	savedArtists: Array<Artist>;
-	fetchedArtists: boolean;
-	setFetchedArtists: (fetched: boolean) => void;
+	refetchArtists: (() => void) | null;
 	login: (accessToken: string, refreshToken: string, userId: string) => void;
 	logout: () => void;
-	updateSavedArtists: (artists: Array<Artist>) => void;
+	setSavedArtists: (artists: Array<Artist>) => void;
+	setRefetchArtists: (refetch: () => void) => void;
 }
 
 export const useAppStore = create<StoreState>((set) => ({
 	isAuthenticated: !!Cookies.get("spotify_access_token"),
 	userId: Cookies.get("spotify_user_id") || null,
 	savedArtists: [],
-	fetchedArtists: false,
-	setFetchedArtists: (fetched: boolean) => set({ fetchedArtists: fetched }),
+	refetchArtists: null,
 	login: (accessToken, refreshToken, userId) => {
 		Cookies.set("spotify_access_token", accessToken, {
 			secure: true,
@@ -45,6 +44,6 @@ export const useAppStore = create<StoreState>((set) => ({
 		Cookies.remove("spotify_user_id");
 		set({ isAuthenticated: false, userId: null });
 	},
-	updateSavedArtists: (artists: Array<Artist>) =>
-		set({ savedArtists: artists }),
+	setSavedArtists: (artists: Array<Artist>) => set({ savedArtists: artists }),
+	setRefetchArtists: (refetch: () => void) => set({ refetchArtists: refetch }),
 }));

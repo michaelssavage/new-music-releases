@@ -33,8 +33,6 @@ function Callback() {
 	useEffect(() => {
 		const { access_token, refresh_token, user_id } = searchParams;
 
-		console.log("!!!", searchParams);
-
 		if (access_token && refresh_token && user_id) {
 			login(access_token, refresh_token, user_id);
 			navigate({ to: "/" });

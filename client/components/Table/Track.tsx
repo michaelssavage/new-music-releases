@@ -1,14 +1,8 @@
-import {
-	getArtist,
-	getNextTracks,
-	getSavedArtists,
-	getUserTracks,
-} from "@client/lib/spotify";
+import { getArtist, getNextTracks, getUserTracks } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { displayDate } from "@client/utils/dates";
 import styled from "@emotion/styled";
 import type { LikedTracksI, ShowItem } from "@model/spotify/liked-tracks";
-import type { Artist } from "@model/spotify/search";
 import { useQuery } from "@tanstack/react-query";
 import {
 	type SortingState,
@@ -97,7 +91,7 @@ export const TrackTable = () => {
 		setArtistId(id);
 	};
 
-	const { savedArtists, userId } = useAppStore();
+	const { savedArtists } = useAppStore();
 
 	const {
 		data: artistData,
@@ -108,12 +102,6 @@ export const TrackTable = () => {
 		queryFn: () => getArtist(artistId),
 		enabled: artistId !== undefined,
 		refetchOnWindowFocus: false,
-	});
-
-	const { refetch: refetchArtists } = useQuery<Array<Artist>>({
-		queryKey: ["trackTable", userId],
-		queryFn: () => getSavedArtists(userId),
-		enabled: false,
 	});
 
 	const { data, isPending, isSuccess } = useQuery<LikedTracksI | null>({
@@ -227,7 +215,6 @@ export const TrackTable = () => {
 			<ArtistCard
 				image={artistData.images?.[0].url}
 				artist={artistData}
-				refetchArtists={refetchArtists}
 				isSaved={savedArtists.some(({ id }) => id === artistData.id)}
 			/>
 		);

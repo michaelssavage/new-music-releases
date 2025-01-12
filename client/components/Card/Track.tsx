@@ -1,5 +1,5 @@
 import noPhoto from "@client/assets/no-photo.jpg";
-import { getArtist, getSavedArtists } from "@client/lib/spotify";
+import { getArtist } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import type { Artist, Track } from "@model/spotify/search";
@@ -38,7 +38,7 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [artistId, setArtistId] = useState<string>();
 
-	const { savedArtists, userId } = useAppStore();
+	const { savedArtists } = useAppStore();
 
 	const handleArtistClick = (id: string) => {
 		setIsOpen(true);
@@ -56,12 +56,6 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 		refetchOnWindowFocus: false,
 	});
 
-	const { refetch: refetchArtists } = useQuery<Array<Artist>>({
-		queryKey: ["trackCard", userId],
-		queryFn: () => getSavedArtists(userId),
-		enabled: false,
-	});
-
 	const renderArtist = () => {
 		if (!artistData) return null;
 		if (isLoading) return <Loader />;
@@ -71,7 +65,6 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 			<ArtistCard
 				image={artistData.images?.[0].url}
 				artist={artistData}
-				refetchArtists={refetchArtists}
 				isSaved={savedArtists.some(({ id }) => id === artistData.id)}
 			/>
 		);
@@ -90,7 +83,7 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 						{artists.map((artist, index) => (
 							<>
 								<Button
-									key={artist.id}
+									key={`${artist.id}-${index}`}
 									variant="link"
 									onClick={() => handleArtistClick(artist.id)}
 									text={artist.name}

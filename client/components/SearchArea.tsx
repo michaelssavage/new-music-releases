@@ -1,5 +1,6 @@
 import { useTabs } from "@client/context/tabs.context";
 import { fetchSearchResults } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import { Wrapper } from "@client/styles/global.styled";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
@@ -10,7 +11,12 @@ import {
 import styled from "@emotion/styled";
 import type { SearchResponse } from "@model/spotify/search";
 import { useMutation } from "@tanstack/react-query";
-import { type ChangeEvent, type KeyboardEvent, useState } from "react";
+import {
+	type ChangeEvent,
+	type KeyboardEvent,
+	useCallback,
+	useState,
+} from "react";
 import type { MultiValue } from "react-select";
 import { Button } from "./Button";
 import { Select } from "./Form/Select";
@@ -26,7 +32,6 @@ interface Props {
 	setResults: (results: SearchResponse) => void;
 	type: Array<TypeI>;
 	setType: (type: Array<TypeI>) => void;
-	refetchArtists: () => void;
 }
 
 export const SearchArea = ({
@@ -34,14 +39,22 @@ export const SearchArea = ({
 	setResults,
 	type,
 	setType,
-	refetchArtists,
 }: Props) => {
 	const [search, setSearch] = useState("");
 	const { setActiveTab } = useTabs();
 
-	const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-		setSearch(event.target.value);
+	const { refetchArtists } = useAppStore();
+
+	const handleRefetch = () => {
+		if (refetchArtists) refetchArtists();
+		else {
+			console.error("Refetch function is not set in the store");
+		}
 	};
+
+	const handleSearch = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+		setSearch(event.target.value);
+	}, []);
 
 	const handleType = (newValue: MultiValue<TypeI>) => {
 		setType(newValue as TypeI[]);
@@ -74,7 +87,7 @@ export const SearchArea = ({
 
 	const handleClick = () => {
 		mutate({ search, type: type.map((t) => t.value) });
-		refetchArtists();
+		handleRefetch();
 	};
 
 	const disableSearch = !search || type.length === 0 || isPending;

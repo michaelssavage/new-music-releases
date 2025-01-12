@@ -13,15 +13,9 @@ interface CardI {
 	image: string;
 	artist: Artist;
 	isSaved: boolean;
-	refetchArtists: () => void;
 }
 
-export const ArtistCard = ({
-	image,
-	artist,
-	isSaved,
-	refetchArtists,
-}: CardI) => {
+export const ArtistCard = ({ image, artist, isSaved }: CardI) => {
 	const {
 		id,
 		name,
@@ -32,13 +26,20 @@ export const ArtistCard = ({
 		external_urls: { spotify: link },
 	} = artist;
 
-	const { userId } = useAppStore();
+	const { userId, refetchArtists } = useAppStore();
+
+	const handleRefetch = () => {
+		if (refetchArtists) refetchArtists();
+		else {
+			console.error("Refetch function is not set in the store");
+		}
+	};
 
 	const { isPending: loadingSave, mutate: mutateSave } = useMutation({
 		mutationFn: saveArtist,
 		onSuccess: () => {
 			toast.success("Artist saved!");
-			refetchArtists();
+			handleRefetch();
 		},
 	});
 
@@ -46,7 +47,7 @@ export const ArtistCard = ({
 		mutationFn: removeArtist,
 		onSuccess: () => {
 			toast.success("Artist removed!");
-			refetchArtists();
+			handleRefetch();
 		},
 	});
 

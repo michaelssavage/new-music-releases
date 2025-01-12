@@ -21,8 +21,6 @@ interface SaveQuery extends Request {
 
 const { SPOTIFY_CLIENT_ID, SERVER_URL } = process.env;
 
-const artistCache = new Map<string, Array<Artist>>();
-
 export function SpotifyController() {
 	const spotifyService = SpotifyService();
 
@@ -220,15 +218,8 @@ export function SpotifyController() {
 			return;
 		}
 
-		if (artistCache.has(userId)) {
-			console.log("Retrieving artists from cache");
-			res.json(artistCache.get(userId));
-			return;
-		}
-
 		try {
 			const artistIds = await spotifyService.getAllArtistsIds(userId);
-			artistCache.set(userId, artistIds);
 			res.json(artistIds);
 		} catch (error) {
 			console.error("Error retrieving artists:", error);
