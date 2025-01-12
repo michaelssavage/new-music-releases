@@ -39,7 +39,6 @@ export interface SavedArtistI {
 	id: string;
 	name: string;
 	uri: string;
-	url: string;
 	images: string;
 }
 

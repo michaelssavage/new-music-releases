@@ -15,10 +15,13 @@ interface SearchQuery extends Request {
 interface SaveQuery extends Request {
 	body: {
 		artists: Array<Artist>;
+		userId: string;
 	};
 }
 
 const { SPOTIFY_CLIENT_ID, SERVER_URL } = process.env;
+
+const artistCache = new Map<string, Array<Artist>>();
 
 export function SpotifyController() {
 	const spotifyService = SpotifyService();
@@ -39,14 +42,14 @@ export function SpotifyController() {
 		const code = req.query.code;
 
 		try {
-			const { access_token, refresh_token, frontend_uri } =
-				await spotifyService.getTokens(code as string);
+			const { userProfile, access_token, refresh_token, frontend_uri } =
+				await spotifyService.callbackHandler(code as string);
 
 			res.redirect(
-				`${frontend_uri}/callback?access_token=${access_token}&refresh_token=${refresh_token}`,
+				`${frontend_uri}/callback?user_id=${userProfile.id}&access_token=${access_token}&refresh_token=${refresh_token}`,
 			);
 		} catch (error) {
-			console.error("Error fetching tokens:", error);
+			console.error("Error during callback:", error);
 			res.status(500).send("Authentication failed.");
 		}
 	}
@@ -92,6 +95,23 @@ export function SpotifyController() {
 		} catch (error) {
 			console.log("Error validating token:", error);
 			res.status(401).json({ error: "Invalid token" });
+		}
+	}
+
+	async function getUser(req: Request, res: Response): Promise<void> {
+		const userId = req.query.userId as string;
+
+		if (!userId) {
+			res.status(400).json({ error: "No user id provided to save artists" });
+			return;
+		}
+
+		try {
+			const response = await spotifyService.getUser(userId);
+			res.json(response);
+		} catch (error) {
+			console.error("Error saving artists:", error);
+			res.status(500).json({ error: "Failed to save artists" });
 		}
 	}
 
@@ -145,15 +165,20 @@ export function SpotifyController() {
 		req: SaveQuery,
 		res: Response,
 	): Promise<void> {
-		const { artists } = req.body;
+		const { artists, userId } = req.body;
 
 		if (!artists || !artists.length || !Array.isArray(artists)) {
 			res.status(400).json({ error: "Invalid artists data" });
 			return;
 		}
 
+		if (!userId) {
+			res.status(400).json({ error: "No user id provided to save artists" });
+			return;
+		}
+
 		try {
-			await spotifyService.fetchAndSaveArtists(artists);
+			await spotifyService.fetchAndSaveArtists(userId, artists);
 			res.status(201).json({ message: "Artists saved successfully" });
 		} catch (error) {
 			console.error("Error saving artists:", error);
@@ -187,9 +212,23 @@ export function SpotifyController() {
 		}
 	}
 
-	async function getAllArtistsIds(_req: Request, res: Response): Promise<void> {
+	async function getAllArtistsIds(req: Request, res: Response): Promise<void> {
+		const userId = req.query.userId as string;
+
+		if (!userId) {
+			res.status(400).json({ error: "No user id provided to get all artists" });
+			return;
+		}
+
+		if (artistCache.has(userId)) {
+			console.log("Retrieving artists from cache");
+			res.json(artistCache.get(userId));
+			return;
+		}
+
 		try {
-			const artistIds = await spotifyService.getAllArtistsIds();
+			const artistIds = await spotifyService.getAllArtistsIds(userId);
+			artistCache.set(userId, artistIds);
 			res.json(artistIds);
 		} catch (error) {
 			console.error("Error retrieving artists:", error);
@@ -202,14 +241,20 @@ export function SpotifyController() {
 		res: Response,
 	): Promise<void> {
 		const { id } = req.params;
+		const userId = req.query.userId as string;
 
 		if (!id) {
 			res.status(400).json({ error: "No artist id provided to remove artist" });
 			return;
 		}
 
+		if (!userId) {
+			res.status(400).json({ error: "No user id provided to remove artists" });
+			return;
+		}
+
 		try {
-			await spotifyService.removeSavedArtist(id);
+			await spotifyService.removeSavedArtist(userId, id);
 			res.json({ message: "Artists removed successfully" });
 		} catch (error) {
 			console.error("Error removing artists:", error);
@@ -221,16 +266,23 @@ export function SpotifyController() {
 		req: Request,
 		res: Response,
 	): Promise<void> {
-		const { spotify_access_token } = req.headers;
+		const spotify_access_token = req.headers.spotify_access_token as string;
+		const userId = req.query.userId as string;
 
 		if (!spotify_access_token) {
 			res.status(401).json({ error: "Unauthorized" });
 			return;
 		}
 
+		if (!userId) {
+			res.status(400).json({ error: "No user id provided to get playlist" });
+			return;
+		}
+
 		try {
 			const playlist = await spotifyService.getSpotifyPlaylist(
-				spotify_access_token as string,
+				userId,
+				spotify_access_token,
 			);
 
 			if (!playlist) {
@@ -259,16 +311,23 @@ export function SpotifyController() {
 		req: Request,
 		res: Response,
 	): Promise<void> {
-		const { spotify_access_token } = req.headers;
+		const spotify_access_token = req.headers.spotify_access_token as string;
+		const userId = req.query.userId as string;
 
 		if (!spotify_access_token) {
 			res.status(401).json({ error: "Unauthorized" });
 			return;
 		}
 
+		if (!userId) {
+			res.status(400).json({ error: "No user id provided to get playlist" });
+			return;
+		}
+
 		try {
 			const playlist = await spotifyService.getSpotifyPlaylist(
-				spotify_access_token as string,
+				userId,
+				spotify_access_token,
 			);
 
 			if (!playlist) {
@@ -277,7 +336,8 @@ export function SpotifyController() {
 			}
 
 			const data = await spotifyService.updateSpotifyPlaylistReleases(
-				spotify_access_token as string,
+				userId,
+				spotify_access_token,
 				playlist,
 			);
 			res.json(data);
@@ -292,6 +352,7 @@ export function SpotifyController() {
 		callbackHandler,
 		refreshToken,
 		validateToken,
+		getUser,
 
 		searchHandler,
 		getSavedTracks,

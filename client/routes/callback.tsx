@@ -1,5 +1,5 @@
 import { Loader } from "@client/components/Loader";
-import { useAuthStore } from "@client/store/authStore";
+import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import {
 	createFileRoute,
@@ -11,6 +11,7 @@ import { useEffect } from "react";
 interface AuthSearchParams {
 	access_token: string;
 	refresh_token: string;
+	user_id: string;
 }
 
 export const Page = styled.div`
@@ -27,14 +28,15 @@ function Callback() {
 		from: Route.fullPath,
 		select: (search) => search as AuthSearchParams,
 	});
-	const { login } = useAuthStore();
+	const { login } = useAppStore();
 
 	useEffect(() => {
-		const accessToken = searchParams.access_token;
-		const refreshToken = searchParams.refresh_token;
+		const { access_token, refresh_token, user_id } = searchParams;
 
-		if (accessToken && refreshToken) {
-			login(accessToken, refreshToken);
+		console.log("!!!", searchParams);
+
+		if (access_token && refresh_token && user_id) {
+			login(access_token, refresh_token, user_id);
 			navigate({ to: "/" });
 		}
 	}, [navigate, login, searchParams]);

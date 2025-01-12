@@ -1,5 +1,6 @@
 import noPhoto from "@client/assets/no-photo.jpg";
 import { getArtist, getSavedArtists } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import type { Artist } from "@model/spotify/search";
 import { useQuery } from "@tanstack/react-query";
@@ -51,6 +52,8 @@ export const AlbumCard = ({ image, name, type, artists }: CardI) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [artistId, setArtistId] = useState<string>();
 
+	const { savedArtists, userId } = useAppStore();
+
 	const handleArtistClick = (id: string) => {
 		setIsOpen(true);
 		setArtistId(id);
@@ -67,13 +70,10 @@ export const AlbumCard = ({ image, name, type, artists }: CardI) => {
 		refetchOnWindowFocus: false,
 	});
 
-	const { data: artistIds = [], refetch: refetchArtists } = useQuery<
-		Array<Artist>
-	>({
-		queryKey: ["data"],
-		queryFn: getSavedArtists,
-		enabled: artistId !== undefined,
-		refetchOnWindowFocus: false,
+	const { refetch: refetchArtists } = useQuery<Array<Artist>>({
+		queryKey: ["album", userId],
+		queryFn: () => getSavedArtists(userId),
+		enabled: false,
 	});
 
 	const renderArtist = () => {
@@ -86,7 +86,7 @@ export const AlbumCard = ({ image, name, type, artists }: CardI) => {
 				image={artistData.images?.[0].url}
 				artist={artistData}
 				refetchArtists={refetchArtists}
-				isSaved={artistIds.some(({ id }) => id === artistData.id)}
+				isSaved={savedArtists.some(({ id }) => id === artistData.id)}
 			/>
 		);
 	};

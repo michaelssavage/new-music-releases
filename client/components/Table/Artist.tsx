@@ -4,6 +4,7 @@ import {
 	removeArtist,
 	saveArtist,
 } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import type { Artist } from "@model/spotify/search";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -101,10 +102,12 @@ export const ArtistTable = () => {
 	const [artistId, setArtistId] = useState<string>();
 	const [removedArtists, setRemovedArtists] = useState<string[]>([]);
 
-	const { data = [], refetch: refetchSavedArtists } = useQuery({
-		queryKey: ["savedArtists"],
-		queryFn: getSavedArtists,
-		refetchOnWindowFocus: false,
+	const { savedArtists, userId } = useAppStore();
+
+	const { refetch: refetchSavedArtists } = useQuery({
+		queryKey: ["artist", userId],
+		queryFn: () => getSavedArtists(userId),
+		enabled: false,
 	});
 
 	const {
@@ -144,15 +147,20 @@ export const ArtistTable = () => {
 		if (isSaved) {
 			setRemovedArtists((prev) => [...prev, data.id]);
 			mutateRemove({
+				userId,
 				id: data.id,
 				name: data.name,
 			});
 		} else {
 			setRemovedArtists((prev) => prev.filter((id) => id !== data.id));
 			mutateSave({
-				id: data.id,
-				name: data.name,
-				uri: data.uri,
+				userId,
+				data: {
+					id: data.id,
+					name: data.name,
+					uri: data.uri,
+					images: data.images?.[0]?.url,
+				},
 			});
 		}
 	};
@@ -186,9 +194,9 @@ export const ArtistTable = () => {
 	];
 
 	const table = useReactTable({
-		data,
+		data: savedArtists,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
+		getCoreRowModel: getCoreRowModel<Artist>(),
 	});
 
 	const renderArtist = () => {

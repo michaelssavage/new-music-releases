@@ -12,6 +12,7 @@ import {
 	getSpotifyPlaylist,
 	updateSpotifyPlaylistReleases,
 } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import { Wrapper } from "@client/styles/global.styled";
 import { requireAuth } from "@client/utils/auth";
 import styled from "@emotion/styled";
@@ -30,9 +31,11 @@ const Content = styled.div`
 `;
 
 function Releases() {
-	const { data, refetch } = useQuery<SpotifyDataProps | null>({
+	const { userId } = useAppStore();
+
+	const { data, refetch: refetchPlaylist } = useQuery<SpotifyDataProps | null>({
 		queryKey: ["playlist"],
-		queryFn: getSpotifyPlaylist,
+		queryFn: () => getSpotifyPlaylist(userId),
 		refetchOnWindowFocus: false,
 	});
 
@@ -41,7 +44,7 @@ function Releases() {
 		onSuccess: ({ tracks }) => {
 			if (Array.isArray(tracks) && tracks?.length > 0) {
 				toast.success("Fetched new playlist releases");
-				refetch();
+				refetchPlaylist();
 			} else {
 				toast.custom(<Info text="No new releases found" />);
 			}
@@ -60,7 +63,7 @@ function Releases() {
 				<Panel title="New releases" direction="column">
 					<Group justify="center" width="100%">
 						<Button
-							onClick={mutate}
+							onClick={() => mutate(userId)}
 							text="Fetch new releases"
 							variant="secondary"
 							loading={isPending}

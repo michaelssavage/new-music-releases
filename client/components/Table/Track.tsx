@@ -4,6 +4,7 @@ import {
 	getSavedArtists,
 	getUserTracks,
 } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import { displayDate } from "@client/utils/dates";
 import styled from "@emotion/styled";
 import type { LikedTracksI, ShowItem } from "@model/spotify/liked-tracks";
@@ -96,6 +97,8 @@ export const TrackTable = () => {
 		setArtistId(id);
 	};
 
+	const { savedArtists, userId } = useAppStore();
+
 	const {
 		data: artistData,
 		isLoading,
@@ -107,13 +110,10 @@ export const TrackTable = () => {
 		refetchOnWindowFocus: false,
 	});
 
-	const { data: artistIds = [], refetch: refetchArtists } = useQuery<
-		Array<Artist>
-	>({
-		queryKey: ["data"],
-		queryFn: getSavedArtists,
-		enabled: artistId !== undefined,
-		refetchOnWindowFocus: false,
+	const { refetch: refetchArtists } = useQuery<Array<Artist>>({
+		queryKey: ["trackTable", userId],
+		queryFn: () => getSavedArtists(userId),
+		enabled: false,
 	});
 
 	const { data, isPending, isSuccess } = useQuery<LikedTracksI | null>({
@@ -214,7 +214,7 @@ export const TrackTable = () => {
 			sorting,
 		},
 		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
+		getCoreRowModel: getCoreRowModel<ShowItem>(),
 		getSortedRowModel: getSortedRowModel(),
 	});
 
@@ -228,7 +228,7 @@ export const TrackTable = () => {
 				image={artistData.images?.[0].url}
 				artist={artistData}
 				refetchArtists={refetchArtists}
-				isSaved={artistIds.some(({ id }) => id === artistData.id)}
+				isSaved={savedArtists.some(({ id }) => id === artistData.id)}
 			/>
 		);
 	};

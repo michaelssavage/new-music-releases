@@ -1,4 +1,4 @@
-import { useAuthStore } from "@client/store/authStore";
+import { useAppStore } from "@client/store/appStore";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
@@ -82,7 +82,7 @@ export const Navbar = () => {
 	const navigate = useNavigate();
 	const [isOpen, setIsOpen] = useState(false);
 	const matchRoute = useMatchRoute();
-	const { isAuthenticated, logout } = useAuthStore();
+	const { isAuthenticated, logout } = useAppStore();
 
 	const handleLogout = () => {
 		logout();

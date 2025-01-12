@@ -1,5 +1,6 @@
 import noPhoto from "@client/assets/no-photo.jpg";
 import { removeArtist, saveArtist } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import type { Artist } from "@model/spotify/search";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -26,9 +27,12 @@ export const ArtistCard = ({
 		name,
 		uri,
 		genres,
+		images,
 		followers = null,
 		external_urls: { spotify: link },
 	} = artist;
+
+	const { userId } = useAppStore();
 
 	const { isPending: loadingSave, mutate: mutateSave } = useMutation({
 		mutationFn: saveArtist,
@@ -47,8 +51,10 @@ export const ArtistCard = ({
 	});
 
 	const handleAction = () => {
-		if (isSaved) mutateRemove({ id, name });
-		else mutateSave({ id, name, uri });
+		const data = { id, name, uri, images: images?.[0]?.url || "" };
+
+		if (isSaved) mutateRemove({ userId, name, id });
+		else mutateSave({ userId, data });
 	};
 
 	return (

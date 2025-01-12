@@ -2,12 +2,13 @@ import { SpotifyService } from "server/services/spotify.sevice";
 import type { NewReleasesI } from "../model/spotify";
 
 const spotifyService = SpotifyService();
+const userId = "1";
 const accessToken = "x";
 
 (async () => {
-	const playlist = await spotifyService.getSpotifyPlaylist(accessToken);
+	const playlist = await spotifyService.getSpotifyPlaylist(userId, accessToken);
 	const newReleases: Array<NewReleasesI> =
-		await spotifyService.fetchNewReleases(accessToken);
+		await spotifyService.fetchNewReleases(userId, accessToken);
 
 	const trackUris = (
 		await Promise.all(

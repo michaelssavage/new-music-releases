@@ -9,6 +9,8 @@ router.get("/callback", spotifyController.callbackHandler);
 router.get("/refresh", spotifyController.refreshToken);
 router.get("/validate-token", spotifyController.validateToken);
 
+router.get("/user", spotifyController.getUser);
+
 router.get("/search", spotifyController.searchHandler);
 
 router.get("/saved-tracks", spotifyController.getSavedTracks);

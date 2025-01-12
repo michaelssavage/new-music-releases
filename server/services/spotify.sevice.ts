@@ -16,6 +16,7 @@ import type {
 	SearchResponse,
 } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
+import type { SpotifyUserProfile, User } from "@model/spotify/user";
 import { SpotifyRepository } from "../repository/spotify.repository";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
 
@@ -55,6 +56,26 @@ export function SpotifyService() {
 		await repository.disconnect();
 	}
 
+	async function callbackHandler(code: string) {
+		const tokens = await getTokens(code);
+		const userProfile = await getSpotifyUserProfile(tokens.access_token);
+
+		const user = await getUser(userProfile.id);
+		if (!user) {
+			await saveUser({
+				userId: userProfile.id,
+				access_token: tokens.access_token,
+				refresh_token: tokens.refresh_token,
+				profile: userProfile,
+			});
+		}
+
+		return {
+			userProfile,
+			...tokens,
+		};
+	}
+
 	async function getTokens(code: string) {
 		const { data } = await axios.post(
 			SPOTIFY_API_TOKEN,
@@ -79,6 +100,27 @@ export function SpotifyService() {
 			refresh_token,
 			frontend_uri: FRONTEND_URL,
 		};
+	}
+
+	async function getSpotifyUserProfile(access_token: string) {
+		const { data } = await axios.get<SpotifyUserProfile>(
+			`${SPOTIFY_API_URL}/me`,
+			{
+				headers: { Authorization: `Bearer ${access_token}` },
+			},
+		);
+
+		return data;
+	}
+
+	async function getUser(userId: string) {
+		return await repository.getUser(userId);
+	}
+
+	async function saveUser(user: User) {
+		const result = await repository.saveUser(user);
+		console.log("User saved in MongoDB.", result);
+		return result;
 	}
 
 	async function validateToken(token: string) {
@@ -131,24 +173,24 @@ export function SpotifyService() {
 		return data;
 	}
 
-	async function fetchAndSaveArtists(artists: Array<Artist>) {
+	async function fetchAndSaveArtists(userId: string, artists: Array<Artist>) {
 		if (artists.length === 0) {
 			console.log("No artists to save.");
 			return null;
 		}
 
-		const result = await repository.fetchAndSaveArtists(artists);
+		const result = await repository.fetchAndSaveArtists(userId, artists);
 		console.log(`${artists.length} artists added/updated in the database.`);
 		return result;
 	}
 
-	async function resetArtists(artists: Array<SavedArtistI>) {
+	async function resetArtists(userId: string, artists: Array<SavedArtistI>) {
 		if (artists.length === 0) {
 			console.log("No artists to save after reset.");
 			return null;
 		}
 
-		const result = await repository.resetArtists(artists);
+		const result = await repository.resetArtists(userId, artists);
 		console.log(`${artists.length} artists were overwritten in the database.`);
 		return result;
 	}
@@ -196,18 +238,20 @@ export function SpotifyService() {
 		return data;
 	}
 
-	async function removeSavedArtist(id: string) {
-		const result = await repository.removeSavedArtist(id);
+	async function removeSavedArtist(userId: string, id: string) {
+		const result = await repository.removeSavedArtist(userId, id);
 		console.log(`Removed artist with id: ${id} from the database.`);
 		return result;
 	}
 
-	async function getAllArtistsIds() {
-		const savedArtists = await repository.getAllArtists();
-		console.log(`Fetched ${savedArtists.length} saved artists.`);
+	async function getAllArtistsIds(userId: string) {
+		const savedArtists = await repository.getAllArtists(userId);
+		console.log(
+			`Fetched ${savedArtists.length} saved artists for user ${userId}.`,
+		);
 
 		if (!savedArtists) {
-			createHttpError(404, "No saved artists found.");
+			createHttpError(404, `No saved artists found for user ${userId}.`);
 		}
 
 		return savedArtists;
@@ -252,10 +296,10 @@ export function SpotifyService() {
 			}));
 	}
 
-	async function fetchNewReleases(token: string) {
+	async function fetchNewReleases(userId: string, token: string) {
 		const newReleases: Array<NewReleasesI> = [];
 
-		const artists = await repository.getAllArtists();
+		const artists = await repository.getAllArtists(userId);
 
 		console.log(`${artists.length} Artists retrieved from MongoDB.`);
 		for (const artist of artists) {
@@ -294,10 +338,14 @@ export function SpotifyService() {
 	}
 
 	async function updateSpotifyPlaylistReleases(
+		userId: string,
 		token: string,
 		playlist: SpotifyPlaylistI,
 	) {
-		const newReleases: Array<NewReleasesI> = await fetchNewReleases(token);
+		const newReleases: Array<NewReleasesI> = await fetchNewReleases(
+			userId,
+			token,
+		);
 
 		if (newReleases.length === 0) {
 			console.log("No new releases found.");
@@ -339,17 +387,18 @@ export function SpotifyService() {
 		return playlist;
 	}
 
-	async function getSpotifyPlaylist(token: string) {
-		const existingPlaylist = await repository.getPlaylist();
+	async function getSpotifyPlaylist(userId: string, token: string) {
+		const existingPlaylist = await repository.getPlaylist(userId);
 		if (existingPlaylist) {
 			console.log("Playlist found in MongoDB:", existingPlaylist.name);
 			return existingPlaylist;
 		}
 
+		console.log(`No playlist found in MongoDB for ${userId}`);
 		const newPlaylist = await createSpotifyPlaylist(token);
 
 		if (newPlaylist) {
-			const res = await repository.createPlaylist(newPlaylist);
+			const res = await repository.createPlaylist(userId, newPlaylist);
 			if (res.acknowledged) {
 				console.log("Playlist created in MongoDB:", newPlaylist.name);
 				return newPlaylist;
@@ -372,11 +421,13 @@ export function SpotifyService() {
 	return {
 		initialize,
 		shutdown,
+		callbackHandler,
 		getTokens,
+		getSpotifyUserProfile,
+		getUser,
+		saveUser,
 		refreshToken,
 		validateToken,
-		searchItem,
-		getSavedTracks,
 		// Artists
 		getFollowedArtists,
 		fetchAndSaveArtists,
@@ -385,6 +436,8 @@ export function SpotifyService() {
 		removeSavedArtist,
 		getAllArtistsIds,
 		// Tracks
+		searchItem,
+		getSavedTracks,
 		getAlbumTracks,
 		getNewReleasesForArtist,
 		fetchNewReleases,
