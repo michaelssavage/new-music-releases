@@ -1,6 +1,6 @@
 import { logger } from "@client/utils/logger";
 import type { SpotifyDataProps } from "@model/spotify";
-import type { Artist, SavedArtistI, SearchProps } from "@model/spotify/search";
+import type { Artist, SearchProps } from "@model/spotify/search";
 import type { UserID } from "@model/spotify/user";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -53,7 +53,7 @@ export const getUser = async (userId: UserID) => {
 export const saveArtist = async ({
 	userId,
 	data,
-}: { userId: UserID; data: SavedArtistI }) => {
+}: { userId: UserID; data: Artist }) => {
 	try {
 		logger.info(`Saving ${data.name}`, data);
 		return await axios.post("/api/save-artists", {

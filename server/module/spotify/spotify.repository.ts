@@ -38,18 +38,21 @@ export function SpotifyRepository(mongoUri: string) {
 
 	async function saveUser(userData: User) {
 		return await userDb.updateOne(
-			{ userId: userData.userId },
+			{ userId: String(userData.userId) },
 			{ $set: userData },
 			{ upsert: true },
 		);
 	}
 
 	async function getUser(userId: string) {
-		return await userDb.findOne<User>({ userId });
+		return await userDb.findOne<User>({ userId: String(userId) });
 	}
 
 	async function saveArtists(userId: string, artists: Array<Artist>) {
-		// Add artist data to `saved_artists` collection
+		console.log(`${userId} is saving artists:`, {
+			userId,
+			artists: artists.map(({ name }) => name),
+		});
 		const bulkOperations = artists.map((artist) => ({
 			updateOne: {
 				filter: { id: artist.id },
@@ -59,7 +62,6 @@ export function SpotifyRepository(mongoUri: string) {
 		}));
 		await artistDb.bulkWrite(bulkOperations);
 
-		// Add artist IDs to the user's `saved_artists` array
 		const artistIds = artists.map((artist) => artist.id);
 		return await userDb.updateOne(
 			{ userId },
@@ -69,7 +71,6 @@ export function SpotifyRepository(mongoUri: string) {
 	}
 
 	async function resetArtists(userId: string, artists: Array<Artist>) {
-		// Update the `saved_artists` collection with the new artist data
 		const bulkOperations = artists.map((artist) => ({
 			updateOne: {
 				filter: { id: artist.id },
@@ -79,7 +80,6 @@ export function SpotifyRepository(mongoUri: string) {
 		}));
 		await artistDb.bulkWrite(bulkOperations);
 
-		// Replace the user's `saved_artists` array with the new artist IDs
 		const artistIds = artists.map((artist) => artist.id);
 		return await userDb.updateOne(
 			{ userId },
@@ -89,8 +89,6 @@ export function SpotifyRepository(mongoUri: string) {
 	}
 
 	async function removeSavedArtist(userId: string, artistId: string) {
-		// Remove the artist ID from the user's `saved_artists` array
-
 		const result = await userDb.updateOne(
 			{ userId },
 			{ $pull: { saved_artists: artistId } },

@@ -10,11 +10,7 @@ import type {
 	NewReleasesI,
 } from "@model/spotify";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
-import type {
-	Artist,
-	SavedArtistI,
-	SearchResponse,
-} from "@model/spotify/search";
+import type { Artist, SearchResponse } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile, User } from "@model/spotify/user";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants";
@@ -155,7 +151,6 @@ export function SpotifyService() {
 				headers: { Authorization: `Bearer ${token}` },
 			},
 		);
-		console.log("Search results fetched from Spotify.", data);
 		if (!data) {
 			createHttpError(404, "No data found.");
 		}
@@ -196,9 +191,7 @@ export function SpotifyService() {
 		return result;
 	}
 
-	async function getFollowedArtists(
-		token: string,
-	): Promise<Array<SavedArtistI>> {
+	async function getFollowedArtists(token: string): Promise<Array<Artist>> {
 		let artists: Array<Artist> = [];
 
 		let nextUrl: string | null =
@@ -215,15 +208,8 @@ export function SpotifyService() {
 			nextUrl = data.artists.next;
 		}
 
-		console.log(`${artists} followed artists fetched from spotify.`);
-
-		return artists.map(({ id, name, uri, external_urls, images }) => ({
-			id,
-			name,
-			uri,
-			url: external_urls.spotify,
-			images: images?.[0]?.url,
-		}));
+		console.log(`${artists.length} followed artists fetched from spotify.`);
+		return artists;
 	}
 
 	async function getSingleArtist(token: string, id: string) {
