@@ -7,7 +7,7 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
-import cron from "node-cron";
+import schedulerRouter from "./module/scheduler/scheduler.router.js";
 import spotifyRouter from "./module/spotify/spotify.router.js";
 import { SpotifyService } from "./module/spotify/spotify.sevice.js";
 
@@ -23,6 +23,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api", spotifyRouter);
+app.use("/api", schedulerRouter);
 
 app.get("/health", (_req, res) => {
 	res.status(200).json({ status: "UP" });
@@ -47,18 +48,6 @@ const spotifyService = SpotifyService();
 
 async function startServer() {
 	try {
-		await spotifyService.initialize();
-
-		cron.schedule("0 22 * * *", async () => {
-			console.log("Starting daily playlist update...");
-			try {
-				await spotifyService.updatePlaylistsForAllUsers();
-				console.log("Daily playlist update finished.");
-			} catch (error) {
-				console.error("Error during daily playlist update:", error);
-			}
-		});
-
 		app.listen(PORT, () => {
 			console.log(`Server is running on port ${PORT}`);
 		});
