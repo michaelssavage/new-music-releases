@@ -6,7 +6,7 @@ import { Group } from "../Group";
 
 interface Props {
 	id: string;
-	label: string;
+	label?: string;
 	options: Array<{ value: string; label: string }>;
 	value: Array<{ value: string; label: string }>;
 	onChange: (e: MultiValue<TypeI>) => void;

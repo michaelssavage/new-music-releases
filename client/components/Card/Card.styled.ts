@@ -4,10 +4,20 @@ import styled from "@emotion/styled";
 export const CardWrapper = styled.div`
   display: flex;
   flex-direction: column;
-	flex: 0 0 calc(20% - 1rem);
+	flex: 0 0 calc(25% - 1rem);
 	flex-wrap: wrap;
 	border: 1px solid #a4b4c7;
 	border-radius: 4px;
+
+  @media screen and (max-width: 768px) {
+    flex: 0 0 calc(33% - 1rem);
+  }
+  
+
+  @media screen and (max-width: 420px) {
+    flex: 0 0 calc(50% - 1rem);
+  }
+
 	img {
 		width: 100%;
 		border-radius: inherit;

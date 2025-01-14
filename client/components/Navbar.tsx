@@ -1,26 +1,23 @@
 import { useAppStore } from "@client/store/appStore";
+import {} from "@client/utils/defaults";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { MenuIcon } from "./Icons/Menu";
+import { SearchBox } from "./SearchBox";
 
 const NavbarContainer = styled.nav`
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
+  padding: 3rem 2rem;
+  background-color: ${({ color }) => color || "#8090c0"};
 
   display: flex;
-  justify-content: center;
   align-items: center;
 `;
 
 const NavItems = styled.div<{ isOpen: boolean }>`
   background-color: #333;
   color: white;
-  margin-top: 1rem;
   padding: 0.75rem 1rem;
   border-radius: 10px;
   
@@ -73,10 +70,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const navItems = [
-	{ label: "Search", link: "/" },
-	{ label: "Releases", link: "/releases" },
-];
+const navItems = [{ label: "Home", link: "/" }];
 
 export const Navbar = () => {
 	const navigate = useNavigate();
@@ -108,6 +102,8 @@ export const Navbar = () => {
 					<LogoutButton onClick={handleLogout}>Logout</LogoutButton>
 				)}
 			</NavItems>
+
+			<SearchBox />
 		</NavbarContainer>
 	);
 };

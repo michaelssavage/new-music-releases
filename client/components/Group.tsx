@@ -1,3 +1,4 @@
+import type { SerializedStyles } from "@emotion/react";
 import styled from "@emotion/styled";
 
 interface GroupI {
@@ -12,6 +13,7 @@ interface GroupI {
 	gap?: string;
 	width?: string;
 	wrap?: "wrap" | "nowrap";
+	styling?: SerializedStyles;
 }
 
 export const Group = styled.div<GroupI>`
@@ -22,4 +24,5 @@ export const Group = styled.div<GroupI>`
 	gap: ${({ gap }) => gap || "1rem"};
 	flex-wrap: ${({ wrap }) => wrap || "wrap"};
   ${({ width }) => width && `width: ${width};`}
+	${({ styling }) => styling}
 `;

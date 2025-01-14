@@ -4,7 +4,7 @@ import { Group } from "../Group";
 
 interface Props {
 	id: string;
-	label: string;
+	label?: string;
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 	placeholder: string;
 	onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
@@ -21,13 +21,14 @@ const TextInputStyled = styled.input`
   justify-content: space-between;
   max-height: 38px;
   outline: 0;
-  background-color: hsl(0, 0%, 100%);
-  border-color: hsl(0, 0%, 80%);
+  background-color: #ffffff;
   padding: 0.5rem;
   border-radius: 4px;
-  border-style: solid;
-  border-width: 1px;
-  box-sizing: border-box;
+	border: 1px solid #cccccc;
+
+	&:focus {
+		border: 1px solid #0cb57c;
+	}
 `;
 
 export const TextInput = ({

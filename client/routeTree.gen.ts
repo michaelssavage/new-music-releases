@@ -11,18 +11,11 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root"
-import { Route as ReleasesImport } from "./routes/releases"
 import { Route as LoginImport } from "./routes/login"
 import { Route as CallbackImport } from "./routes/callback"
 import { Route as IndexImport } from "./routes/index"
 
 // Create/Update Routes
-
-const ReleasesRoute = ReleasesImport.update({
-  id: "/releases",
-  path: "/releases",
-  getParentRoute: () => rootRoute,
-} as any)
 
 const LoginRoute = LoginImport.update({
   id: "/login",
@@ -67,13 +60,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    "/releases": {
-      id: "/releases"
-      path: "/releases"
-      fullPath: "/releases"
-      preLoaderRoute: typeof ReleasesImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
@@ -83,14 +69,12 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/login": typeof LoginRoute
-  "/releases": typeof ReleasesRoute
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/login": typeof LoginRoute
-  "/releases": typeof ReleasesRoute
 }
 
 export interface FileRoutesById {
@@ -98,15 +82,14 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/login": typeof LoginRoute
-  "/releases": typeof ReleasesRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/callback" | "/login" | "/releases"
+  fullPaths: "/" | "/callback" | "/login"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/callback" | "/login" | "/releases"
-  id: "__root__" | "/" | "/callback" | "/login" | "/releases"
+  to: "/" | "/callback" | "/login"
+  id: "__root__" | "/" | "/callback" | "/login"
   fileRoutesById: FileRoutesById
 }
 
@@ -114,14 +97,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CallbackRoute: typeof CallbackRoute
   LoginRoute: typeof LoginRoute
-  ReleasesRoute: typeof ReleasesRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CallbackRoute: CallbackRoute,
   LoginRoute: LoginRoute,
-  ReleasesRoute: ReleasesRoute,
 }
 
 export const routeTree = rootRoute
@@ -136,8 +117,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/callback",
-        "/login",
-        "/releases"
+        "/login"
       ]
     },
     "/": {
@@ -148,9 +128,6 @@ export const routeTree = rootRoute
     },
     "/login": {
       "filePath": "login.tsx"
-    },
-    "/releases": {
-      "filePath": "releases.tsx"
     }
   }
 }
