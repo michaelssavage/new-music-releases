@@ -4,6 +4,10 @@ import { SchedulerRepository } from "./scheduler.repository";
 
 const { MONGO_URI } = process.env;
 
+interface ExecuteJobProps {
+	manual?: boolean;
+}
+
 export function SchedulerService() {
 	let isJobRunning = false;
 	const repository = SchedulerRepository(MONGO_URI as string);
@@ -12,7 +16,7 @@ export function SchedulerService() {
 	const job = new CronJob(
 		"0 22 * * *", // Run at 22:00 every day
 		async () => {
-			await executeJob();
+			await executeJob({ manual: false });
 		},
 		null,
 		false,
@@ -37,7 +41,7 @@ export function SchedulerService() {
 
 			if (timeSinceLastRun > 24 * 60 * 60 * 1000) {
 				console.log("Missed update detected, triggering immediate update...");
-				await executeJob();
+				await executeJob({ manual: false });
 			}
 
 			job.start();
@@ -53,7 +57,7 @@ export function SchedulerService() {
 		console.log("Scheduler shut down successfully");
 	}
 
-	async function executeJob(): Promise<void> {
+	async function executeJob({ manual }: ExecuteJobProps): Promise<void> {
 		if (isJobRunning) {
 			console.log("Previous job still running, skipping...");
 			return;
@@ -74,7 +78,7 @@ export function SchedulerService() {
 				: Number.POSITIVE_INFINITY;
 
 			// If less than 20 hours since last successful run, skip
-			if (timeSinceLastRun < 20 * 60 * 60 * 1000) {
+			if (timeSinceLastRun < 20 * 60 * 60 * 1000 && !manual) {
 				console.log("Last execution was too recent, skipping...");
 				return;
 			}

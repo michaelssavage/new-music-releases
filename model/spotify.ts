@@ -21,14 +21,11 @@ export interface AlbumI {
 	uri: string;
 	images: Array<{ url: string }>;
 	external_urls: { spotify: string };
-	artists: Array<{
-		name: string;
-		id: string;
-		external_urls: { spotify: string };
-	}>;
+	artists: Array<Artist>;
 }
 
 export interface ArtistAlbumsI {
+	total: number;
 	items: Array<AlbumI>;
 }
 

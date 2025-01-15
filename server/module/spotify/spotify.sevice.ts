@@ -139,6 +139,19 @@ export function SpotifyService() {
 		);
 	}
 
+	async function getValidToken(user: User) {
+		try {
+			await validateToken(user.access_token);
+			return user.access_token;
+		} catch {
+			const { data } = await refreshToken(user.refresh_token);
+			user.access_token = data.access_token;
+			await saveUser(user);
+			console.log("Token refreshed.");
+			return data.access_token;
+		}
+	}
+
 	async function searchItem(
 		token: string,
 		query: string,
@@ -258,16 +271,26 @@ export function SpotifyService() {
 	}
 
 	async function getNewReleasesForArtist(token: string, artistId: string) {
-		const { data }: AxiosResponse<ArtistAlbumsI> = await axios.get(
-			`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-				params: { include_groups: "single,album,appears_on", limit: 10 },
-			},
-		);
+		let items = [];
+
+		try {
+			const { data } = await axios.get<ArtistAlbumsI>(
+				`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+					params: { include_groups: "single,album,appears_on", limit: 10 },
+				},
+			);
+
+			console.log(`Releases fetched for ${artistId}:`, data.total);
+			items = data.items;
+		} catch (error) {
+			console.error("Error fetching new releases for artist:", error);
+			return [];
+		}
 
 		const today = new Date().toISOString().split("T")[0];
-		return data.items
+		return items
 			.filter(({ release_date }) => release_date === today)
 			.map((props) => ({
 				id: props.id,
@@ -284,18 +307,14 @@ export function SpotifyService() {
 	}
 
 	async function fetchNewReleases(userId: string, token: string) {
-		const newReleases: Array<NewReleasesI> = [];
-
 		const artists = await repository.getAllArtists(userId);
 
 		console.log(`${artists.length} Artists retrieved from MongoDB.`);
-		for (const artist of artists) {
-			const releases = await getNewReleasesForArtist(token, artist.id);
-			for (const release of releases) {
-				newReleases.push(release);
-			}
-		}
+		const releasesArray = await Promise.all(
+			artists.map((artist) => getNewReleasesForArtist(token, artist.id)),
+		);
 
+		const newReleases: Array<NewReleasesI> = releasesArray.flat();
 		return newReleases;
 	}
 
@@ -434,41 +453,37 @@ export function SpotifyService() {
 
 			const results = await Promise.all(
 				users.map(async (user) => {
-					const { refresh_token, access_token, userId } = user;
-
 					try {
-						let validAccessToken = access_token;
-						if (!access_token) {
-							const { data } = await refreshToken(refresh_token);
-							validAccessToken = data.access_token;
-						}
-
-						const playlist = await getSpotifyPlaylist(userId, validAccessToken);
+						const token = await getValidToken(user);
+						const playlist = await getSpotifyPlaylist(user.userId, token);
 
 						if (!playlist) {
-							console.log(`No playlist found for user: ${userId}`);
+							console.log(`No playlist found for user: ${user.userId}`);
 							return;
 						}
 
 						const updatedPlaylist = await updateSpotifyPlaylistReleases(
-							userId,
-							validAccessToken,
+							user.userId,
+							token,
 							playlist,
 						);
 
-						console.log(`Playlist updated for user: ${userId}`);
+						console.log(`Playlist updated for user: ${user.userId}`);
 						return updatedPlaylist;
 					} catch (error) {
-						console.error(`Error updating playlist for user ${userId}:`, error);
+						console.error(
+							`Error updating playlist for user ${user.userId}:`,
+							(error as Error).message,
+						);
 						return null; // Continue with other users even if one fails
 					}
 				}),
 			);
 
 			const successfulUpdates = results.filter(
-				(result) => result.status === "fulfilled",
+				(result) => result?.status === "fulfilled",
 			);
-			const errors = results.filter((result) => result.status === "rejected");
+			const errors = results.filter((result) => result?.status === "rejected");
 
 			console.log(`Successful updates: ${successfulUpdates.length}`);
 			console.error(`Failed updates: ${errors.length}`);

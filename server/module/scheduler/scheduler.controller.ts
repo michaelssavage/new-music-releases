@@ -9,7 +9,7 @@ export function SchedulerController() {
 
 	async function triggerManualUpdate() {
 		try {
-			await schedulerService.executeJob();
+			await schedulerService.executeJob({ manual: true });
 		} catch (error) {
 			console.error("Failed to execute job:", error);
 		}
