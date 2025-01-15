@@ -266,56 +266,60 @@ export function SpotifyService() {
 		);
 
 		const tracks = data.items.map((track: { uri: string }) => track.uri);
-		console.log("Album tracks returned:", tracks);
+		console.log("getAlbumTracks:Album tracks returned - ", tracks);
 		return tracks;
 	}
 
-	async function getNewReleasesForArtist(token: string, artistId: string) {
-		let items = [];
-
+	async function getArtistAlbums(token: string, artistId: string) {
 		try {
 			const { data } = await axios.get<ArtistAlbumsI>(
 				`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
 				{
 					headers: { Authorization: `Bearer ${token}` },
-					params: { include_groups: "single,album,appears_on", limit: 10 },
+					params: { include_groups: "single,album,appears_on", limit: 4 },
 				},
 			);
 
 			console.log(`Releases fetched for ${artistId}:`, data.total);
-			items = data.items;
-		} catch (error) {
-			console.error("Error fetching new releases for artist:", error);
-			return [];
-		}
 
-		const today = new Date().toISOString().split("T")[0];
-		return items
-			.filter(({ release_date }) => release_date === today)
-			.map((props) => ({
-				id: props.id,
-				uri: props.uri,
-				artists: props.artists.map(({ name, id, external_urls }) => ({
-					name,
-					id,
-					url: external_urls.spotify,
-				})),
-				name: props.name,
-				image: props.images[0].url,
-				url: props.external_urls.spotify,
-			}));
+			const today = new Date().toISOString().split("T")[0];
+			return data.items
+				.filter(({ release_date }) => release_date === today)
+				.map((props) => ({
+					id: props.id,
+					uri: props.uri,
+					artists: props.artists.map(({ name, id, external_urls }) => ({
+						name,
+						id,
+						url: external_urls.spotify,
+					})),
+					name: props.name,
+					image: props.images[0].url,
+					url: props.external_urls.spotify,
+				}));
+		} catch (error) {
+			console.log(
+				"getNewReleasesForArtist:No releases found for artist. -",
+				error,
+			);
+			throw new Error("No releases found for artist.");
+		}
 	}
 
 	async function fetchNewReleases(userId: string, token: string) {
 		const artists = await repository.getAllArtists(userId);
+		if (!artists || artists.length === 0) {
+			console.log("No artists found for user:", userId);
+			return [];
+		}
 
 		console.log(`${artists.length} Artists retrieved from MongoDB.`);
+
 		const releasesArray = await Promise.all(
-			artists.map((artist) => getNewReleasesForArtist(token, artist.id)),
+			artists.map((artist) => getArtistAlbums(token, artist.id)),
 		);
 
-		const newReleases: Array<NewReleasesI> = releasesArray.flat();
-		return newReleases;
+		return releasesArray.flat();
 	}
 
 	async function addTracksToPlaylist(
@@ -343,7 +347,7 @@ export function SpotifyService() {
 		return data;
 	}
 
-	async function updateSpotifyPlaylistReleases(
+	async function updateUserPlaylist(
 		userId: string,
 		token: string,
 		playlist: SpotifyPlaylistI,
@@ -354,7 +358,6 @@ export function SpotifyService() {
 		);
 
 		if (newReleases.length === 0) {
-			console.log("No new releases found.");
 			return [];
 		}
 
@@ -369,6 +372,7 @@ export function SpotifyService() {
 			)
 		).flat();
 
+		console.log("Tracks to be added to playlist:", trackUris);
 		return await addTracksToPlaylist(token, playlist.id, trackUris);
 	}
 
@@ -432,11 +436,7 @@ export function SpotifyService() {
 			return;
 		}
 
-		const updatedPlaylist = await updateSpotifyPlaylistReleases(
-			userId,
-			token,
-			playlist,
-		);
+		const updatedPlaylist = await updateUserPlaylist(userId, token, playlist);
 
 		console.log("Playlist updated for user:", userId);
 		return updatedPlaylist;
@@ -455,21 +455,7 @@ export function SpotifyService() {
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);
-						const playlist = await getSpotifyPlaylist(user.userId, token);
-
-						if (!playlist) {
-							console.log(`No playlist found for user: ${user.userId}`);
-							return;
-						}
-
-						const updatedPlaylist = await updateSpotifyPlaylistReleases(
-							user.userId,
-							token,
-							playlist,
-						);
-
-						console.log(`Playlist updated for user: ${user.userId}`);
-						return updatedPlaylist;
+						return await updateNewReleases(user.userId, token);
 					} catch (error) {
 						console.error(
 							`Error updating playlist for user ${user.userId}:`,
@@ -515,7 +501,6 @@ export function SpotifyService() {
 		searchItem,
 		getSavedTracks,
 		getAlbumTracks,
-		getNewReleasesForArtist,
 		fetchNewReleases,
 		addTracksToPlaylist,
 		updateNewReleases,
