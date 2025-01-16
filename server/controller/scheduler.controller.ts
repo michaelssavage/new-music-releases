@@ -1,4 +1,4 @@
-import { SchedulerService } from "./scheduler.service";
+import { SchedulerService } from "@server/service/scheduler.service";
 
 export function SchedulerController() {
 	const schedulerService = SchedulerService();

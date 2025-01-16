@@ -3,21 +3,17 @@ import type { Artist } from "@model/spotify/search";
 import type { User } from "@model/spotify/user";
 import { type Collection, type Db, MongoClient } from "mongodb";
 
-let client: MongoClient;
-let db: Db;
-let userDb: Collection<User>;
-let artistDb: Collection<
-	Artist & {
-		userId: string;
-	}
->;
-let playlistDb: Collection<
-	SpotifyPlaylistI & {
-		userId: string;
-	}
->;
+interface SpotifyRepositoryI {
+	mongoUri: string;
+}
 
-export function SpotifyRepository(mongoUri: string) {
+export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
+	let client: MongoClient;
+	let db: Db;
+	let userDb: Collection<User>;
+	let artistDb: Collection<Artist & { userId: string }>;
+	let playlistDb: Collection<SpotifyPlaylistI & { userId: string }>;
+
 	async function connect(): Promise<void> {
 		client = new MongoClient(mongoUri);
 		await client.connect();

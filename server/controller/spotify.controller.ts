@@ -1,6 +1,6 @@
 import type { Artist } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
-import { SpotifyService } from "@server/module/spotify/spotify.sevice";
+import { SpotifyService } from "@server/service/spotify.sevice";
 import { getAuthorizationUrl } from "@server/utils/auth";
 import type { Request, Response } from "express";
 

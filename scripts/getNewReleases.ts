@@ -1,5 +1,5 @@
 import { logger } from "@client/utils/logger";
-import { SpotifyService } from "@server/module/spotify/spotify.sevice";
+import { SpotifyService } from "@server/service/spotify.sevice";
 
 const spotifyService = SpotifyService();
 const userId = "1";

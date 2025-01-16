@@ -13,36 +13,29 @@ import type { SpotifyPlaylistI } from "@model/spotify/playlist";
 import type { Artist, SearchResponse } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile, User } from "@model/spotify/user";
-import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../../utils/constants";
-import { SpotifyRepository } from "./spotify.repository";
+import { SpotifyRepository } from "../repository/spotify.repository";
+import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
+
+import { validateEnv } from "@server/utils/validateEnv";
+import { RedisService } from "./redis.service";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
-const {
-	MONGO_URI,
-	SPOTIFY_CLIENT_ID,
-	SPOTIFY_CLIENT_SECRET,
-	SPOTIFY_REFRESH_TOKEN,
-	SERVER_URL,
-	FRONTEND_URL,
-} = process.env;
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 export function SpotifyService() {
-	if (
-		!MONGO_URI ||
-		!SPOTIFY_CLIENT_ID ||
-		!SPOTIFY_CLIENT_SECRET ||
-		!SPOTIFY_REFRESH_TOKEN ||
-		!SERVER_URL ||
-		!FRONTEND_URL
-	) {
-		throw new Error("Missing environment variables.");
-	}
+	const env = validateEnv();
 
-	const repository = SpotifyRepository(MONGO_URI as string);
+	const redisService = RedisService({
+		redisUrl: env.REDIS_URL,
+		redisToken: env.REDIS_TOKEN,
+		redisPort: env.REDIS_PORT,
+	});
+
+	const repository = SpotifyRepository({
+		mongoUri: env.MONGO_URI,
+	});
 
 	async function initialize(): Promise<void> {
 		await repository.connect();
@@ -79,9 +72,9 @@ export function SpotifyService() {
 			new URLSearchParams({
 				grant_type: "authorization_code",
 				code: code as string,
-				redirect_uri: `${SERVER_URL}/api/callback`,
-				client_id: `${SPOTIFY_CLIENT_ID}`,
-				client_secret: `${SPOTIFY_CLIENT_SECRET}`,
+				redirect_uri: `${env.SERVER_URL}/api/callback`,
+				client_id: `${env.SPOTIFY_CLIENT_ID}`,
+				client_secret: `${env.SPOTIFY_CLIENT_SECRET}`,
 			}),
 			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } },
 		);
@@ -89,17 +82,49 @@ export function SpotifyService() {
 		const { access_token, refresh_token } = data;
 		console.log("Tokens fetched from Spotify.", {
 			expires: data.expires_in,
-			redirect_uri: `${SERVER_URL}/api/callback`,
+			redirect_uri: `${env.SERVER_URL}/api/callback`,
 		});
 
 		return {
 			access_token,
 			refresh_token,
-			frontend_uri: FRONTEND_URL,
+			frontend_uri: env.FRONTEND_URL,
 		};
 	}
 
+	async function invalidateUserCaches(userId: string) {
+		const keys = [
+			`spotify:user-artists:${userId}`,
+			`spotify:user-profile:${userId}`,
+		];
+		await redisService.invalidateMultipleKeys(keys);
+	}
+
+	async function invalidateArtistCaches(userId: string, artistId: string) {
+		const keys = [
+			`spotify:artist:${artistId}`,
+			`spotify:artist-albums:${artistId}`,
+			`spotify:user-artists:${userId}`,
+		];
+		await redisService.invalidateMultipleKeys(keys);
+	}
+
+	async function invalidatePlaylistCaches(userId: string, playlistId: string) {
+		const keys = [
+			`spotify:playlist-items:${playlistId}`,
+			`spotify:user-playlists:${userId}`,
+		];
+		await redisService.invalidateMultipleKeys(keys);
+	}
+
 	async function getSpotifyUserProfile(access_token: string) {
+		const cacheKey = `spotify:user-profile:${access_token}`;
+		const cachedProfile = await redisService.getCachedData(cacheKey);
+
+		if (cachedProfile) {
+			return cachedProfile;
+		}
+
 		const { data } = await axios.get<SpotifyUserProfile>(
 			`${SPOTIFY_API_URL}/me`,
 			{
@@ -107,6 +132,7 @@ export function SpotifyService() {
 			},
 		);
 
+		await redisService.setCache(cacheKey, data, 3600);
 		return data;
 	}
 
@@ -116,6 +142,8 @@ export function SpotifyService() {
 
 	async function saveUser(user: User) {
 		const result = await repository.saveUser(user);
+		await invalidateUserCaches(user.userId);
+
 		console.log("User saved in MongoDB.", result);
 		return result;
 	}
@@ -132,8 +160,8 @@ export function SpotifyService() {
 			new URLSearchParams({
 				grant_type: "refresh_token",
 				refresh_token: refresh_token as string,
-				client_id: SPOTIFY_CLIENT_ID as string,
-				client_secret: SPOTIFY_CLIENT_SECRET as string,
+				client_id: env.SPOTIFY_CLIENT_ID as string,
+				client_secret: env.SPOTIFY_CLIENT_SECRET as string,
 			}),
 			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } },
 		);
@@ -158,6 +186,13 @@ export function SpotifyService() {
 		type: Array<string>,
 		limit: number,
 	): Promise<SearchResponse> {
+		const cacheKey = `spotify:search:${token}:${query}:${type.join(",")}:${limit}`;
+		const cachedResults = await redisService.getCachedData(cacheKey);
+
+		if (cachedResults) {
+			return cachedResults;
+		}
+
 		const { data } = await axios.get(
 			`${SPOTIFY_API_URL}/search?q=${query}&type=${type.join(",")}&limit=${limit}`,
 			{
@@ -167,18 +202,28 @@ export function SpotifyService() {
 		if (!data) {
 			createHttpError(404, "No data found.");
 		}
+
+		await redisService.setCache(cacheKey, data, 300);
 		return data;
 	}
 
 	async function getSavedTracks(token: string) {
+		const cacheKey = `spotify:saved-tracks:${token}`;
+		const cachedTracks = await redisService.getCachedData(cacheKey);
+
+		if (cachedTracks) {
+			return cachedTracks;
+		}
+
 		const { data } = await axios.get(`${SPOTIFY_API_URL}/me/tracks`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
-
-		console.log("Saved tracks fetched from Spotify.", data);
 		if (!data) {
 			createHttpError(404, "No saved tracks found.");
 		}
+
+		console.log("Saved tracks fetched from Spotify.", data);
+		await redisService.setCache(cacheKey, data, 1800);
 		return data;
 	}
 
@@ -189,6 +234,8 @@ export function SpotifyService() {
 		}
 
 		const result = await repository.saveArtists(userId, artists);
+		await invalidateUserCaches(userId);
+
 		console.log(`${artists.length} artists added/updated in the database.`);
 		return result;
 	}
@@ -200,11 +247,20 @@ export function SpotifyService() {
 		}
 
 		const result = await repository.resetArtists(userId, artists);
+		await invalidateUserCaches(userId);
+
 		console.log(`${artists.length} artists were overwritten in the database.`);
 		return result;
 	}
 
 	async function getFollowedArtists(token: string): Promise<Array<Artist>> {
+		const cacheKey = `spotify:followed-artists:${token}`;
+		const cachedArtists = await redisService.getUpstashData(cacheKey);
+
+		if (cachedArtists) {
+			return JSON.parse(cachedArtists as string);
+		}
+
 		let artists: Array<Artist> = [];
 
 		let nextUrl: string | null =
@@ -222,29 +278,47 @@ export function SpotifyService() {
 		}
 
 		console.log(`${artists.length} followed artists fetched from spotify.`);
+		await redisService.setUpstashData(cacheKey, artists, 3600);
 		return artists;
 	}
 
 	async function getSingleArtist(token: string, id: string) {
+		const cacheKey = `spotify:artist:${id}`;
+		const cachedArtist = await redisService.getCachedData(cacheKey);
+
+		if (cachedArtist) {
+			return cachedArtist;
+		}
+
 		const { data } = await axios.get(`${SPOTIFY_API_URL}/artists/${id}`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 
-		console.log("Single artist fetched from spotify.", data);
-
 		if (!data) {
 			createHttpError(404, "No artist found.");
 		}
+
+		console.log("Single artist fetched from spotify.", data);
+		await redisService.setCache(cacheKey, data, 3600);
 		return data;
 	}
 
 	async function removeSavedArtist(userId: string, id: string) {
 		const result = await repository.removeSavedArtist(userId, id);
+		await invalidateArtistCaches(userId, id);
+
 		console.log(`Removed artist with id: ${id} from the database.`);
 		return result;
 	}
 
 	async function getAllArtistsIds(userId: string) {
+		const cacheKey = `spotify:user-artists:${userId}`;
+		const cachedArtists = await redisService.getUpstashData(cacheKey);
+
+		if (cachedArtists) {
+			return JSON.parse(cachedArtists as string);
+		}
+
 		const savedArtists = await repository.getAllArtists(userId);
 		console.log(
 			`Fetched ${savedArtists.length} saved artists for user ${userId}.`,
@@ -254,6 +328,7 @@ export function SpotifyService() {
 			createHttpError(404, `No saved artists found for user ${userId}.`);
 		}
 
+		await redisService.setUpstashData(cacheKey, savedArtists, 3600);
 		return savedArtists;
 	}
 
@@ -271,6 +346,13 @@ export function SpotifyService() {
 	}
 
 	async function getArtistAlbums(token: string, artistId: string) {
+		const cacheKey = `spotify:artist-albums:${artistId}`;
+		const cachedAlbums = await redisService.getUpstashData(cacheKey);
+
+		if (cachedAlbums) {
+			return JSON.parse(cachedAlbums as string);
+		}
+
 		try {
 			const { data } = await axios.get<ArtistAlbumsI>(
 				`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
@@ -283,7 +365,7 @@ export function SpotifyService() {
 			console.log(`Releases fetched for ${artistId}:`, data.total);
 
 			const today = new Date().toISOString().split("T")[0];
-			return data.items
+			const filteredAlbums = data.items
 				.filter(({ release_date }) => release_date === today)
 				.map((props) => ({
 					id: props.id,
@@ -297,6 +379,9 @@ export function SpotifyService() {
 					image: props.images[0].url,
 					url: props.external_urls.spotify,
 				}));
+
+			await redisService.setUpstashData(cacheKey, filteredAlbums, 3600);
+			return filteredAlbums;
 		} catch (error) {
 			console.log(
 				"getNewReleasesForArtist:No releases found for artist. -",
@@ -372,8 +457,9 @@ export function SpotifyService() {
 			)
 		).flat();
 
-		console.log("Tracks to be added to playlist:", trackUris);
-		return await addTracksToPlaylist(token, playlist.id, trackUris);
+		const result = await addTracksToPlaylist(token, playlist.id, trackUris);
+		await invalidatePlaylistCaches(userId, playlist.id);
+		return result;
 	}
 
 	async function createSpotifyPlaylist(token: string) {
@@ -418,6 +504,13 @@ export function SpotifyService() {
 	}
 
 	async function getSpotifyPlaylistItems(token: string, playlistId: string) {
+		const cacheKey = `spotify:playlist-items:${playlistId}`;
+		const cachedItems = await redisService.getCachedData(cacheKey);
+
+		if (cachedItems) {
+			return cachedItems;
+		}
+
 		const { data: playlistItems } = await axios.get<PlaylistTracksI>(
 			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
 			{
@@ -425,6 +518,7 @@ export function SpotifyService() {
 			},
 		);
 
+		await redisService.setCache(cacheKey, playlistItems, 1800);
 		return playlistItems;
 	}
 

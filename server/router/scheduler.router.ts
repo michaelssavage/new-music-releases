@@ -1,4 +1,4 @@
-import { SchedulerController } from "@server/module/scheduler/scheduler.controller";
+import { SchedulerController } from "@server/controller/scheduler.controller";
 import express from "express";
 
 const router = express.Router();

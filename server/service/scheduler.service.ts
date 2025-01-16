@@ -1,6 +1,6 @@
 import { CronJob } from "cron";
-import { SpotifyService } from "../spotify/spotify.sevice";
-import { SchedulerRepository } from "./scheduler.repository";
+import { SchedulerRepository } from "../repository/scheduler.repository";
+import { SpotifyService } from "./spotify.sevice";
 
 const { MONGO_URI } = process.env;
 
