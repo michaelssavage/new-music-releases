@@ -5,6 +5,7 @@ import {
 	saveArtist,
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { Artist } from "@model/spotify/search";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -14,7 +15,7 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
@@ -69,35 +70,29 @@ const ArtistName = styled.div`
 `;
 
 const ArtistDetail = styled.div`
+	max-width: 400px;
 	position: sticky;
 	top: 5rem;
+	border-radius: 4px;
+	gap: 0.25rem;
 
-	display: flex;
-	flex-direction: row;
-	gap: 1rem;
-	
-
-  @media (max-width: 768px) {
-		flex-direction: column;
-  }
-
-	img {
-		max-width: 300px;
-	}
-
-	a {
-		margin-top: 1rem;
-	}
-`;
-
-const Content = styled.div`
 	display: flex;
 	flex-direction: column;
-	max-width: 500px;
-	gap: 1rem;
+
+	img {
+		width: 100%;
+		border-radius: inherit;
+	}
 `;
 
-export const ArtistTable = () => {
+const cardBodyStyling = css`
+	max-width: 500px;
+	border: 1px solid black;
+	border-radius: inherit;
+	padding: 1rem;
+`;
+
+export const SavedArtistsTable = () => {
 	const columnHelper = createColumnHelper<Artist>();
 	const [artistId, setArtistId] = useState<string>();
 	const [removedArtists, setRemovedArtists] = useState<string[]>([]);
@@ -109,6 +104,12 @@ export const ArtistTable = () => {
 		queryFn: () => getSavedArtists(userId),
 		enabled: false,
 	});
+
+	useEffect(() => {
+		if (savedArtists.length !== 0) {
+			setArtistId(savedArtists[0]?.id);
+		}
+	}, [savedArtists]);
 
 	const {
 		data: artistData,
@@ -166,22 +167,13 @@ export const ArtistTable = () => {
 			cell: (info) => <ArtistName>{info.getValue()}</ArtistName>,
 		}),
 		columnHelper.display({
-			id: "View More",
-			cell: (info) => (
-				<Button onClick={() => setArtistId(info.row.original.id)} text="View" />
-			),
-		}),
-		columnHelper.display({
-			id: "Action",
+			id: "actions",
+			header: "Actions",
 			cell: (info) => {
-				const isSaved = !removedArtists.includes(info.row.original.id);
-
 				return (
 					<Button
-						onClick={() => handleAction({ isSaved, data: info.row.original })}
-						text={`${isSaved ? "Remove" : "Save"}`}
-						variant={isSaved ? "remove" : undefined}
-						loading={isSaved && (loadingSave || loadingRemove)}
+						onClick={() => setArtistId(info.row.original.id)}
+						text="View Artist"
 					/>
 				);
 			},
@@ -202,11 +194,25 @@ export const ArtistTable = () => {
 		if (artistData) {
 			const image = artistData?.images?.[0]?.url;
 
+			const isSaved = !removedArtists.includes(artistData.id);
+
+			console.log(artistData);
+
 			return (
 				<ArtistDetail>
 					{image && <img src={image} alt={artistData.name} />}
-					<Content>
-						<Group align="center" justify="space-between">
+					<Group
+						direction="column"
+						gap="0.5rem"
+						align="flex-start"
+						styling={cardBodyStyling}
+					>
+						<Group
+							align="flex-start"
+							justify="space-between"
+							width="100%"
+							wrap="nowrap"
+						>
 							<h2>{artistData.name}</h2>
 							<Button
 								onClick={() => setArtistId(undefined)}
@@ -218,15 +224,22 @@ export const ArtistTable = () => {
 						</Group>
 						<p>{artistData.followers.total.toLocaleString()} Followers</p>
 						<p>Genres: {artistData.genres.join(", ")}</p>
-						<div>
+						<Group width="100%">
 							<Anchor
 								link={artistData.external_urls.spotify}
 								text="Open"
 								icon={<SpotifyIcon />}
 								isExternal
 							/>
-						</div>
-					</Content>
+
+							<Button
+								onClick={() => handleAction({ isSaved, data: artistData })}
+								text={`${isSaved ? "Remove" : "Save"}`}
+								variant={isSaved ? "remove" : undefined}
+								loading={isSaved && (loadingSave || loadingRemove)}
+							/>
+						</Group>
+					</Group>
 				</ArtistDetail>
 			);
 		}
@@ -234,6 +247,8 @@ export const ArtistTable = () => {
 
 	return (
 		<Group align="flex-start" wrap="nowrap">
+			{artistId && renderArtist()}
+
 			<TableContainer>
 				<TableWrapper>
 					<table>
@@ -268,8 +283,6 @@ export const ArtistTable = () => {
 					</table>
 				</TableWrapper>
 			</TableContainer>
-
-			{artistId && renderArtist()}
 		</Group>
 	);
 };

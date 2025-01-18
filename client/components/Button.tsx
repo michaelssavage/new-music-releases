@@ -10,6 +10,7 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 	padding: 0.5rem 0.75rem;
 	border-radius: 4px;
 	transition: all 0.2s ease-in-out;
+  box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
 
 	${({ variant }) => {
 		if (variant === "remove") {
@@ -42,6 +43,7 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 				background-color: transparent;
 				padding: 0;
 				margin: 0;
+				box-shadow: none;
 
 				&:hover:not(:disabled) {
 					color: #1945e3;
@@ -68,6 +70,7 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 				border: 1px solid transparent;
         background-color: transparent;
 				margin: 0;
+				box-shadow: none;
 
 				${Text} {
 					visibility: hidden;

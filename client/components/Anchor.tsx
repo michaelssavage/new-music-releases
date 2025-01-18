@@ -17,6 +17,7 @@ const LinkStyle = styled.a<IStyle>`
   justify-content: center;
   flex-direction: row;
   gap: 4px;
+  max-height: 40px;
 
   svg {
     flex-shrink: 0;
@@ -44,14 +45,18 @@ const LinkStyle = styled.a<IStyle>`
           border: none;
           padding: 0.5rem 0.75rem;
           border-radius: 4px;
+          box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
           cursor: pointer;
           gap: 0.5rem;
-          color: #1e1e1e;
-          background-color: #ebedf5;
-          border: 1px solid #505050;
+          color: #eff3f2;
+          background: #4e6db0;
+          border: 1px solid #4e6db0;
           transition: background-color 0.25s;
-          &:hover {
-            background-color: #c1cbec;
+
+          &:hover, &:active {
+            background-color: initial;
+            background-position: 0 0;
+            color: #4e6db0;
           }
         `;
 			case "link":

@@ -5,9 +5,9 @@ import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { Info } from "@client/components/InfoToast";
 import { Loader } from "@client/components/Loader";
 import { Panel } from "@client/components/Panel";
-import { ArtistTable } from "@client/components/Table/Artist";
-import { PlaylistTable } from "@client/components/Table/Playlist";
-import { TrackTable } from "@client/components/Table/Track";
+import { LikedSongsTable } from "@client/components/Table/LikedSongs";
+import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
+import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
 import { type Tab, Tabs } from "@client/components/Tabs";
 import {
 	getSpotifyPlaylist,
@@ -86,7 +86,7 @@ function Releases() {
 					</Group>
 
 					{data ? (
-						<PlaylistTable tracks={data?.playlistItems.items} />
+						<PlaylistUpdatesTable tracks={data?.playlistItems.items} />
 					) : (
 						<p>No tracks found</p>
 					)}
@@ -98,7 +98,7 @@ function Releases() {
 			tab: "Saved Artists",
 			panel: (
 				<Panel>
-					<ArtistTable />
+					<SavedArtistsTable />
 				</Panel>
 			),
 		},
@@ -107,7 +107,7 @@ function Releases() {
 			tab: "Liked Songs",
 			panel: (
 				<Panel>
-					<TrackTable />
+					<LikedSongsTable />
 				</Panel>
 			),
 		},

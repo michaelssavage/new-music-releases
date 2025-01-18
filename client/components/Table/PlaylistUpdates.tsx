@@ -69,7 +69,7 @@ const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
 	return dateA < dateB ? -1 : dateA > dateB ? 1 : 0;
 };
 
-export const PlaylistTable = ({ tracks }: PlaylistTableProps) => {
+export const PlaylistUpdatesTable = ({ tracks }: PlaylistTableProps) => {
 	const columnHelper = createColumnHelper<ShowItem>();
 	const [sorting, setSorting] = useState<SortingState>([
 		{

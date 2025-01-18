@@ -75,7 +75,7 @@ const SortableHeader = styled.div`
   }
 `;
 
-export const TrackTable = () => {
+export const LikedSongsTable = () => {
 	const columnHelper = createColumnHelper<ShowItem>();
 	const [sorting, setSorting] = useState<SortingState>([]);
 
