@@ -28,7 +28,7 @@ export async function refreshAuthToken(
 			return access_token;
 		}
 	} catch (error) {
-		console.error("Failed to refresh token:", error);
+		logger.error("Failed to refresh token:", error);
 	}
 	return null;
 }
@@ -39,12 +39,12 @@ export const getUser = async (userId: UserID) => {
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get user:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -67,7 +67,7 @@ export const saveArtist = async ({
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 	}
 };
@@ -82,12 +82,12 @@ export const removeArtist = async ({
 		await axios.delete(`/api/remove-artist/${id}?userId=${userId}`);
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to remove artist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -103,31 +103,42 @@ export const getArtist = async (id?: string) => {
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get artist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}
 };
 
 export const getSavedArtists = async (userId: UserID) => {
+	const accessToken = Cookies.get("spotify_access_token");
+
+	if (!accessToken) {
+		return [];
+	}
+
 	try {
-		const res = await axios.get<Array<Artist>>(
-			`/api/get-artists?userId=${userId}`,
-		);
-		return res.data;
+		const status = await isAuthValid(accessToken);
+		if (status === "OK") {
+			const res = await axios.get<Array<Artist>>(
+				`/api/get-artists?userId=${userId}`,
+			);
+			return res.data;
+		}
+		logger.error("Failed to get saved artists: Invalid access token");
+		return [];
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get saved artists:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return [];
 	}
@@ -143,12 +154,12 @@ export const getUserTracks = async () => {
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get user tracks:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -167,12 +178,12 @@ export const getNextTracks = async (nextUrl: string) => {
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get next tracks:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -209,12 +220,12 @@ export const getSpotifyPlaylist = async (userId: UserID) => {
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get playlist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -233,12 +244,12 @@ export const updateSpotifyPlaylistReleases = async (userId: UserID) => {
 		return res.data;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
-			console.error(
+			logger.error(
 				"Failed to get spotify playlist releases:",
 				error.response?.data || error.message,
 			);
 		} else {
-			console.error("An unexpected error occurred:", error);
+			logger.error("An unexpected error occurred:", error);
 		}
 		return null;
 	}

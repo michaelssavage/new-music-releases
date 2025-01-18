@@ -1,15 +1,18 @@
-import { SchedulerService } from "@server/service/scheduler.service";
+import type { Request, Response } from "express";
+import type { SchedulerControllerI } from "../container/types";
 
-export function SchedulerController() {
-	const schedulerService = SchedulerService();
+export function SchedulerController({
+	schedulerService,
+}: SchedulerControllerI) {
+	async function triggerManualUpdate(
+		req: Request,
+		res: Response,
+	): Promise<void> {
+		const { fromDate } = req.body;
 
-	schedulerService.initialize().catch((err) => {
-		console.error("Failed to initialize SchedulerService:", err);
-	});
-
-	async function triggerManualUpdate() {
 		try {
-			await schedulerService.executeJob({ manual: true });
+			await schedulerService.executeJob({ manual: true, fromDate });
+			res.status(200).json({ message: "Job triggered successfully" });
 		} catch (error) {
 			console.error("Failed to execute job:", error);
 		}

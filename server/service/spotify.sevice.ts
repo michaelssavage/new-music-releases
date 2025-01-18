@@ -1,7 +1,4 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import axios, { type AxiosResponse } from "axios";
-import dotenv from "dotenv";
 import createHttpError from "http-errors";
 
 import type {
@@ -13,30 +10,21 @@ import type { SpotifyPlaylistI } from "@model/spotify/playlist";
 import type { Artist, SearchResponse } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile, User } from "@model/spotify/user";
-import { SpotifyRepository } from "../repository/spotify.repository";
+import type { SpotifyServiceI } from "@server/container/types";
+import { resolvePath } from "@server/utils/resolvePath";
+import { parseISO } from "date-fns";
+import dotenv from "dotenv";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
+import type { UpdateUserPlaylistI } from "./types";
 
-import { validateEnv } from "@server/utils/validateEnv";
-import { RedisService } from "./redis.service";
+const envPath = resolvePath("../../.env");
+dotenv.config({ path: envPath });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-
-export function SpotifyService() {
-	const env = validateEnv();
-
-	const redisService = RedisService({
-		redisUrl: env.REDIS_URL,
-		redisToken: env.REDIS_TOKEN,
-		redisPort: env.REDIS_PORT,
-	});
-
-	const repository = SpotifyRepository({
-		mongoUri: env.MONGO_URI,
-	});
-
+export function SpotifyService({
+	repository,
+	redisService,
+	env,
+}: SpotifyServiceI) {
 	async function initialize(): Promise<void> {
 		await repository.connect();
 	}
@@ -316,7 +304,10 @@ export function SpotifyService() {
 		const cachedArtists = await redisService.getUpstashData(cacheKey);
 
 		if (cachedArtists) {
-			return JSON.parse(cachedArtists as string);
+			console.log(
+				`Cache hit. Returning ${cachedArtists.length} cached artists:`,
+			);
+			return cachedArtists;
 		}
 
 		const savedArtists = await repository.getAllArtists(userId);
@@ -345,7 +336,11 @@ export function SpotifyService() {
 		return tracks;
 	}
 
-	async function getArtistAlbums(token: string, artistId: string) {
+	async function getArtistAlbums(
+		token: string,
+		artistId: string,
+		fromDate?: string,
+	) {
 		const cacheKey = `spotify:artist-albums:${artistId}`;
 		const cachedAlbums = await redisService.getUpstashData(cacheKey);
 
@@ -366,7 +361,11 @@ export function SpotifyService() {
 
 			const today = new Date().toISOString().split("T")[0];
 			const filteredAlbums = data.items
-				.filter(({ release_date }) => release_date === today)
+				.filter(({ release_date }) => {
+					return fromDate
+						? parseISO(release_date) >= parseISO(fromDate)
+						: release_date === today;
+				})
 				.map((props) => ({
 					id: props.id,
 					uri: props.uri,
@@ -391,7 +390,11 @@ export function SpotifyService() {
 		}
 	}
 
-	async function fetchNewReleases(userId: string, token: string) {
+	async function fetchNewReleases(
+		userId: string,
+		token: string,
+		fromDate?: string,
+	) {
 		const artists = await repository.getAllArtists(userId);
 		if (!artists || artists.length === 0) {
 			console.log("No artists found for user:", userId);
@@ -401,7 +404,7 @@ export function SpotifyService() {
 		console.log(`${artists.length} Artists retrieved from MongoDB.`);
 
 		const releasesArray = await Promise.all(
-			artists.map((artist) => getArtistAlbums(token, artist.id)),
+			artists.map((artist) => getArtistAlbums(token, artist.id, fromDate)),
 		);
 
 		return releasesArray.flat();
@@ -432,14 +435,16 @@ export function SpotifyService() {
 		return data;
 	}
 
-	async function updateUserPlaylist(
-		userId: string,
-		token: string,
-		playlist: SpotifyPlaylistI,
-	) {
+	async function updateUserPlaylist({
+		userId,
+		token,
+		playlist,
+		fromDate,
+	}: UpdateUserPlaylistI) {
 		const newReleases: Array<NewReleasesI> = await fetchNewReleases(
 			userId,
 			token,
+			fromDate,
 		);
 
 		if (newReleases.length === 0) {
@@ -522,7 +527,11 @@ export function SpotifyService() {
 		return playlistItems;
 	}
 
-	async function updateNewReleases(userId: string, token: string) {
+	async function updateNewReleases(
+		userId: string,
+		token: string,
+		fromDate?: string,
+	) {
 		const playlist = await getSpotifyPlaylist(userId, token);
 
 		if (!playlist) {
@@ -530,13 +539,18 @@ export function SpotifyService() {
 			return;
 		}
 
-		const updatedPlaylist = await updateUserPlaylist(userId, token, playlist);
+		const updatedPlaylist = await updateUserPlaylist({
+			userId,
+			token,
+			playlist,
+			fromDate,
+		});
 
 		console.log("Playlist updated for user:", userId);
 		return updatedPlaylist;
 	}
 
-	async function updatePlaylistsForAllUsers() {
+	async function updatePlaylistsForAllUsers(fromDate?: string) {
 		try {
 			const users = await repository.getAllUsers();
 
@@ -549,7 +563,7 @@ export function SpotifyService() {
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);
-						return await updateNewReleases(user.userId, token);
+						return await updateNewReleases(user.userId, token, fromDate);
 					} catch (error) {
 						console.error(
 							`Error updating playlist for user ${user.userId}:`,

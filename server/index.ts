@@ -1,5 +1,4 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
@@ -7,28 +6,32 @@ import express, {
 	type Request,
 	type Response,
 } from "express";
-import schedulerRouter from "./router/scheduler.router.js";
-import spotifyRouter from "./router/spotify.router.js";
-import { SpotifyService } from "./service/spotify.sevice.js";
+import { createServiceContainer } from "./container/index.js";
+import { SchedulerRouter } from "./router/scheduler.router.js";
+import { SpotifyRouter } from "./router/spotify.router.js";
+import { resolvePath } from "./utils/resolvePath.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const clientPath = path.resolve(__dirname, "../client");
+const { spotifyService, redisService, schedulerService } =
+	createServiceContainer();
+
+const spotifyRouter = SpotifyRouter({ spotifyService });
+const schedulerRouter = SchedulerRouter({ schedulerService });
 
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 
-app.use("/api", spotifyRouter);
-app.use("/api", schedulerRouter);
-
 app.get("/health", (_req, res) => {
 	res.status(200).json({ status: "UP" });
 });
 
+app.use("/api", spotifyRouter);
+app.use("/api", schedulerRouter);
+
+const clientPath = resolvePath("../client");
 app.use(express.static(clientPath));
 
 app.get("*", (_req, res) => {
@@ -44,24 +47,30 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
 	res.status(500).json({ error: "Internal Server Error" });
 });
 
-const spotifyService = SpotifyService();
-
 async function startServer() {
 	try {
+		await spotifyService.initialize();
+		await redisService.initialize();
+		await schedulerService.initialize();
+
 		app.listen(PORT, () => {
 			console.log(`Server is running on port ${PORT}`);
 		});
 	} catch (error) {
-		console.error("Failed to initialize SpotifyService:", error);
+		console.error("Failed to initialize services:", error);
+		await shutdown();
 		process.exit(1);
 	}
 }
 
 async function shutdown() {
 	console.log("Shutting down server...");
+
 	try {
 		await spotifyService.shutdown();
-		console.log("Spotify service disconnected.");
+		await redisService.shutdown();
+		await schedulerService.shutdown();
+
 		process.exit(0);
 	} catch (error) {
 		console.error("Error during shutdown:", error);

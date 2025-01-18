@@ -1,17 +1,16 @@
+import type { SchedulerServiceI } from "@server/container/types";
 import { CronJob } from "cron";
-import { SchedulerRepository } from "../repository/scheduler.repository";
-import { SpotifyService } from "./spotify.sevice";
-
-const { MONGO_URI } = process.env;
 
 interface ExecuteJobProps {
 	manual?: boolean;
+	fromDate?: string;
 }
 
-export function SchedulerService() {
+export function SchedulerService({
+	repository,
+	spotifyService,
+}: SchedulerServiceI) {
 	let isJobRunning = false;
-	const repository = SchedulerRepository(MONGO_URI as string);
-	const spotifyService = SpotifyService();
 
 	const job = new CronJob(
 		"0 22 * * *", // Run at 22:00 every day
@@ -57,7 +56,10 @@ export function SchedulerService() {
 		console.log("Scheduler shut down successfully");
 	}
 
-	async function executeJob({ manual }: ExecuteJobProps): Promise<void> {
+	async function executeJob({
+		manual,
+		fromDate,
+	}: ExecuteJobProps): Promise<void> {
 		if (isJobRunning) {
 			console.log("Previous job still running, skipping...");
 			return;
@@ -77,14 +79,14 @@ export function SchedulerService() {
 				? now.getTime() - lastExecution.executionTime.getTime()
 				: Number.POSITIVE_INFINITY;
 
-			// If less than 20 hours since last successful run, skip
+			// if less than 20 hours since last successful run, skip
 			if (timeSinceLastRun < 20 * 60 * 60 * 1000 && !manual) {
 				console.log("Last execution was too recent, skipping...");
 				return;
 			}
 
 			console.log("Starting playlist update...");
-			await spotifyService.updatePlaylistsForAllUsers();
+			await spotifyService.updatePlaylistsForAllUsers(fromDate);
 
 			// Log successful execution
 			await repository.insertOne({

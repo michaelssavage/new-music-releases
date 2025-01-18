@@ -14,6 +14,13 @@ export function RedisService({
 }: RedisServiceConfig) {
 	const redis = new Redis(
 		`rediss://default:${redisToken}@${redisUrl}:${redisPort}`,
+		{
+			lazyConnect: true,
+			retryStrategy(times) {
+				const delay = Math.min(times * 50, 2000);
+				return delay;
+			},
+		},
 	);
 
 	const upstashRedis = new UpstashRedis({
@@ -21,14 +28,41 @@ export function RedisService({
 		token: redisToken,
 	});
 
-	redis.on("error", (err) => {
-		console.error("Redis connection error:", err);
-		throw err;
-	});
+	async function initialize(): Promise<void> {
+		try {
+			await redis.connect();
 
-	redis.on("connect", () => {
-		console.log("Connected to Redis.");
-	});
+			redis.on("error", (err) => {
+				console.error("Redis connection error:", err);
+			});
+
+			redis.on("connect", () => {
+				console.log("Connected to Redis.");
+			});
+
+			redis.on("reconnecting", () => {
+				console.log("Reconnecting to Redis...");
+			});
+
+			await upstashRedis.ping();
+			console.log("Connected to Upstash Redis.");
+		} catch (error) {
+			console.error("Failed to initialize Redis services:", error);
+			throw error;
+		}
+	}
+
+	async function shutdown(): Promise<void> {
+		try {
+			console.log("Disconnecting from Redis...");
+			await redis.quit();
+
+			console.log("Redis connections closed.");
+		} catch (error) {
+			console.error("Error during Redis shutdown:", error);
+			throw error;
+		}
+	}
 
 	async function getCachedData(key: string) {
 		const cache = await redis.get(key);
@@ -49,7 +83,11 @@ export function RedisService({
 		const cache = await upstashRedis.get(key);
 		if (cache) {
 			console.log(`Upstash cache hit for key: ${key}`);
-			return cache;
+			try {
+				return JSON.parse(cache as string);
+			} catch {
+				return cache;
+			}
 		}
 		console.log(`Upstash cache miss for key: ${key}`);
 		return null;
@@ -57,7 +95,7 @@ export function RedisService({
 
 	async function setUpstashData(key: string, value: unknown, ttl = 3600) {
 		console.log(`Setting Upstash cache for key: ${key}`);
-		await upstashRedis.set(key, JSON.stringify(value), { ex: ttl });
+		return await upstashRedis.set(key, JSON.stringify(value), { ex: ttl });
 	}
 
 	async function invalidateCache(key: string) {
@@ -74,6 +112,8 @@ export function RedisService({
 	}
 
 	return {
+		initialize,
+		shutdown,
 		getCachedData,
 		setCache,
 		getUpstashData,

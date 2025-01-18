@@ -1,9 +1,12 @@
+import type { SchedulerControllerI } from "@server/container/types";
 import { SchedulerController } from "@server/controller/scheduler.controller";
 import express from "express";
 
-const router = express.Router();
-const schedulerController = SchedulerController();
+export function SchedulerRouter({ schedulerService }: SchedulerControllerI) {
+	const router = express.Router();
+	const schedulerController = SchedulerController({ schedulerService });
 
-router.get("/trigger-schedule", schedulerController.triggerManualUpdate);
+	router.post("/trigger-schedule", schedulerController.triggerManualUpdate);
 
-export default router;
+	return router;
+}

@@ -10,7 +10,7 @@ const requiredEnvVars = [
 	"REDIS_PORT",
 ] as const;
 
-type EnvVars = Record<(typeof requiredEnvVars)[number], string>;
+export type EnvVars = Record<(typeof requiredEnvVars)[number], string>;
 
 export const validateEnv = (): EnvVars => {
 	const missingVars = requiredEnvVars.filter((key) => !process.env[key]);

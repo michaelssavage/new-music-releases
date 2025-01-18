@@ -1,27 +1,29 @@
+import type { SpotifyControllerI } from "@server/container/types";
 import { SpotifyController } from "@server/controller/spotify.controller";
 import express from "express";
 
-const router = express.Router();
-const spotifyController = SpotifyController();
+export function SpotifyRouter({ spotifyService }: SpotifyControllerI) {
+	const router = express.Router();
+	const spotifyController = SpotifyController({ spotifyService });
 
-router.get("/login", spotifyController.loginHandler);
-router.get("/callback", spotifyController.callbackHandler);
-router.get("/refresh", spotifyController.refreshToken);
-router.get("/validate-token", spotifyController.validateToken);
+	router.get("/login", spotifyController.loginHandler);
+	router.get("/callback", spotifyController.callbackHandler);
+	router.get("/refresh", spotifyController.refreshToken);
+	router.get("/validate-token", spotifyController.validateToken);
 
-router.get("/user", spotifyController.getUser);
+	router.get("/user", spotifyController.getUser);
 
-router.get("/search", spotifyController.searchHandler);
+	router.get("/search", spotifyController.searchHandler);
 
-router.get("/saved-tracks", spotifyController.getSavedTracks);
+	router.get("/saved-tracks", spotifyController.getSavedTracks);
 
-router.post("/save-artists", spotifyController.saveArtists);
-router.get("/get-artist/:id", spotifyController.getSingleArtist);
-router.get("/get-artists", spotifyController.getAllArtistsIds);
+	router.post("/save-artists", spotifyController.saveArtists);
+	router.get("/get-artist/:id", spotifyController.getSingleArtist);
+	router.get("/get-artists", spotifyController.getAllArtistsIds);
 
-router.delete("/remove-artist/:id", spotifyController.removeSavedArtist);
+	router.delete("/remove-artist/:id", spotifyController.removeSavedArtist);
 
-router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
-router.get("/update-playlist-releases", spotifyController.updateNewReleases);
-
-export default router;
+	router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
+	router.get("/update-playlist-releases", spotifyController.updateNewReleases);
+	return router;
+}

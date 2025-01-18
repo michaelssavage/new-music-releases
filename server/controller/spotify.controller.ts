@@ -1,6 +1,6 @@
 import type { Artist } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
-import { SpotifyService } from "@server/service/spotify.sevice";
+import type { SpotifyControllerI } from "@server/container/types";
 import { getAuthorizationUrl } from "@server/utils/auth";
 import type { Request, Response } from "express";
 
@@ -21,13 +21,7 @@ interface SaveQuery extends Request {
 
 const { SPOTIFY_CLIENT_ID, SERVER_URL } = process.env;
 
-export function SpotifyController() {
-	const spotifyService = SpotifyService();
-
-	spotifyService.initialize().catch((err) => {
-		console.error("Failed to initialize SpotifyService:", err);
-	});
-
+export function SpotifyController({ spotifyService }: SpotifyControllerI) {
 	async function loginHandler(_req: Request, res: Response): Promise<void> {
 		const url = getAuthorizationUrl(
 			`${SERVER_URL}/api/callback`,
