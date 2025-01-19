@@ -3,9 +3,11 @@ import {} from "@client/utils/defaults";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { MenuIcon } from "./Icons/Menu";
 import { SearchBox } from "./SearchBox";
+
+interface NavLinkProps {
+	isActive: boolean | Record<never, string>;
+}
 
 const NavbarContainer = styled.nav`
   padding: 3rem 2rem;
@@ -13,9 +15,14 @@ const NavbarContainer = styled.nav`
 
   display: flex;
   align-items: center;
+
+  @media screen and (max-width:  440px) {
+    flex-direction: column;
+    gap: 2rem; 
+  }
 `;
 
-const NavItems = styled.div<{ isOpen: boolean }>`
+const NavItems = styled.div`
   background-color: #333;
   color: white;
   padding: 0.75rem 1rem;
@@ -28,34 +35,20 @@ const NavItems = styled.div<{ isOpen: boolean }>`
 
 `;
 
-const NavLink = styled(Link, {
-	shouldForwardProp: (prop) => !["isActive", "isOpen"].includes(prop),
-})<{
-	isOpen: boolean;
-	isActive: boolean | Record<never, string>;
-}>`
+const NavLink = styled(Link)<NavLinkProps>`
   text-decoration: none;
   font-size: 1.4rem;
   transition: transform 0.3s ease;
+  color: ${({ isActive }) => (isActive ? "white" : "#bababa")};
+  text-decoration: ${({ isActive }) => (isActive ? "underline" : "none")};
 
   ${({ isActive }) =>
-		isActive
-			? css`
-          color: white;
-          text-decoration: underline;
-        `
-			: css`
-          color: #bababa;
-
-          &:hover {
-            transform: scale(1.1);
-          }
-        `};
-
-`;
-
-const Menu = styled(MenuIcon)`
-  display: none;
+		!isActive &&
+		css`
+      &:hover {
+        transform: scale(1.1);
+      }
+  `}
 `;
 
 const LogoutButton = styled.button`
@@ -74,7 +67,6 @@ const navItems = [{ label: "Home", link: "/" }];
 
 export const Navbar = () => {
 	const navigate = useNavigate();
-	const [isOpen, setIsOpen] = useState(false);
 	const matchRoute = useMatchRoute();
 	const { isAuthenticated, logout } = useAppStore();
 
@@ -85,16 +77,9 @@ export const Navbar = () => {
 
 	return (
 		<NavbarContainer>
-			<Menu color="white" size={30} onClick={() => setIsOpen(!isOpen)} />
-
-			<NavItems isOpen={isOpen}>
+			<NavItems>
 				{navItems.map(({ label, link }) => (
-					<NavLink
-						key={label}
-						to={link}
-						isOpen={isOpen}
-						isActive={matchRoute({ to: link })}
-					>
+					<NavLink key={label} to={link} isActive={matchRoute({ to: link })}>
 						{label}
 					</NavLink>
 				))}

@@ -41,8 +41,11 @@ export function SchedulerController({
 				return;
 			}
 
-			await schedulerService.executeJob({ manual: true, fromDate });
-			res.status(200).json({ message: "Job triggered successfully" });
+			const result = await schedulerService.executeJob({
+				manual: true,
+				fromDate,
+			});
+			res.status(200).json({ message: "Job triggered successfully", result });
 		} catch (error) {
 			console.error("Failed to execute job:", error);
 

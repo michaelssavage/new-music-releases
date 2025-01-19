@@ -11,6 +11,7 @@ import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
 import { type Tab, Tabs } from "@client/components/Tabs";
 import {
 	getSpotifyPlaylist,
+	getUser,
 	updateSpotifyPlaylistReleases,
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
@@ -37,6 +38,11 @@ const LoadingStyled = styled.div`
 
 function Releases() {
 	const { userId } = useAppStore();
+
+	const { data: userData } = useQuery({
+		queryKey: ["user", userId],
+		queryFn: () => getUser(userId),
+	});
 
 	const {
 		data,
@@ -69,14 +75,16 @@ function Releases() {
 			key: "playlist",
 			tab: "Playlist Updates",
 			panel: (
-				<Panel title="New releases" direction="column">
+				<Panel direction="column">
 					<Group justify="center" width="100%">
-						<Button
-							onClick={() => mutate(userId)}
-							text="Fetch new releases"
-							variant="secondary"
-							loading={isPending}
-						/>
+						{userData?.roles?.includes("admin") && (
+							<Button
+								onClick={() => mutate(userId)}
+								text="Fetch new releases"
+								variant="secondary"
+								loading={isPending}
+							/>
+						)}
 
 						{data?.playlist && (
 							<Anchor

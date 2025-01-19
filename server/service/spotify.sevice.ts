@@ -437,6 +437,7 @@ export function SpotifyService({
 		);
 
 		if (newReleases.length === 0) {
+			console.log(`No new releases found for ${userId}`);
 			return [];
 		}
 
@@ -528,15 +529,12 @@ export function SpotifyService({
 			return;
 		}
 
-		const updatedPlaylist = await updateUserPlaylist({
+		return await updateUserPlaylist({
 			userId,
 			token,
 			playlist,
 			fromDate,
 		});
-
-		console.log("Playlist updated for user:", userId);
-		return updatedPlaylist;
 	}
 
 	async function updatePlaylistsForAllUsers(fromDate?: string) {
@@ -548,17 +546,21 @@ export function SpotifyService({
 				return;
 			}
 
+			console.log(`Updating playlists for ${users.length} users.`);
+
 			const results = await Promise.all(
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);
+						console.log(`token received for user ${user.userId}`, { token });
+
 						return await updateNewReleases(user.userId, token, fromDate);
 					} catch (error) {
 						console.error(
 							`Error updating playlist for user ${user.userId}:`,
 							(error as Error).message,
 						);
-						return null; // Continue with other users even if one fails
+						return null;
 					}
 				}),
 			);

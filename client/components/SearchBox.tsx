@@ -34,6 +34,13 @@ const Content = styled.div`
 	padding: 2rem;
 `;
 
+const searchBoxStyling = css`
+	margin-left: auto;
+
+	@media screen and (max-width:  440px) {
+		margin-left: unset;
+  }`;
+
 export const SearchBox = () => {
 	const [search, setSearch] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
@@ -157,7 +164,7 @@ export const SearchBox = () => {
 	];
 
 	return (
-		<Group justify="flex-end" align="center" styling={css`margin-left: auto;`}>
+		<Group justify="flex-end" align="center" styling={searchBoxStyling}>
 			<Button
 				icon={<SearchIcon />}
 				variant="input"
