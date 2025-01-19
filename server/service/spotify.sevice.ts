@@ -5,6 +5,7 @@ import type {
 	ArtistAlbumsI,
 	FollowedArtistsI,
 	NewReleasesI,
+	SavedArtistI,
 } from "@model/spotify";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
 import type { Artist, SearchResponse } from "@model/spotify/search";
@@ -82,7 +83,7 @@ export function SpotifyService({
 
 	async function invalidateUserCaches(userId: string) {
 		const keys = [
-			`spotify:user-artists:${userId}`,
+			`spotify:user-saved-artists:${userId}`,
 			`spotify:user-profile:${userId}`,
 		];
 		await redisService.invalidateMultipleKeys(keys);
@@ -91,8 +92,7 @@ export function SpotifyService({
 	async function invalidateArtistCaches(userId: string, artistId: string) {
 		const keys = [
 			`spotify:artist:${artistId}`,
-			`spotify:artist-albums:${artistId}`,
-			`spotify:user-artists:${userId}`,
+			`spotify:user-saved-artists:${userId}`,
 		];
 		await redisService.invalidateMultipleKeys(keys);
 	}
@@ -221,23 +221,18 @@ export function SpotifyService({
 			return null;
 		}
 
-		const result = await repository.saveArtists(userId, artists);
+		const artistsToSave: Array<SavedArtistI> = artists.map((artist) => ({
+			id: artist.id,
+			name: artist.name,
+			uri: artist.uri,
+			image: artist?.images?.[0]?.url || "",
+			createdDate: new Date(),
+		}));
+
+		const result = await repository.saveArtists(userId, artistsToSave);
 		await invalidateUserCaches(userId);
 
 		console.log(`${artists.length} artists added/updated in the database.`);
-		return result;
-	}
-
-	async function resetArtists(userId: string, artists: Array<Artist>) {
-		if (artists.length === 0) {
-			console.log("No artists to save after reset.");
-			return null;
-		}
-
-		const result = await repository.resetArtists(userId, artists);
-		await invalidateUserCaches(userId);
-
-		console.log(`${artists.length} artists were overwritten in the database.`);
 		return result;
 	}
 
@@ -299,8 +294,10 @@ export function SpotifyService({
 		return result;
 	}
 
-	async function getAllArtistsIds(userId: string) {
-		const cacheKey = `spotify:user-artists:${userId}`;
+	async function getAllArtistsIds(
+		userId: string,
+	): Promise<Array<SavedArtistI>> {
+		const cacheKey = `spotify:user-saved-artists:${userId}`;
 		const cachedArtists = await redisService.getUpstashData(cacheKey);
 
 		if (cachedArtists) {
@@ -341,13 +338,6 @@ export function SpotifyService({
 		artistId: string,
 		fromDate?: string,
 	) {
-		const cacheKey = `spotify:artist-albums:${artistId}`;
-		const cachedAlbums = await redisService.getUpstashData(cacheKey);
-
-		if (cachedAlbums) {
-			return JSON.parse(cachedAlbums as string);
-		}
-
 		try {
 			const { data } = await axios.get<ArtistAlbumsI>(
 				`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
@@ -379,7 +369,6 @@ export function SpotifyService({
 					url: props.external_urls.spotify,
 				}));
 
-			await redisService.setUpstashData(cacheKey, filteredAlbums, 3600);
 			return filteredAlbums;
 		} catch (error) {
 			console.log(
@@ -601,7 +590,6 @@ export function SpotifyService({
 		// Artists
 		getFollowedArtists,
 		saveArtists,
-		resetArtists,
 		getSingleArtist,
 		removeSavedArtist,
 		getAllArtistsIds,

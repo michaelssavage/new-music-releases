@@ -37,3 +37,11 @@ export interface NewReleasesI {
 	image: string;
 	url: string;
 }
+
+export interface SavedArtistI {
+	id: string;
+	name: string;
+	image: string;
+	uri: string;
+	createdDate: Date;
+}

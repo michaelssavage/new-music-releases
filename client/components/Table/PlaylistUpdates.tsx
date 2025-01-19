@@ -58,9 +58,9 @@ const SortableHeader = styled.div`
 	gap: 0.5rem;
 	cursor: pointer;
 
-&:hover {
-	color: #4b5563;
-}
+	&:hover {
+		color: #4b5563;
+	}
 `;
 
 const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
@@ -121,7 +121,7 @@ export const PlaylistUpdatesTable = ({ tracks }: PlaylistTableProps) => {
 	const table = useReactTable({
 		data: tracks,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
+		getCoreRowModel: getCoreRowModel<ShowItem>(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
 		state: {

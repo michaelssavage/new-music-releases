@@ -1,3 +1,4 @@
+import type { SavedArtistI } from "@model/spotify";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
 import type { Artist } from "@model/spotify/search";
 import type { User } from "@model/spotify/user";
@@ -48,11 +49,11 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 		return await userDb.find<User>({}).toArray();
 	}
 
-	async function saveArtists(userId: string, artists: Array<Artist>) {
-		console.log(`${userId} is saving artists:`, {
-			userId,
-			artists: artists.map(({ name }) => name),
-		});
+	async function saveArtists(userId: string, artists: Array<SavedArtistI>) {
+		console.log(
+			`${userId} is saving artists: ${artists.map(({ name }) => name)}`,
+		);
+
 		const bulkOperations = artists.map((artist) => ({
 			updateOne: {
 				filter: { id: artist.id },
@@ -66,24 +67,6 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 		return await userDb.updateOne(
 			{ userId },
 			{ $addToSet: { saved_artists: { $each: artistIds } } },
-			{ upsert: true },
-		);
-	}
-
-	async function resetArtists(userId: string, artists: Array<Artist>) {
-		const bulkOperations = artists.map((artist) => ({
-			updateOne: {
-				filter: { id: artist.id },
-				update: { $set: artist },
-				upsert: true,
-			},
-		}));
-		await artistDb.bulkWrite(bulkOperations);
-
-		const artistIds = artists.map((artist) => artist.id);
-		return await userDb.updateOne(
-			{ userId },
-			{ $set: { saved_artists: artistIds } },
 			{ upsert: true },
 		);
 	}
@@ -112,7 +95,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 		}
 
 		return await artistDb
-			.find<Artist>({ id: { $in: user.saved_artists } })
+			.find<SavedArtistI>({ id: { $in: user.saved_artists } })
 			.toArray();
 	}
 
@@ -131,7 +114,6 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 		getUser,
 		getAllUsers,
 		saveArtists,
-		resetArtists,
 		removeSavedArtist,
 		getAllArtists,
 		getPlaylist,

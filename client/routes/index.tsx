@@ -31,6 +31,10 @@ const Content = styled.div`
   padding: 2rem;
 `;
 
+const LoadingStyled = styled.div`
+	margin: 4rem;
+`;
+
 function Releases() {
 	const { userId } = useAppStore();
 
@@ -114,7 +118,11 @@ function Releases() {
 	];
 
 	if (isLoading) {
-		return <Loader />;
+		return (
+			<LoadingStyled>
+				<Loader />
+			</LoadingStyled>
+		);
 	}
 
 	return (

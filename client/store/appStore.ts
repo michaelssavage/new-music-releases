@@ -1,15 +1,15 @@
-import type { Artist } from "@model/spotify/search";
+import type { SavedArtistI } from "@model/spotify";
 import Cookies from "js-cookie";
 import { create } from "zustand";
 
 interface StoreState {
 	isAuthenticated: boolean;
 	userId: string | null;
-	savedArtists: Array<Artist>;
+	savedArtists: Array<SavedArtistI>;
 	refetchArtists: (() => void) | null;
 	login: (accessToken: string, refreshToken: string, userId: string) => void;
 	logout: () => void;
-	setSavedArtists: (artists: Array<Artist>) => void;
+	setSavedArtists: (artists: Array<SavedArtistI>) => void;
 	setRefetchArtists: (refetch: () => void) => void;
 }
 
@@ -44,6 +44,7 @@ export const useAppStore = create<StoreState>((set) => ({
 		Cookies.remove("spotify_user_id");
 		set({ isAuthenticated: false, userId: null });
 	},
-	setSavedArtists: (artists: Array<Artist>) => set({ savedArtists: artists }),
+	setSavedArtists: (artists: Array<SavedArtistI>) =>
+		set({ savedArtists: artists }),
 	setRefetchArtists: (refetch: () => void) => set({ refetchArtists: refetch }),
 }));

@@ -5,14 +5,18 @@ import {
 	saveArtist,
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
+import { displayDate } from "@client/utils/dates";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
+import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/search";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+	type SortingState,
 	createColumnHelper,
 	flexRender,
 	getCoreRowModel,
+	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
@@ -21,6 +25,7 @@ import { Anchor } from "../Anchor";
 import { Button } from "../Button";
 import { Group } from "../Group";
 import { CloseIcon } from "../Icons/Close";
+import { SortIcon } from "../Icons/Sort";
 import { SpotifyIcon } from "../Icons/Spotify";
 import { Loader } from "../Loader";
 
@@ -92,8 +97,26 @@ const cardBodyStyling = css`
 	padding: 1rem;
 `;
 
+const SortableHeader = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+
+	&:hover {
+		color: #4b5563;
+	}
+`;
+
 export const SavedArtistsTable = () => {
-	const columnHelper = createColumnHelper<Artist>();
+	const columnHelper = createColumnHelper<SavedArtistI>();
+	const [sorting, setSorting] = useState<SortingState>([
+		{
+			id: "created_date",
+			desc: true,
+		},
+	]);
+
 	const [artistId, setArtistId] = useState<string>();
 	const [removedArtists, setRemovedArtists] = useState<string[]>([]);
 
@@ -107,7 +130,7 @@ export const SavedArtistsTable = () => {
 
 	useEffect(() => {
 		if (savedArtists.length !== 0) {
-			setArtistId(savedArtists[0]?.id);
+			setArtistId(savedArtists?.at(-1)?.id);
 		}
 	}, [savedArtists]);
 
@@ -163,8 +186,26 @@ export const SavedArtistsTable = () => {
 
 	const columns = [
 		columnHelper.accessor("name", {
-			header: "Name",
+			id: "name",
+			header: ({ column }) => (
+				<SortableHeader onClick={column.getToggleSortingHandler()}>
+					Name
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
 			cell: (info) => <ArtistName>{info.getValue()}</ArtistName>,
+		}),
+		columnHelper.accessor("createdDate", {
+			id: "created_date",
+			header: ({ column }) => (
+				<SortableHeader onClick={column.getToggleSortingHandler()}>
+					Created Date
+					<SortIcon direction={column.getIsSorted()} />
+				</SortableHeader>
+			),
+			cell: (info) => (
+				<ArtistName>{displayDate(info.getValue().toLocaleString())}</ArtistName>
+			),
 		}),
 		columnHelper.display({
 			id: "actions",
@@ -183,7 +224,12 @@ export const SavedArtistsTable = () => {
 	const table = useReactTable({
 		data: savedArtists,
 		columns,
-		getCoreRowModel: getCoreRowModel<Artist>(),
+		getCoreRowModel: getCoreRowModel<SavedArtistI>(),
+		onSortingChange: setSorting,
+		getSortedRowModel: getSortedRowModel(),
+		state: {
+			sorting,
+		},
 	});
 
 	const renderArtist = () => {
