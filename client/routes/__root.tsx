@@ -6,7 +6,7 @@ import { useAppStore } from "@client/store/appStore";
 import { globalStyles } from "@client/styles/global.styled";
 import { setupAuthRefresh } from "@client/utils/auth";
 import { Global } from "@emotion/react";
-import type { Artist } from "@model/spotify/search";
+import type { SavedArtistI } from "@model/spotify";
 import { useQuery } from "@tanstack/react-query";
 import { Outlet, createRootRoute, useMatch } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
@@ -24,7 +24,7 @@ function RootComponent() {
 		setupAuthRefresh();
 	}, []);
 
-	const { data, refetch } = useQuery<Array<Artist>>({
+	const { data, refetch } = useQuery<Array<SavedArtistI>>({
 		queryKey: ["root", userId],
 		queryFn: () => getSavedArtists(userId),
 		enabled: userId !== null,

@@ -1,5 +1,5 @@
 import { logger } from "@client/utils/logger";
-import type { SpotifyDataProps } from "@model/spotify";
+import type { SavedArtistI, SpotifyDataProps } from "@model/spotify";
 import type { Artist, SearchProps } from "@model/spotify/search";
 import type { UserID } from "@model/spotify/user";
 import axios from "axios";
@@ -124,7 +124,7 @@ export const getSavedArtists = async (userId: UserID) => {
 	try {
 		const status = await isAuthValid(accessToken);
 		if (status === "OK") {
-			const res = await axios.get<Array<Artist>>(
+			const res = await axios.get<Array<SavedArtistI>>(
 				`/api/get-artists?userId=${userId}`,
 			);
 			return res.data;
