@@ -20,21 +20,15 @@
 		"start:client": "npm run start --workspace=client",
 		"start:server": "npm run start --workspace=server",
 		"lint": "biome lint --error-on-warnings ./",
-		"format": "biome format ./",
-		"get-followed-artists": "tsx ./scripts/fetchFollowedArtists.ts",
-		"get-new-releases": "tsx ./scripts/getNewReleases.ts",
-		"get-playlist": "tsx ./scripts/getPlaylist.ts",
-		"add-tracks": "tsx ./scripts/addTracksToPlaylist.ts",
-		"get-album-tracks": "tsx ./scripts/getAlbumTracks.ts"
+		"format": "biome format ./"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"@types/node-cron": "^3.0.11",
+		"@types/jsonwebtoken": "^9.0.7",
 		"concurrently": "^9.1.2"
 	},
 	"dependencies": {
-		"@upstash/redis": "^1.34.3",
 		"date-fns": "^4.1.0",
-		"ioredis": "^5.4.2"
+		"jsonwebtoken": "^9.0.2"
 	}
 }
