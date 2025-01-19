@@ -27,11 +27,6 @@ export const ArtistCard = ({ image, artist }: CardI) => {
 
 	const isSaved = savedArtists.some((savedArtist) => savedArtist.id === id);
 
-	console.log(`${name}!!`, {
-		isSaved,
-		id,
-	});
-
 	const handleRefetch = () => {
 		if (refetchArtists) refetchArtists();
 		else {
@@ -56,8 +51,6 @@ export const ArtistCard = ({ image, artist }: CardI) => {
 	});
 
 	const handleAction = () => {
-		console.log("!!! action", { userId, artist });
-
 		if (isSaved) mutateRemove({ userId, name, id });
 		else mutateSave({ userId, data: artist });
 	};

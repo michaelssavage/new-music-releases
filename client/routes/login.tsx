@@ -14,9 +14,14 @@ const Page = styled.div`
   margin: 5rem auto 1rem;
 	max-width: 500px;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	flex-wrap: wrap;
 	align-items: flex-start;
 	gap: 1rem;
+
+	li {
+		font-size: 1.6rem;
+	}
 
 	h1, button {
 		font-size: 1.4rem;
@@ -42,9 +47,10 @@ function Login() {
 			<NavBox>New Music Releases</NavBox>
 
 			<Page>
-				<p>Track artists you want to get new music releases from on Spotify.</p>
-				<p>Add them to your favourites.</p>
-				<p>Get new music releases in your spotify playlist.</p>
+				<ul>
+					<li>Get new music releases from Spotify right in your playlist.</li>
+					<li>Add artist to your favourites for tracking.</li>
+				</ul>
 				<div>
 					<Button onClick={handleSignIn} text="Sign in" />
 				</div>

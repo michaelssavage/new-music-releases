@@ -212,7 +212,10 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 			createHttpError(404, "No artist found.");
 		}
 
-		console.log("Single artist fetched from spotify.", data);
+		console.log("Single artist fetched from spotify.", {
+			id: data.id,
+			name: data.name,
+		});
 		return data;
 	}
 
