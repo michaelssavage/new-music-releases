@@ -14,8 +14,7 @@ import { resolvePath } from "./utils/resolvePath.js";
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-const { spotifyService, redisService, schedulerService } =
-	createServiceContainer();
+const { spotifyService, schedulerService } = createServiceContainer();
 
 const spotifyRouter = SpotifyRouter({ spotifyService });
 const schedulerRouter = SchedulerRouter({ schedulerService });
@@ -50,7 +49,6 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
 async function startServer() {
 	try {
 		await spotifyService.initialize();
-		await redisService.initialize();
 		await schedulerService.initialize();
 
 		app.listen(PORT, () => {
@@ -68,7 +66,6 @@ async function shutdown() {
 
 	try {
 		await spotifyService.shutdown();
-		await redisService.shutdown();
 		await schedulerService.shutdown();
 
 		process.exit(0);

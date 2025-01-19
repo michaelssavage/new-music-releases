@@ -21,11 +21,7 @@ import type { UpdateUserPlaylistI } from "./types";
 const envPath = resolvePath("../../.env");
 dotenv.config({ path: envPath });
 
-export function SpotifyService({
-	repository,
-	redisService,
-	env,
-}: SpotifyServiceI) {
+export function SpotifyService({ repository, env }: SpotifyServiceI) {
 	async function initialize(): Promise<void> {
 		await repository.connect();
 	}
@@ -81,38 +77,7 @@ export function SpotifyService({
 		};
 	}
 
-	async function invalidateUserCaches(userId: string) {
-		const keys = [
-			`spotify:user-saved-artists:${userId}`,
-			`spotify:user-profile:${userId}`,
-		];
-		await redisService.invalidateMultipleKeys(keys);
-	}
-
-	async function invalidateArtistCaches(userId: string, artistId: string) {
-		const keys = [
-			`spotify:artist:${artistId}`,
-			`spotify:user-saved-artists:${userId}`,
-		];
-		await redisService.invalidateMultipleKeys(keys);
-	}
-
-	async function invalidatePlaylistCaches(userId: string, playlistId: string) {
-		const keys = [
-			`spotify:playlist-items:${playlistId}`,
-			`spotify:user-playlists:${userId}`,
-		];
-		await redisService.invalidateMultipleKeys(keys);
-	}
-
 	async function getSpotifyUserProfile(access_token: string) {
-		const cacheKey = `spotify:user-profile:${access_token}`;
-		const cachedProfile = await redisService.getCachedData(cacheKey);
-
-		if (cachedProfile) {
-			return cachedProfile;
-		}
-
 		const { data } = await axios.get<SpotifyUserProfile>(
 			`${SPOTIFY_API_URL}/me`,
 			{
@@ -120,7 +85,6 @@ export function SpotifyService({
 			},
 		);
 
-		await redisService.setCache(cacheKey, data, 3600);
 		return data;
 	}
 
@@ -130,7 +94,6 @@ export function SpotifyService({
 
 	async function saveUser(user: User) {
 		const result = await repository.saveUser(user);
-		await invalidateUserCaches(user.userId);
 
 		console.log("User saved in MongoDB.", result);
 		return result;
@@ -174,13 +137,6 @@ export function SpotifyService({
 		type: Array<string>,
 		limit: number,
 	): Promise<SearchResponse> {
-		const cacheKey = `spotify:search:${token}:${query}:${type.join(",")}:${limit}`;
-		const cachedResults = await redisService.getCachedData(cacheKey);
-
-		if (cachedResults) {
-			return cachedResults;
-		}
-
 		const { data } = await axios.get(
 			`${SPOTIFY_API_URL}/search?q=${query}&type=${type.join(",")}&limit=${limit}`,
 			{
@@ -191,18 +147,10 @@ export function SpotifyService({
 			createHttpError(404, "No data found.");
 		}
 
-		await redisService.setCache(cacheKey, data, 300);
 		return data;
 	}
 
 	async function getSavedTracks(token: string) {
-		const cacheKey = `spotify:saved-tracks:${token}`;
-		const cachedTracks = await redisService.getCachedData(cacheKey);
-
-		if (cachedTracks) {
-			return cachedTracks;
-		}
-
 		const { data } = await axios.get(`${SPOTIFY_API_URL}/me/tracks`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
@@ -211,7 +159,6 @@ export function SpotifyService({
 		}
 
 		console.log("Saved tracks fetched from Spotify.", data);
-		await redisService.setCache(cacheKey, data, 1800);
 		return data;
 	}
 
@@ -230,20 +177,12 @@ export function SpotifyService({
 		}));
 
 		const result = await repository.saveArtists(userId, artistsToSave);
-		await invalidateUserCaches(userId);
 
 		console.log(`${artists.length} artists added/updated in the database.`);
 		return result;
 	}
 
 	async function getFollowedArtists(token: string): Promise<Array<Artist>> {
-		const cacheKey = `spotify:followed-artists:${token}`;
-		const cachedArtists = await redisService.getUpstashData(cacheKey);
-
-		if (cachedArtists) {
-			return JSON.parse(cachedArtists as string);
-		}
-
 		let artists: Array<Artist> = [];
 
 		let nextUrl: string | null =
@@ -261,18 +200,10 @@ export function SpotifyService({
 		}
 
 		console.log(`${artists.length} followed artists fetched from spotify.`);
-		await redisService.setUpstashData(cacheKey, artists, 3600);
 		return artists;
 	}
 
 	async function getSingleArtist(token: string, id: string) {
-		const cacheKey = `spotify:artist:${id}`;
-		const cachedArtist = await redisService.getCachedData(cacheKey);
-
-		if (cachedArtist) {
-			return cachedArtist;
-		}
-
 		const { data } = await axios.get(`${SPOTIFY_API_URL}/artists/${id}`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
@@ -282,13 +213,11 @@ export function SpotifyService({
 		}
 
 		console.log("Single artist fetched from spotify.", data);
-		await redisService.setCache(cacheKey, data, 3600);
 		return data;
 	}
 
 	async function removeSavedArtist(userId: string, id: string) {
 		const result = await repository.removeSavedArtist(userId, id);
-		await invalidateArtistCaches(userId, id);
 
 		console.log(`Removed artist with id: ${id} from the database.`);
 		return result;
@@ -297,16 +226,6 @@ export function SpotifyService({
 	async function getAllArtistsIds(
 		userId: string,
 	): Promise<Array<SavedArtistI>> {
-		const cacheKey = `spotify:user-saved-artists:${userId}`;
-		const cachedArtists = await redisService.getUpstashData(cacheKey);
-
-		if (cachedArtists) {
-			console.log(
-				`Cache hit. Returning ${cachedArtists.length} cached artists:`,
-			);
-			return cachedArtists;
-		}
-
 		const savedArtists = await repository.getAllArtists(userId);
 		console.log(
 			`Fetched ${savedArtists.length} saved artists for user ${userId}.`,
@@ -316,7 +235,6 @@ export function SpotifyService({
 			createHttpError(404, `No saved artists found for user ${userId}.`);
 		}
 
-		await redisService.setUpstashData(cacheKey, savedArtists, 3600);
 		return savedArtists;
 	}
 
@@ -453,7 +371,6 @@ export function SpotifyService({
 		).flat();
 
 		const result = await addTracksToPlaylist(token, playlist.id, trackUris);
-		await invalidatePlaylistCaches(userId, playlist.id);
 		return result;
 	}
 
@@ -499,13 +416,6 @@ export function SpotifyService({
 	}
 
 	async function getSpotifyPlaylistItems(token: string, playlistId: string) {
-		const cacheKey = `spotify:playlist-items:${playlistId}`;
-		const cachedItems = await redisService.getCachedData(cacheKey);
-
-		if (cachedItems) {
-			return cachedItems;
-		}
-
 		const { data: playlistItems } = await axios.get<PlaylistTracksI>(
 			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
 			{
@@ -513,7 +423,6 @@ export function SpotifyService({
 			},
 		);
 
-		await redisService.setCache(cacheKey, playlistItems, 1800);
 		return playlistItems;
 	}
 

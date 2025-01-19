@@ -1,6 +1,5 @@
 import noPhoto from "@client/assets/no-photo.jpg";
 import { getArtist } from "@client/lib/spotify";
-import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import type { Artist, Track } from "@model/spotify/search";
 import { useQuery } from "@tanstack/react-query";
@@ -38,8 +37,6 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [artistId, setArtistId] = useState<string>();
 
-	const { savedArtists } = useAppStore();
-
 	const handleArtistClick = (id: string) => {
 		setIsOpen(true);
 		setArtistId(id);
@@ -62,11 +59,7 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
 		if (isError) return <p>Error fetching Artist, please try again</p>;
 
 		return (
-			<ArtistCard
-				image={artistData.images?.[0].url}
-				artist={artistData}
-				isSaved={savedArtists.some(({ id }) => id === artistData.id)}
-			/>
+			<ArtistCard image={artistData.images?.[0].url} artist={artistData} />
 		);
 	};
 

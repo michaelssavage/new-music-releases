@@ -12,10 +12,9 @@ import { CardWrapper, Content, Fact, Genres } from "./Card.styled";
 interface CardI {
 	image: string;
 	artist: Artist;
-	isSaved: boolean;
 }
 
-export const ArtistCard = ({ image, artist, isSaved }: CardI) => {
+export const ArtistCard = ({ image, artist }: CardI) => {
 	const {
 		id,
 		name,
@@ -24,7 +23,14 @@ export const ArtistCard = ({ image, artist, isSaved }: CardI) => {
 		external_urls: { spotify: link },
 	} = artist;
 
-	const { userId, refetchArtists } = useAppStore();
+	const { savedArtists, userId, refetchArtists } = useAppStore();
+
+	const isSaved = savedArtists.some((savedArtist) => savedArtist.id === id);
+
+	console.log(`${name}!!`, {
+		isSaved,
+		id,
+	});
 
 	const handleRefetch = () => {
 		if (refetchArtists) refetchArtists();
@@ -50,6 +56,8 @@ export const ArtistCard = ({ image, artist, isSaved }: CardI) => {
 	});
 
 	const handleAction = () => {
+		console.log("!!! action", { userId, artist });
+
 		if (isSaved) mutateRemove({ userId, name, id });
 		else mutateSave({ userId, data: artist });
 	};

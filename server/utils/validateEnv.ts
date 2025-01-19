@@ -5,9 +5,6 @@ const requiredEnvVars = [
 	"MONGO_URI",
 	"SERVER_URL",
 	"FRONTEND_URL",
-	"REDIS_URL",
-	"REDIS_TOKEN",
-	"REDIS_PORT",
 ] as const;
 
 export type EnvVars = Record<(typeof requiredEnvVars)[number], string>;

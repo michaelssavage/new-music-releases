@@ -242,8 +242,6 @@ export const SavedArtistsTable = () => {
 
 			const isSaved = !removedArtists.includes(artistData.id);
 
-			console.log(artistData);
-
 			return (
 				<ArtistDetail>
 					{image && <img src={image} alt={artistData.name} />}

@@ -35,7 +35,9 @@ const NavItems = styled.div`
 
 `;
 
-const NavLink = styled(Link)<NavLinkProps>`
+const NavLink = styled(Link, {
+	shouldForwardProp: (prop) => prop !== "isActive",
+})<NavLinkProps>`
   text-decoration: none;
   font-size: 1.4rem;
   transition: transform 0.3s ease;

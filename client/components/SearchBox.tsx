@@ -1,6 +1,5 @@
 import { useTabs } from "@client/context/tabs.context";
 import { fetchSearchResults } from "@client/lib/spotify";
-import { useAppStore } from "@client/store/appStore";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
 	type TypeI,
@@ -50,15 +49,6 @@ export const SearchBox = () => {
 
 	const { setActiveTab } = useTabs();
 
-	const { refetchArtists } = useAppStore();
-
-	const handleRefetch = () => {
-		if (refetchArtists) refetchArtists();
-		else {
-			console.error("Refetch function is not set in the store");
-		}
-	};
-
 	const handleSearch = useCallback((event: ChangeEvent<HTMLInputElement>) => {
 		setSearch(event.target.value);
 	}, []);
@@ -94,12 +84,9 @@ export const SearchBox = () => {
 
 	const handleClick = () => {
 		mutate({ search, type: type.map((t) => t.value) });
-		handleRefetch();
 	};
 
 	const disableSearch = !search || type.length === 0 || isPending;
-
-	const { savedArtists } = useAppStore();
 
 	const data: Array<Tab> = [
 		{
@@ -115,7 +102,6 @@ export const SearchBox = () => {
 								key={artist.id}
 								image={artist?.images?.[0]?.url}
 								artist={artist}
-								isSaved={savedArtists.some(({ id }) => id === artist.id)}
 							/>
 						))}
 				</Panel>

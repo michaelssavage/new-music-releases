@@ -1,5 +1,4 @@
 import { getArtist, getNextTracks, getUserTracks } from "@client/lib/spotify";
-import { useAppStore } from "@client/store/appStore";
 import { displayDate } from "@client/utils/dates";
 import styled from "@emotion/styled";
 import type { LikedTracksI, ShowItem } from "@model/spotify/liked-tracks";
@@ -90,8 +89,6 @@ export const LikedSongsTable = () => {
 		setIsOpen(true);
 		setArtistId(id);
 	};
-
-	const { savedArtists } = useAppStore();
 
 	const {
 		data: artistData,
@@ -212,11 +209,7 @@ export const LikedSongsTable = () => {
 		if (isError) return <p>Error fetching Artist, please try again</p>;
 
 		return (
-			<ArtistCard
-				image={artistData.images?.[0].url}
-				artist={artistData}
-				isSaved={savedArtists.some(({ id }) => id === artistData.id)}
-			/>
+			<ArtistCard image={artistData.images?.[0].url} artist={artistData} />
 		);
 	};
 
