@@ -5,6 +5,8 @@ const requiredEnvVars = [
 	"MONGO_URI",
 	"SERVER_URL",
 	"FRONTEND_URL",
+	"JWT_SECRET",
+	"JWT_KEY",
 ] as const;
 
 export type EnvVars = Record<(typeof requiredEnvVars)[number], string>;

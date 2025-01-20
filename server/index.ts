@@ -1,6 +1,7 @@
 import path from "node:path";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import dotenv from "dotenv";
 import express, {
 	type NextFunction,
 	type Request,
@@ -10,6 +11,9 @@ import { createServiceContainer } from "./container/index.js";
 import { SchedulerRouter } from "./router/scheduler.router.js";
 import { SpotifyRouter } from "./router/spotify.router.js";
 import { resolvePath } from "./utils/resolvePath.js";
+
+const envPath = resolvePath(".env");
+dotenv.config({ path: envPath });
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -30,7 +34,7 @@ app.get("/health", (_req, res) => {
 app.use("/api", spotifyRouter);
 app.use("/api", schedulerRouter);
 
-const clientPath = resolvePath("../client");
+const clientPath = resolvePath("client");
 app.use(express.static(clientPath));
 
 app.get("*", (_req, res) => {

@@ -1,6 +1,3 @@
-import axios, { type AxiosResponse } from "axios";
-import createHttpError from "http-errors";
-
 import type {
 	ArtistAlbumsI,
 	FollowedArtistsI,
@@ -12,14 +9,11 @@ import type { Artist, SearchResponse } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile, User } from "@model/spotify/user";
 import type { SpotifyServiceI } from "@server/container/types";
-import { resolvePath } from "@server/utils/resolvePath";
+import axios, { type AxiosResponse } from "axios";
 import { parseISO } from "date-fns";
-import dotenv from "dotenv";
+import createHttpError from "http-errors";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
 import type { UpdateUserPlaylistI } from "./types";
-
-const envPath = resolvePath("../../.env");
-dotenv.config({ path: envPath });
 
 export function SpotifyService({ repository, env }: SpotifyServiceI) {
 	async function initialize(): Promise<void> {

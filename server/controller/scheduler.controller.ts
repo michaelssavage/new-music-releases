@@ -51,8 +51,6 @@ export function SchedulerController({
 
 			if (error instanceof jwt.JsonWebTokenError) {
 				res.status(401).json({ error: "Invalid token" });
-			} else {
-				res.status(500).json({ error: "Internal server error" });
 			}
 		}
 	}
