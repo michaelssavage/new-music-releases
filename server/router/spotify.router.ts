@@ -2,9 +2,9 @@ import type { SpotifyControllerI } from "@server/container/types";
 import { SpotifyController } from "@server/controller/spotify.controller";
 import express from "express";
 
-export function SpotifyRouter({ spotifyService }: SpotifyControllerI) {
+export function SpotifyRouter({ spotifyService, env }: SpotifyControllerI) {
 	const router = express.Router();
-	const spotifyController = SpotifyController({ spotifyService });
+	const spotifyController = SpotifyController({ spotifyService, env });
 
 	router.get("/login", spotifyController.loginHandler);
 	router.get("/callback", spotifyController.callbackHandler);

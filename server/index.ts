@@ -18,10 +18,10 @@ dotenv.config({ path: envPath });
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-const { spotifyService, schedulerService } = createServiceContainer();
+const { spotifyService, schedulerService, env } = createServiceContainer();
 
-const spotifyRouter = SpotifyRouter({ spotifyService });
-const schedulerRouter = SchedulerRouter({ schedulerService });
+const spotifyRouter = SpotifyRouter({ spotifyService, env });
+const schedulerRouter = SchedulerRouter({ schedulerService, env });
 
 app.use(cors());
 app.use(cookieParser());

@@ -7,10 +7,12 @@ import type { EnvVars } from "@server/utils/validateEnv";
 export interface ServiceContainer {
 	spotifyService: ReturnType<typeof SpotifyService>;
 	schedulerService: ReturnType<typeof SchedulerService>;
+	env: EnvVars;
 }
 
 export interface SpotifyControllerI {
 	spotifyService: ReturnType<typeof SpotifyService>;
+	env: EnvVars;
 }
 
 export interface SpotifyServiceI {
@@ -20,6 +22,7 @@ export interface SpotifyServiceI {
 
 export interface SchedulerControllerI {
 	schedulerService: ReturnType<typeof SchedulerService>;
+	env: EnvVars;
 }
 
 export interface SchedulerServiceI {

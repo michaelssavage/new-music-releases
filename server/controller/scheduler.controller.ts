@@ -9,6 +9,7 @@ interface JWTPayload {
 
 export function SchedulerController({
 	schedulerService,
+	env,
 }: SchedulerControllerI) {
 	async function triggerManualUpdate(
 		req: Request,
@@ -29,17 +30,20 @@ export function SchedulerController({
 		}
 
 		try {
-			const secret = process.env.JWT_SECRET;
-			if (!secret) {
+			if (!env.JWT_SECRET) {
 				throw new Error("JWT_SECRET not configured");
 			}
 
-			const verified = jwt.verify(token, secret) as JWTPayload;
+			const verified = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
 
 			if (verified.user !== "michael" || verified.purpose !== "admin") {
 				res.status(403).json({ error: "Insufficient permissions" });
 				return;
 			}
+
+			console.log("Triggering manual update", {
+				fromDate: fromDate ? new Date(fromDate) : undefined,
+			});
 
 			const result = await schedulerService.executeJob({
 				manual: true,

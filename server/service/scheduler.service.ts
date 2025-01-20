@@ -56,10 +56,7 @@ export function SchedulerService({
 		console.log("Scheduler shut down successfully");
 	}
 
-	async function executeJob({
-		manual,
-		fromDate,
-	}: ExecuteJobProps): Promise<void> {
+	async function executeJob({ manual, fromDate }: ExecuteJobProps) {
 		if (isJobRunning) {
 			console.log("Previous job still running, skipping...");
 			return;
@@ -86,7 +83,7 @@ export function SchedulerService({
 			}
 
 			console.log("Starting playlist update...");
-			await spotifyService.updatePlaylistsForAllUsers(fromDate);
+			const result = await spotifyService.updatePlaylistsForAllUsers(fromDate);
 
 			// Log successful execution
 			await repository.insertOne({
@@ -96,7 +93,7 @@ export function SchedulerService({
 				createdAt: new Date(),
 			});
 
-			console.log("Playlist update completed successfully");
+			return result;
 		} catch (error) {
 			console.error("Failed to update playlists:", error);
 

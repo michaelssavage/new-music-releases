@@ -10,7 +10,6 @@ import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile, User } from "@model/spotify/user";
 import type { SpotifyServiceI } from "@server/container/types";
 import axios, { type AxiosResponse } from "axios";
-import { parseISO } from "date-fns";
 import createHttpError from "http-errors";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
 import type { UpdateUserPlaylistI } from "./types";
@@ -267,9 +266,12 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 			const today = new Date().toISOString().split("T")[0];
 			const filteredAlbums = data.items
 				.filter(({ release_date }) => {
-					return fromDate
-						? parseISO(release_date) >= parseISO(fromDate)
-						: release_date === today;
+					if (!fromDate) return release_date === today;
+
+					const releaseTimestamp = new Date(release_date).getTime();
+					const fromTimestamp = new Date(fromDate).getTime();
+
+					return releaseTimestamp >= fromTimestamp;
 				})
 				.map((props) => ({
 					id: props.id,
@@ -458,7 +460,7 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);
-						console.log(`token received for user ${user.userId}`, { token });
+						console.log(`token received for user ${user.userId}`, token);
 
 						return await updateNewReleases(user.userId, token, fromDate);
 					} catch (error) {

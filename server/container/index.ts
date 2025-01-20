@@ -27,5 +27,6 @@ export function createServiceContainer(): ServiceContainer {
 	return {
 		spotifyService,
 		schedulerService,
+		env,
 	};
 }
