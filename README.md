@@ -2,6 +2,8 @@
 
 Automatically share my saved artist's new releases to a Spotify playlist.
 
+[New Music Releases write-up](https://michaelsavage.ie/projects/new-music-releases)
+
 ### Frontend
 - Create a frontend for searching for artists, tracks, or albums, then save the selections to a database.
 - Edit and delete options
