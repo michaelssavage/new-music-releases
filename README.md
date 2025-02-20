@@ -22,4 +22,5 @@ Vite / React / Typescript / Express/ MongoDB
 
 ## Video Demo
 [![YouTube](http://i.ytimg.com/vi/ZRKtVVj2P0s/hqdefault.jpg)](https://www.youtube.com/watch?v=ZRKtVVj2P0s)
+
 [Open in YouTube](https://www.youtube.com/watch?v=ZRKtVVj2P0s)
