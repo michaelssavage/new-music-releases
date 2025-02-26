@@ -66,6 +66,9 @@ const LinkStyle = styled.a<IStyle>`
           position: relative;
           transition: all 0.25s;
           z-index: 4;
+          word-break: break-word;
+          overflow-wrap: break-word; 
+          white-space: normal;
           &:hover {
             text-decoration: underline;
           }

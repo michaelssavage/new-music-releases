@@ -1,4 +1,6 @@
+import { Anchor } from "@client/components/Anchor";
 import { Button, Content } from "@client/components/Button";
+import { YouTube } from "@client/components/YouTube";
 import { requireUnauth } from "@client/utils/auth";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -20,12 +22,8 @@ const Page = styled.div`
 	align-items: flex-start;
 	gap: 1rem;
 
-	li {
-		font-size: 1.6rem;
-	}
-
 	h1, button {
-		font-size: 1.4rem;
+		font-size: 1.2rem;
 	}
 
 	button {
@@ -40,6 +38,14 @@ const customLoginStyles = css`
 	}
 `;
 
+const LoginPage = styled.div`
+	margin-bottom: 2rem;
+`;
+
+const Header = styled.h2`
+	margin-top: ${({ mt }: { mt?: string }) => mt || "4rem"};
+`;
+
 export const Route = createFileRoute("/login")({
 	beforeLoad: async () => await requireUnauth(),
 	component: Login,
@@ -51,20 +57,29 @@ function Login() {
 	};
 
 	return (
-		<div>
+		<LoginPage>
 			<NavBox>New Music Releases</NavBox>
 
 			<Page>
-				<ul>
-					<li>Get new music releases from Spotify right in your playlist.</li>
-					<li>Add artist to your favourites for tracking.</li>
-				</ul>
+				<Header mt="0">About</Header>
+				<p>
+					Get new music releases from Spotify right in your playlist. Add artist
+					to your favourites for tracking. View project on Github:{" "}
+					<Anchor
+						link="https://github.com/michaelssavage/new-music-releases"
+						variant="link"
+						isExternal
+					/>
+				</p>
 				<Button
 					onClick={handleSignIn}
 					text="Sign in"
 					styles={customLoginStyles}
 				/>
+
+				<Header>Demo</Header>
+				<YouTube videoId="ZRKtVVj2P0s" />
 			</Page>
-		</div>
+		</LoginPage>
 	);
 }

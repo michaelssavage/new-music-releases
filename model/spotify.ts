@@ -1,3 +1,4 @@
+import type { Track } from "./spotify/liked-tracks";
 import type { SpotifyPlaylistI } from "./spotify/playlist";
 import type { Artist } from "./spotify/search";
 import type { PlaylistTracksI } from "./spotify/tracks";
@@ -44,4 +45,15 @@ export interface SavedArtistI {
 	image: string;
 	uri: string;
 	createdDate: Date;
+}
+
+export interface RecommendationResponse {
+	seeds: Array<{
+		id: string;
+		type: "artist" | "track" | "genre";
+		initialPoolSize: number;
+		afterFilteringSize: number;
+		afterRelinkingSize: number;
+	}>;
+	tracks: Array<Track>;
 }
