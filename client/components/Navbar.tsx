@@ -3,6 +3,7 @@ import {} from "@client/utils/defaults";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
+import { HomeIcon } from "./Icons/Home";
 import { SearchBox } from "./SearchBox";
 
 interface NavLinkProps {
@@ -41,16 +42,23 @@ const NavLink = styled(Link, {
   text-decoration: none;
   font-size: 1.4rem;
   transition: transform 0.3s ease;
-  color: ${({ isActive }) => (isActive ? "white" : "#bababa")};
-  text-decoration: ${({ isActive }) => (isActive ? "underline" : "none")};
 
-  ${({ isActive }) =>
-		!isActive &&
-		css`
-      &:hover {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+
+  ${({ isActive }) => {
+		if (!isActive) {
+			return css`
+        color: #bababa;
         transform: scale(1.1);
-      }
-  `}
+      `;
+		}
+		return css`
+      color: white;
+    `;
+	}}
 `;
 
 const LogoutButton = styled.button`
@@ -65,7 +73,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const navItems = [{ label: "Home", link: "/" }];
+const navItems = [{ icon: <HomeIcon />, label: "Home", link: "/" }];
 
 export const Navbar = () => {
 	const navigate = useNavigate();
@@ -80,9 +88,9 @@ export const Navbar = () => {
 	return (
 		<NavbarContainer>
 			<NavItems>
-				{navItems.map(({ label, link }) => (
+				{navItems.map(({ icon, label, link }) => (
 					<NavLink key={label} to={link} isActive={matchRoute({ to: link })}>
-						{label}
+						{icon} {label}
 					</NavLink>
 				))}
 				{isAuthenticated && (

@@ -17,7 +17,7 @@ import {
 	useState,
 } from "react";
 import type { MultiValue } from "react-select";
-import { Button } from "./Button";
+import { Button, Content } from "./Button";
 import { AlbumCard } from "./Card/Album";
 import { ArtistCard } from "./Card/Artist";
 import { TrackCard } from "./Card/Track";
@@ -29,7 +29,15 @@ import { Modal } from "./Modal";
 import { Panel } from "./Panel";
 import { type Tab, Tabs } from "./Tabs";
 
-const Content = styled.div`
+const customButtonStyles = css`
+	${Content} {
+		width: 300px;
+		flex-direction: row-reverse;
+		justify-content: flex-end;
+	}
+`;
+
+const TabContent = styled.div`
 	padding: 2rem;
 `;
 
@@ -154,8 +162,9 @@ export const SearchBox = () => {
 			<Button
 				icon={<SearchIcon />}
 				variant="input"
-				text="Search Artists"
+				text="Search..."
 				onClick={() => setIsOpen(true)}
+				styles={customButtonStyles}
 			/>
 
 			<Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
@@ -183,12 +192,12 @@ export const SearchBox = () => {
 					/>
 				</Group>
 
-				<Content>
+				<TabContent>
 					<Tabs
 						data={data.filter(({ visible }) => visible)}
 						loading={loading}
 					/>
-				</Content>
+				</TabContent>
 			</Modal>
 		</Group>
 	);

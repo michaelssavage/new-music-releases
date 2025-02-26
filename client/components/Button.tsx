@@ -1,12 +1,20 @@
-import { css } from "@emotion/react";
+import { type SerializedStyles, css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { ReactNode } from "react";
 import { Spinner, SpinnerStyled } from "./Icons/Spinner";
 
-const Content = styled.div``;
+interface StyledI {
+	variant?: string;
+	isLoading?: boolean;
+	styles?: SerializedStyles;
+}
+
+export const Content = styled.div``;
+
 const Text = styled.span``;
 
-const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
+const ButtonStyled = styled.button<StyledI>`
+
 	padding: 0.5rem 0.75rem;
 	border-radius: 4px;
 	transition: all 0.2s ease-in-out;
@@ -54,11 +62,12 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 
 		if (variant === "input") {
 			return css`
-				color: #040c2f;
+				color: #040c2f91;
 				background-color: #ffffff;
 				border: 1px solid transparent;
 
 				&:hover:not(:disabled) {
+					color: #040c2fd0;
 					border: 1px solid #040c2f;
 				}
 			`;
@@ -73,12 +82,12 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
 				box-shadow: none;
 
 				${Text} {
-					visibility: hidden;
+					display: none;
 				}
 
 				&:hover:not(:disabled) {
 					${Text} {
-						visibility: visible;
+						display: block;
 					}
 				}
         `;
@@ -125,19 +134,23 @@ const ButtonStyled = styled.button<{ variant?: string; isLoading?: boolean }>`
     width: 24px;
   }
 
+	${({ styles }) => styles};
 `;
 
 interface Props {
 	onClick: () => void;
+	id?: string;
 	variant?: "primary" | "secondary" | "remove" | "link" | "ghost" | "input";
 	type?: "button" | "submit" | "reset";
 	text?: string;
 	icon?: ReactNode;
 	loading?: boolean;
 	disabled?: boolean;
+	styles?: SerializedStyles;
 }
 
 export const Button = ({
+	id,
 	onClick,
 	variant,
 	type = "button",
@@ -145,14 +158,17 @@ export const Button = ({
 	icon,
 	loading,
 	disabled,
+	styles,
 }: Props) => {
 	return (
 		<ButtonStyled
+			id={id}
 			onClick={onClick}
 			variant={variant}
 			type={type}
 			isLoading={loading}
 			disabled={disabled}
+			styles={styles}
 		>
 			<Content>
 				{text && <Text>{text}</Text>}

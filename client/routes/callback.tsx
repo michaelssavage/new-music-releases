@@ -15,7 +15,10 @@ interface AuthSearchParams {
 }
 
 export const Page = styled.div`
-	margin-top: 2rem;
+	margin: 2rem auto;
+	width: 100%;
+	display: flex;
+	justify-content: center;
 `;
 
 export const Route = createFileRoute("/callback")({

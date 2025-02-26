@@ -17,6 +17,8 @@ export function SpotifyRouter({ spotifyService, env }: SpotifyControllerI) {
 
 	router.get("/saved-tracks", spotifyController.getSavedTracks);
 
+	router.get("/spotify-artists", spotifyController.getSpotifyArtists);
+
 	router.post("/save-artists", spotifyController.saveArtists);
 	router.get("/get-artist/:id", spotifyController.getSingleArtist);
 	router.get("/get-artists", spotifyController.getAllArtistsIds);

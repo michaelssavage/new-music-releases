@@ -155,6 +155,23 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		return data;
 	}
 
+	async function getSpotifyArtists(token: string) {
+		const tracks = await getSavedTracks(token);
+
+		const artistMap = new Map<string, Artist>();
+
+		for (const item of tracks.items) {
+			for (const artist of item.track.artists) {
+				if (!artistMap.has(artist.id)) {
+					artistMap.set(artist.id, artist);
+				}
+			}
+		}
+
+		console.log("Artists fetched from saved tracks.", artistMap.size);
+		return Array.from(artistMap.values());
+	}
+
 	async function saveArtists(userId: string, artists: Array<Artist>) {
 		if (artists.length === 0) {
 			console.log("No artists to save.");
@@ -503,6 +520,7 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		getSingleArtist,
 		removeSavedArtist,
 		getAllArtistsIds,
+		getSpotifyArtists,
 		// Tracks
 		searchItem,
 		getSavedTracks,

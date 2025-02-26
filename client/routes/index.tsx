@@ -30,15 +30,18 @@ export const Route = createFileRoute("/")({
 });
 
 const Content = styled.div`
-  padding: 2rem;
+  padding: 0 0 1rem;
 `;
 
 const LoadingStyled = styled.div`
-	margin: 4rem;
+	margin: 4rem auto;
+	width: 100%;
+	display: flex;
+	justify-content: center;
 `;
 
 function Releases() {
-	const { userId } = useAppStore();
+	const { savedArtists, userId } = useAppStore();
 
 	const { data: userData } = useQuery({
 		queryKey: ["user", userId],
@@ -108,7 +111,7 @@ function Releases() {
 		},
 		{
 			key: "artists",
-			tab: "Saved Artists",
+			tab: `Saved Artists (${savedArtists.length})`,
 			panel: (
 				<Panel>
 					<SavedArtistsTable />

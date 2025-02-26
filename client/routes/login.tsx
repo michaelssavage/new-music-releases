@@ -1,5 +1,6 @@
-import { Button } from "@client/components/Button";
+import { Button, Content } from "@client/components/Button";
 import { requireUnauth } from "@client/utils/auth";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -32,6 +33,13 @@ const Page = styled.div`
 	}
 `;
 
+const customLoginStyles = css`
+	width: 100%;
+	${Content} {
+		justify-content: center;
+	}
+`;
+
 export const Route = createFileRoute("/login")({
 	beforeLoad: async () => await requireUnauth(),
 	component: Login,
@@ -51,9 +59,11 @@ function Login() {
 					<li>Get new music releases from Spotify right in your playlist.</li>
 					<li>Add artist to your favourites for tracking.</li>
 				</ul>
-				<div>
-					<Button onClick={handleSignIn} text="Sign in" />
-				</div>
+				<Button
+					onClick={handleSignIn}
+					text="Sign in"
+					styles={customLoginStyles}
+				/>
 			</Page>
 		</div>
 	);

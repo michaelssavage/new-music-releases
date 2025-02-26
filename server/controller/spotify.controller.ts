@@ -151,6 +151,25 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		}
 	}
 
+	async function getSpotifyArtists(req: Request, res: Response): Promise<void> {
+		const { spotify_access_token } = req.headers;
+
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+
+		try {
+			const artists = await spotifyService.getSpotifyArtists(
+				spotify_access_token as string,
+			);
+			res.json(artists);
+		} catch (error) {
+			console.error("Error retrieving artists:", error);
+			res.status(500).json({ error: "Failed to retrieve artists" });
+		}
+	}
+
 	async function saveArtists(req: SaveQuery, res: Response): Promise<void> {
 		const { artists, userId } = req.body;
 
@@ -321,6 +340,7 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		getUser,
 		searchHandler,
 		getSavedTracks,
+		getSpotifyArtists,
 		saveArtists,
 		getSingleArtist,
 		getAllArtistsIds,

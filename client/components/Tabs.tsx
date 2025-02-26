@@ -23,6 +23,7 @@ const TabWrapper = styled.div`
 
 const List = styled.div`
   display: flex;
+	justify-content: center;
   gap: 0.1rem;
   border-bottom: solid 2px #c4c4c4;
   flex-wrap: wrap;
@@ -67,7 +68,7 @@ const List = styled.div`
 `;
 
 const Panel = styled.div`
-  padding: 1.5rem 0rem;
+  padding: 3.5rem 0rem 1.5rem;
 `;
 
 export const Tabs = ({ data, defaultTab, loading = false }: TabsProps) => {

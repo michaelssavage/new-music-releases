@@ -11,7 +11,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
 import { ArtistCard } from "../Card/Artist";
@@ -20,6 +20,12 @@ import { SortIcon } from "../Icons/Sort";
 import { SpotifyIcon } from "../Icons/Spotify";
 import { Loader } from "../Loader";
 import { Modal } from "../Modal";
+
+const observerOptions = {
+	root: null, // Observe within the viewport
+	rootMargin: "200px", // Trigger slightly before the element enters the viewport
+	threshold: 1.0, // Trigger when the entire sentinel is visible
+};
 
 const TableContainer = styled.div`
   background: white;
@@ -75,6 +81,8 @@ const SortableHeader = styled.div`
 `;
 
 export const LikedSongsTable = () => {
+	const observerRef = useRef<HTMLDivElement | null>(null);
+
 	const columnHelper = createColumnHelper<ShowItem>();
 	const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -114,14 +122,14 @@ export const LikedSongsTable = () => {
 		}
 	}, [data, isSuccess]);
 
-	const loadMoreTracks = async () => {
+	const loadMoreTracks = useCallback(async () => {
 		if (!nextUrl) return;
 		setIsLoadingMore(true);
 		const data = await getNextTracks(nextUrl);
 		setTracks((prevTracks) => [...prevTracks, ...data.items]);
 		setNextUrl(data.next);
 		setIsLoadingMore(false);
-	};
+	}, [nextUrl]);
 
 	const columns = [
 		columnHelper.accessor((row) => row.track.artists, {
@@ -213,6 +221,25 @@ export const LikedSongsTable = () => {
 		);
 	};
 
+	useEffect(() => {
+		const observer = new IntersectionObserver((entries) => {
+			const target = entries[0];
+			if (target.isIntersecting && nextUrl && !isLoadingMore) {
+				loadMoreTracks();
+			}
+		}, observerOptions);
+
+		if (observerRef.current) {
+			observer.observe(observerRef.current);
+		}
+
+		return () => {
+			if (observerRef.current) {
+				observer.unobserve(observerRef.current);
+			}
+		};
+	}, [nextUrl, isLoadingMore, loadMoreTracks]);
+
 	if (isPending) {
 		return <Loader />;
 	}
@@ -252,13 +279,7 @@ export const LikedSongsTable = () => {
 						</tbody>
 					</table>
 				</TableWrapper>
-				{nextUrl && (
-					<Button
-						onClick={loadMoreTracks}
-						text={isLoadingMore ? "Loading..." : "Load More"}
-						disabled={isLoadingMore}
-					/>
-				)}
+				{nextUrl && <div ref={observerRef} style={{ height: "1px" }} />}
 			</TableContainer>
 
 			<Modal isOpen={isOpen} setIsOpen={setIsOpen}>

@@ -12,10 +12,13 @@ import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/search";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+	type ColumnFiltersState,
+	type FilterFn,
 	type SortingState,
 	createColumnHelper,
 	flexRender,
 	getCoreRowModel,
+	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -34,6 +37,7 @@ const TableContainer = styled.div`
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1rem;
+  width: 100%;
 `;
 
 const TableWrapper = styled.div`
@@ -88,6 +92,23 @@ const ArtistDetail = styled.div`
 		width: 100%;
 		border-radius: inherit;
 	}
+
+	div[id="image"] {
+		position: relative;
+
+		button[id="close"] {
+			position: absolute;
+			top: 0;
+			right: 0;
+			color: white;
+			background-color: #01010142;
+			svg {
+				color: white;
+				fill: transparent;
+			}
+		}
+	}
+
 `;
 
 const cardBodyStyling = css`
@@ -108,6 +129,37 @@ const SortableHeader = styled.div`
 	}
 `;
 
+const LoaderStyled = styled.div`
+	margin: 2rem;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+`;
+
+const SearchContainer = styled.div`
+  margin-bottom: 1rem;
+  
+  input {
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+		width: 100%;
+    font-size: 0.875rem;
+    
+    &:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+  }
+`;
+
+// Define the filter function for artist names
+const fuzzyFilter: FilterFn<SavedArtistI> = (row, columnId, filterValue) => {
+	const value = row.getValue(columnId) as string;
+	return value.toLowerCase().includes((filterValue as string).toLowerCase());
+};
+
 export const SavedArtistsTable = () => {
 	const columnHelper = createColumnHelper<SavedArtistI>();
 	const [sorting, setSorting] = useState<SortingState>([
@@ -116,6 +168,13 @@ export const SavedArtistsTable = () => {
 			desc: true,
 		},
 	]);
+
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setColumnFilters(value ? [{ id: "name", value }] : []);
+	};
 
 	const [artistId, setArtistId] = useState<string>();
 	const [removedArtists, setRemovedArtists] = useState<string[]>([]);
@@ -194,6 +253,7 @@ export const SavedArtistsTable = () => {
 				</SortableHeader>
 			),
 			cell: (info) => <ArtistName>{info.getValue()}</ArtistName>,
+			filterFn: fuzzyFilter,
 		}),
 		columnHelper.accessor("createdDate", {
 			id: "created_date",
@@ -227,24 +287,43 @@ export const SavedArtistsTable = () => {
 		getCoreRowModel: getCoreRowModel<SavedArtistI>(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		onColumnFiltersChange: setColumnFilters,
 		state: {
 			sorting,
+			columnFilters,
 		},
 	});
 
 	const renderArtist = () => {
-		if (isLoading) return <Loader />;
+		if (isLoading)
+			return (
+				<LoaderStyled>
+					<Loader />
+				</LoaderStyled>
+			);
 
 		if (isError) return <div>Couldn't fetch artist details</div>;
 
 		if (artistData) {
 			const image = artistData?.images?.[0]?.url;
-
 			const isSaved = !removedArtists.includes(artistData.id);
 
 			return (
 				<ArtistDetail>
-					{image && <img src={image} alt={artistData.name} />}
+					{image && (
+						<div id="image">
+							<Button
+								id="close"
+								onClick={() => setArtistId(undefined)}
+								variant="ghost"
+								aria-label="Close Modal"
+								text="Close"
+								icon={<CloseIcon />}
+							/>
+							<img src={image} alt={artistData.name} />
+						</div>
+					)}
 					<Group
 						direction="column"
 						gap="0.5rem"
@@ -258,13 +337,6 @@ export const SavedArtistsTable = () => {
 							wrap="nowrap"
 						>
 							<h2>{artistData.name}</h2>
-							<Button
-								onClick={() => setArtistId(undefined)}
-								variant="ghost"
-								aria-label="Close Modal"
-								text="Close"
-								icon={<CloseIcon />}
-							/>
 						</Group>
 						<p>{artistData.followers.total.toLocaleString()} Followers</p>
 						<p>Genres: {artistData.genres.join(", ")}</p>
@@ -289,11 +361,22 @@ export const SavedArtistsTable = () => {
 		}
 	};
 
+	const searchValue =
+		(columnFilters.find(({ id }) => id === "name")?.value as string) || "";
+
 	return (
 		<Group align="flex-start" wrap="nowrap">
 			{artistId && renderArtist()}
 
 			<TableContainer>
+				<SearchContainer>
+					<input
+						type="text"
+						placeholder="Filter by name..."
+						value={searchValue}
+						onChange={handleSearchChange}
+					/>
+				</SearchContainer>
 				<TableWrapper>
 					<table>
 						<thead>
@@ -312,7 +395,10 @@ export const SavedArtistsTable = () => {
 						</thead>
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
-								<TR key={row.id} isRemoved={removedArtists.includes(row.id)}>
+								<TR
+									key={row.id}
+									isRemoved={removedArtists.includes(row.original.id)}
+								>
 									{row.getVisibleCells().map((cell) => (
 										<td key={cell.id}>
 											{flexRender(
