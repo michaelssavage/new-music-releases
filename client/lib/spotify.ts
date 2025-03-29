@@ -1,5 +1,6 @@
 import { logger } from "@client/utils/logger";
 import type { SavedArtistI, SpotifyDataProps } from "@model/spotify";
+import type { SaveSongRequestI } from "@model/spotify/playlist";
 import type { Artist, SearchProps } from "@model/spotify/search";
 import type { UserID } from "@model/spotify/user";
 import axios from "axios";
@@ -246,6 +247,36 @@ export const updateSpotifyPlaylistReleases = async (userId: UserID) => {
 		if (axios.isAxiosError(error)) {
 			logger.error(
 				"Failed to get spotify playlist releases:",
+				error.response?.data || error.message,
+			);
+		} else {
+			logger.error("An unexpected error occurred:", error);
+		}
+		return null;
+	}
+};
+
+export const saveSongToPlaylist = async ({
+	userId,
+	trackId,
+}: SaveSongRequestI) => {
+	const spotify_access_token = Cookies.get("spotify_access_token");
+
+	try {
+		const res = await axios.post(
+			"/api/save-song-to-playlist",
+			{ userId, trackId },
+			{
+				headers: {
+					spotify_access_token,
+				},
+			},
+		);
+		return res.data;
+	} catch (error) {
+		if (axios.isAxiosError(error)) {
+			logger.error(
+				"Failed to save song to playlist:",
 				error.response?.data || error.message,
 			);
 		} else {

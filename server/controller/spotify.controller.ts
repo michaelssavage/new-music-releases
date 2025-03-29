@@ -67,7 +67,10 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		}
 	}
 
-	async function validateToken(req: Request, res: Response): Promise<void> {
+	async function validateTokenHandler(
+		req: Request,
+		res: Response,
+	): Promise<void> {
 		const token = req.headers.authorization?.split(" ")[1];
 
 		if (!token) {
@@ -77,11 +80,7 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 
 		try {
 			const response = await spotifyService.validateToken(token);
-			if (response.status === 200) {
-				res.sendStatus(200);
-			} else {
-				res.sendStatus(401);
-			}
+			res.sendStatus(response.status);
 		} catch (error) {
 			console.log("Error validating token:", error);
 			res.status(401).json({ error: "Invalid token" });
@@ -332,11 +331,49 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		}
 	}
 
+	async function saveSongToPlaylist(
+		req: Request,
+		res: Response,
+	): Promise<void> {
+		const { userId, trackId } = req.body;
+		const spotify_access_token = req.headers.spotify_access_token as string;
+
+		if (!spotify_access_token) {
+			res.status(401).json({ error: "Unauthorized" });
+			return;
+		}
+		if (!userId || !trackId) {
+			res.status(400).json({ error: "Missing required parameters" });
+			return;
+		}
+
+		const user = await spotifyService.getUser(userId);
+
+		if (!user) {
+			res.status(404).json({ error: "User not found" });
+			return;
+		}
+
+		const playlistId = user.listen_later_playlist as string;
+
+		try {
+			const data = spotifyService.saveSongToPlaylist({
+				spotifyAccessToken: spotify_access_token,
+				trackId,
+				playlistId,
+			});
+			res.json(data);
+		} catch (error) {
+			console.error("Error updating playlist releases:", error);
+			res.status(500).json({ error: "Failed to update playlist releases" });
+		}
+	}
+
 	return {
 		loginHandler,
 		callbackHandler,
 		refreshToken,
-		validateToken,
+		validateTokenHandler,
 		getUser,
 		searchHandler,
 		getSavedTracks,
@@ -347,5 +384,6 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		removeSavedArtist,
 		getSpotifyPlaylist,
 		updateNewReleases,
+		saveSongToPlaylist,
 	};
 }

@@ -102,7 +102,10 @@ function Releases() {
 					</Group>
 
 					{data ? (
-						<PlaylistUpdatesTable tracks={data?.playlistItems.items} />
+						<PlaylistUpdatesTable
+							tracks={data?.playlistItems.items}
+							userData={userData}
+						/>
 					) : (
 						<p>No tracks found</p>
 					)}

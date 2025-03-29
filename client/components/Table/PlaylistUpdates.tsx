@@ -1,6 +1,12 @@
+import { saveSongToPlaylist } from "@client/lib/spotify";
 import { displayDate } from "@client/utils/dates";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
+import type { Track } from "@model/spotify/liked-tracks";
+import type { SaveSongRequestI } from "@model/spotify/playlist";
 import type { ShowItem } from "@model/spotify/tracks";
+import type { User } from "@model/spotify/user";
+import { useMutation } from "@tanstack/react-query";
 import {
 	type SortingFn,
 	type SortingState,
@@ -12,11 +18,15 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { Anchor } from "../Anchor";
+import { Button } from "../Button";
+import { Group } from "../Group";
+import { PlusIcon } from "../Icons/Plus";
 import { SortIcon } from "../Icons/Sort";
 import { SpotifyIcon } from "../Icons/Spotify";
 
 interface PlaylistTableProps {
 	tracks: Array<ShowItem>;
+	userData: User;
 }
 
 const TableContainer = styled.div`
@@ -63,13 +73,22 @@ const SortableHeader = styled.div`
 	}
 `;
 
+const plusStyles = css`
+	svg {
+		color: #353232
+	}
+`;
+
 const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
 	const dateA = new Date(rowA.original.added_at).getTime();
 	const dateB = new Date(rowB.original.added_at).getTime();
 	return dateA < dateB ? -1 : dateA > dateB ? 1 : 0;
 };
 
-export const PlaylistUpdatesTable = ({ tracks }: PlaylistTableProps) => {
+export const PlaylistUpdatesTable = ({
+	tracks,
+	userData,
+}: PlaylistTableProps) => {
 	const columnHelper = createColumnHelper<ShowItem>();
 	const [sorting, setSorting] = useState<SortingState>([
 		{
@@ -77,6 +96,23 @@ export const PlaylistUpdatesTable = ({ tracks }: PlaylistTableProps) => {
 			desc: true,
 		},
 	]);
+
+	const saveSongMutation = useMutation({
+		mutationFn: (props: SaveSongRequestI) => saveSongToPlaylist(props),
+		onSuccess: (data) => {
+			console.log("Song saved successfully!", data);
+		},
+		onError: (error) => {
+			console.error("Error saving song:", error);
+		},
+	});
+
+	const saveForLater = (track: Track) => {
+		saveSongMutation.mutate({
+			userId: userData.userId,
+			trackId: track.id,
+		});
+	};
 
 	const columns = [
 		columnHelper.accessor(
@@ -105,15 +141,25 @@ export const PlaylistUpdatesTable = ({ tracks }: PlaylistTableProps) => {
 		}),
 		columnHelper.display({
 			id: "external_link",
-			header: "Link",
+			header: "Actions",
 			cell: (info) => (
-				<Anchor
-					link={info.row.original.track.external_urls.spotify}
-					text="Open"
-					variant="link"
-					icon={<SpotifyIcon />}
-					isExternal
-				/>
+				<Group>
+					{userData?.listen_later_playlist && (
+						<Button
+							onClick={() => saveForLater(info.row.original.track)}
+							variant="link"
+							icon={<PlusIcon />}
+							styles={plusStyles}
+						/>
+					)}
+					<Anchor
+						link={info.row.original.track.external_urls.spotify}
+						text="Open"
+						variant="link"
+						icon={<SpotifyIcon />}
+						isExternal
+					/>
+				</Group>
 			),
 		}),
 	];

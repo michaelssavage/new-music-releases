@@ -12,7 +12,7 @@ import type { SpotifyServiceI } from "@server/container/types";
 import axios, { type AxiosResponse } from "axios";
 import createHttpError from "http-errors";
 import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
-import type { UpdateUserPlaylistI } from "./types";
+import type { SaveSongToPlaylistI, UpdateUserPlaylistI } from "./types";
 
 export function SpotifyService({ repository, env }: SpotifyServiceI) {
 	async function initialize(): Promise<void> {
@@ -504,6 +504,27 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		}
 	}
 
+	async function saveSongToPlaylist({
+		spotifyAccessToken,
+		trackId,
+		playlistId,
+	}: SaveSongToPlaylistI) {
+		const { data: playlistItems } = await axios.post(
+			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+			{
+				uris: [`spotify:track:${trackId}`],
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${spotifyAccessToken}`,
+					"Content-Type": "application/json",
+				},
+			},
+		);
+
+		return playlistItems;
+	}
+
 	return {
 		initialize,
 		shutdown,
@@ -533,5 +554,6 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		createSpotifyPlaylist,
 		getSpotifyPlaylist,
 		getSpotifyPlaylistItems,
+		saveSongToPlaylist,
 	};
 }

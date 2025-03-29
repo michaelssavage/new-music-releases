@@ -6,3 +6,9 @@ export interface UpdateUserPlaylistI {
 	playlist: SpotifyPlaylistI;
 	fromDate?: string;
 }
+
+export interface SaveSongToPlaylistI {
+	playlistId: string;
+	spotifyAccessToken: string;
+	trackId: string;
+}

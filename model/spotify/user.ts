@@ -31,6 +31,7 @@ export interface User {
 	refresh_token: string;
 	profile: SpotifyUserProfile;
 	saved_artists: Array<string>;
+	listen_later_playlist?: string;
 }
 
 export type UserID = string | null;

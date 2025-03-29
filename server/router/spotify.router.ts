@@ -9,7 +9,7 @@ export function SpotifyRouter({ spotifyService, env }: SpotifyControllerI) {
 	router.get("/login", spotifyController.loginHandler);
 	router.get("/callback", spotifyController.callbackHandler);
 	router.get("/refresh", spotifyController.refreshToken);
-	router.get("/validate-token", spotifyController.validateToken);
+	router.get("/validate-token", spotifyController.validateTokenHandler);
 
 	router.get("/user", spotifyController.getUser);
 
@@ -27,5 +27,6 @@ export function SpotifyRouter({ spotifyService, env }: SpotifyControllerI) {
 
 	router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
 	router.get("/update-playlist-releases", spotifyController.updateNewReleases);
+	router.post("/save-song-to-playlist", spotifyController.saveSongToPlaylist);
 	return router;
 }
