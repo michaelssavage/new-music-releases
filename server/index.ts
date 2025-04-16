@@ -11,6 +11,7 @@ import { createServiceContainer } from "./container/index.js";
 import { SchedulerRouter } from "./router/scheduler.router.js";
 import { SpotifyRouter } from "./router/spotify.router.js";
 import { resolvePath } from "./utils/resolvePath.js";
+import errorMiddleware from "./middleware/error.middleware.js";
 
 const envPath = resolvePath(".env");
 dotenv.config({ path: envPath });
@@ -23,10 +24,12 @@ const { spotifyService, schedulerService, env } = createServiceContainer();
 const spotifyRouter = SpotifyRouter({ spotifyService, env });
 const schedulerRouter = SchedulerRouter({ schedulerService, env });
 
+// === MIDDLEWARE ===
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 
+// === ROUTES ===
 app.get("/health", (_req, res) => {
 	res.status(200).json({ status: "UP" });
 });
@@ -34,6 +37,7 @@ app.get("/health", (_req, res) => {
 app.use("/api", spotifyRouter);
 app.use("/api", schedulerRouter);
 
+// === CLIENT FRONTEND ===
 const clientPath = resolvePath("client");
 app.use(express.static(clientPath));
 
@@ -41,15 +45,16 @@ app.get("*", (_req, res) => {
 	res.sendFile(path.join(clientPath, "index.html"));
 });
 
+// === 404 HANDLER ===
 app.use((_req: Request, res: Response, _next: NextFunction) => {
 	res.status(404).json({ error: "Route not found" });
 });
 
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-	console.error(`Error in ${req.method} ${req.url}:`, err);
-	res.status(500).json({ error: "Internal Server Error" });
-});
+// === CUSTOM ERROR HANDLER ===
+app.use(errorMiddleware);
 
+
+// === SERVER START ===
 async function startServer() {
 	try {
 		await spotifyService.initialize();
@@ -79,6 +84,7 @@ async function shutdown() {
 	}
 }
 
+// === GLOBAL ERROR HANDLING ===
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 

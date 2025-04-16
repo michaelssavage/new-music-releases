@@ -347,16 +347,16 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 			return;
 		}
 
-		const user = await spotifyService.getUser(userId);
-
-		if (!user) {
-			res.status(404).json({ error: "User not found" });
-			return;
-		}
-
-		const playlistId = user.listen_later_playlist as string;
-
 		try {
+			const user = await spotifyService.getUser(userId);
+
+			if (!user) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
+
+			const playlistId = user.listen_later_playlist as string;
+
 			const data = spotifyService.saveSongToPlaylist({
 				spotifyAccessToken: spotify_access_token,
 				trackId,
