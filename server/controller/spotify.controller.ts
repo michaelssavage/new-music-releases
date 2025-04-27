@@ -1,7 +1,8 @@
 import type { Artist } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyControllerI } from "@server/container/types";
-import { getAuthorizationUrl } from "@server/utils/auth";
+import { getAuthorizationUrl, requireSpotifyToken } from "@server/utils/auth";
+import axios from "axios";
 import type { Request, Response } from "express";
 
 interface SearchQuery extends Request {
@@ -19,7 +20,11 @@ interface SaveQuery extends Request {
 	};
 }
 
-export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
+export function SpotifyController({
+	spotifyService,
+	api,
+	env,
+}: SpotifyControllerI) {
 	async function loginHandler(_req: Request, res: Response): Promise<void> {
 		const url = getAuthorizationUrl(
 			`${env.SERVER_URL}/api/callback`,
@@ -79,7 +84,7 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		}
 
 		try {
-			const response = await spotifyService.validateToken(token);
+			const response = await api.validateToken(token);
 			res.sendStatus(response.status);
 		} catch (error) {
 			console.log("Error validating token:", error);
@@ -106,20 +111,17 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 
 	async function searchHandler(req: SearchQuery, res: Response): Promise<void> {
 		const { q, type, limit } = req.query;
-		const { spotify_access_token } = req.headers;
 
 		if (!q || !type) {
 			res.status(400).json({ error: "Missing required parameters" });
 			return;
 		}
 
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
 		try {
-			const data = await spotifyService.searchItem(
+			const data = await api.searchItem(
 				spotify_access_token as string,
 				q,
 				type.split(","),
@@ -133,16 +135,11 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 	}
 
 	async function getSavedTracks(req: Request, res: Response): Promise<void> {
-		const { spotify_access_token } = req.headers;
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
 		try {
-			const tracks = await spotifyService.getSavedTracks(
-				spotify_access_token as string,
-			);
+			const tracks = await api.getSavedTracks(spotify_access_token as string);
 			res.json(tracks);
 		} catch (error) {
 			console.error("Error retrieving saved tracks:", error);
@@ -151,12 +148,8 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 	}
 
 	async function getSpotifyArtists(req: Request, res: Response): Promise<void> {
-		const { spotify_access_token } = req.headers;
-
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
 		try {
 			const artists = await spotifyService.getSpotifyArtists(
@@ -193,20 +186,17 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 
 	async function getSingleArtist(req: Request, res: Response): Promise<void> {
 		const { id } = req.params;
-		const { spotify_access_token } = req.headers;
 
 		if (!id) {
 			res.status(400).json({ error: "No artist id provided to get artist" });
 			return;
 		}
 
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
 		try {
-			const artist = await spotifyService.getSingleArtist(
+			const artist = await api.getSingleArtist(
 				spotify_access_token as string,
 				id as string,
 			);
@@ -264,13 +254,10 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		req: Request,
 		res: Response,
 	): Promise<void> {
-		const spotify_access_token = req.headers.spotify_access_token as string;
-		const userId = req.query.userId as string;
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
+		const userId = req.query.userId as string;
 
 		if (!userId) {
 			res.status(400).json({ error: "No user id provided to get playlist" });
@@ -288,7 +275,7 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 				return;
 			}
 
-			const playlistItems = await spotifyService.getSpotifyPlaylistItems(
+			const playlistItems = await api.getSpotifyPlaylistItems(
 				spotify_access_token as string,
 				playlist.id,
 			);
@@ -306,13 +293,10 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 	}
 
 	async function updateNewReleases(req: Request, res: Response): Promise<void> {
-		const spotify_access_token = req.headers.spotify_access_token as string;
-		const userId = req.query.userId as string;
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
+		const userId = req.query.userId as string;
 
 		if (!userId) {
 			res.status(400).json({ error: "No user id provided to get playlist" });
@@ -335,13 +319,11 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		req: Request,
 		res: Response,
 	): Promise<void> {
-		const { userId, trackId } = req.body;
-		const spotify_access_token = req.headers.spotify_access_token as string;
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
 
-		if (!spotify_access_token) {
-			res.status(401).json({ error: "Unauthorized" });
-			return;
-		}
+		const { userId, trackId } = req.body;
+
 		if (!userId || !trackId) {
 			res.status(400).json({ error: "Missing required parameters" });
 			return;
@@ -357,7 +339,7 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		const playlistId = user.listen_later_playlist as string;
 
 		try {
-			const data = spotifyService.saveSongToPlaylist({
+			const data = await api.saveSongToPlaylist({
 				spotifyAccessToken: spotify_access_token,
 				trackId,
 				playlistId,
@@ -366,6 +348,32 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		} catch (error) {
 			console.error("Error updating playlist releases:", error);
 			res.status(500).json({ error: "Failed to update playlist releases" });
+		}
+	}
+
+	async function getRecommendationsHandler(req: Request, res: Response) {
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
+
+		const { limit = 20, seed_artists } = req.body;
+
+		try {
+			const data = await api.getRecommendations(
+				spotify_access_token as string,
+				seed_artists,
+				limit,
+			);
+			res.json(data);
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				console.log("Error retrieving recommendations:", {
+					status: error?.status,
+					response: error?.response,
+				});
+			}
+			res.status(500).json({
+				error: "Failed to retrieve recommendations",
+			});
 		}
 	}
 
@@ -385,5 +393,6 @@ export function SpotifyController({ spotifyService, env }: SpotifyControllerI) {
 		getSpotifyPlaylist,
 		updateNewReleases,
 		saveSongToPlaylist,
+		getRecommendationsHandler,
 	};
 }

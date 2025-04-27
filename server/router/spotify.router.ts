@@ -2,9 +2,13 @@ import type { SpotifyControllerI } from "@server/container/types";
 import { SpotifyController } from "@server/controller/spotify.controller";
 import express from "express";
 
-export function SpotifyRouter({ spotifyService, env }: SpotifyControllerI) {
+export function SpotifyRouter({
+	spotifyService,
+	api,
+	env,
+}: SpotifyControllerI) {
 	const router = express.Router();
-	const spotifyController = SpotifyController({ spotifyService, env });
+	const spotifyController = SpotifyController({ spotifyService, api, env });
 
 	router.get("/login", spotifyController.loginHandler);
 	router.get("/callback", spotifyController.callbackHandler);
@@ -28,5 +32,10 @@ export function SpotifyRouter({ spotifyService, env }: SpotifyControllerI) {
 	router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
 	router.get("/update-playlist-releases", spotifyController.updateNewReleases);
 	router.post("/save-song-to-playlist", spotifyController.saveSongToPlaylist);
+
+	router.post(
+		"/get-recommendations",
+		spotifyController.getRecommendationsHandler,
+	);
 	return router;
 }

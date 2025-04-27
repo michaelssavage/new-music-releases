@@ -29,6 +29,7 @@
 	},
 	"dependencies": {
 		"date-fns": "^4.1.0",
-		"jsonwebtoken": "^9.0.2"
+		"jsonwebtoken": "^9.0.2",
+		"p-limit": "^6.2.0"
 	}
 }

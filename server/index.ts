@@ -18,9 +18,9 @@ dotenv.config({ path: envPath });
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-const { spotifyService, schedulerService, env } = createServiceContainer();
+const { spotifyService, schedulerService, api, env } = createServiceContainer();
 
-const spotifyRouter = SpotifyRouter({ spotifyService, env });
+const spotifyRouter = SpotifyRouter({ spotifyService, api, env });
 const schedulerRouter = SchedulerRouter({ schedulerService, env });
 
 app.use(cors());

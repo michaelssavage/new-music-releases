@@ -1,20 +1,14 @@
-import type {
-	ArtistAlbumsI,
-	FollowedArtistsI,
-	NewReleasesI,
-	SavedArtistI,
-} from "@model/spotify";
-import type { SpotifyPlaylistI } from "@model/spotify/playlist";
-import type { Artist, SearchResponse } from "@model/spotify/search";
-import type { PlaylistTracksI } from "@model/spotify/tracks";
-import type { SpotifyUserProfile, User } from "@model/spotify/user";
+import type { NewReleasesI, SavedArtistI } from "@model/spotify";
+import type { Artist } from "@model/spotify/search";
+import type { User } from "@model/spotify/user";
 import type { SpotifyServiceI } from "@server/container/types";
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 import createHttpError from "http-errors";
-import { SPOTIFY_API_TOKEN, SPOTIFY_API_URL } from "../utils/constants";
-import type { SaveSongToPlaylistI, UpdateUserPlaylistI } from "./types";
+import pLimit from "p-limit";
+import { SPOTIFY_API_TOKEN } from "../utils/constants";
+import type { UpdateUserPlaylistI } from "./types";
 
-export function SpotifyService({ repository, env }: SpotifyServiceI) {
+export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 	async function initialize(): Promise<void> {
 		await repository.connect();
 	}
@@ -25,7 +19,7 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 
 	async function callbackHandler(code: string) {
 		const tokens = await getTokens(code);
-		const userProfile = await getSpotifyUserProfile(tokens.access_token);
+		const userProfile = await api.getSpotifyUserProfile(tokens.access_token);
 
 		const user = await getUser(userProfile.id);
 		if (!user) {
@@ -42,6 +36,32 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 			userProfile,
 			...tokens,
 		};
+	}
+
+	async function refreshToken(refresh_token: string) {
+		return await axios.post(
+			SPOTIFY_API_TOKEN,
+			new URLSearchParams({
+				grant_type: "refresh_token",
+				refresh_token: refresh_token as string,
+				client_id: env.SPOTIFY_CLIENT_ID as string,
+				client_secret: env.SPOTIFY_CLIENT_SECRET as string,
+			}),
+			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } },
+		);
+	}
+
+	async function getValidToken(user: User) {
+		try {
+			await api.validateToken(user.access_token);
+			return user.access_token;
+		} catch {
+			const { data } = await refreshToken(user.refresh_token);
+			user.access_token = data.access_token;
+			await saveUser(user);
+			console.log("Token refreshed.");
+			return data.access_token;
+		}
 	}
 
 	async function getTokens(code: string) {
@@ -70,17 +90,6 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		};
 	}
 
-	async function getSpotifyUserProfile(access_token: string) {
-		const { data } = await axios.get<SpotifyUserProfile>(
-			`${SPOTIFY_API_URL}/me`,
-			{
-				headers: { Authorization: `Bearer ${access_token}` },
-			},
-		);
-
-		return data;
-	}
-
 	async function getUser(userId: string) {
 		return await repository.getUser(userId);
 	}
@@ -92,71 +101,8 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		return result;
 	}
 
-	async function validateToken(token: string) {
-		return await axios.get(`${SPOTIFY_API_URL}/me`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-	}
-
-	async function refreshToken(refresh_token: string) {
-		return await axios.post(
-			SPOTIFY_API_TOKEN,
-			new URLSearchParams({
-				grant_type: "refresh_token",
-				refresh_token: refresh_token as string,
-				client_id: env.SPOTIFY_CLIENT_ID as string,
-				client_secret: env.SPOTIFY_CLIENT_SECRET as string,
-			}),
-			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } },
-		);
-	}
-
-	async function getValidToken(user: User) {
-		try {
-			await validateToken(user.access_token);
-			return user.access_token;
-		} catch {
-			const { data } = await refreshToken(user.refresh_token);
-			user.access_token = data.access_token;
-			await saveUser(user);
-			console.log("Token refreshed.");
-			return data.access_token;
-		}
-	}
-
-	async function searchItem(
-		token: string,
-		query: string,
-		type: Array<string>,
-		limit: number,
-	): Promise<SearchResponse> {
-		const { data } = await axios.get(
-			`${SPOTIFY_API_URL}/search?q=${query}&type=${type.join(",")}&limit=${limit}`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
-		if (!data) {
-			createHttpError(404, "No data found.");
-		}
-
-		return data;
-	}
-
-	async function getSavedTracks(token: string) {
-		const { data } = await axios.get(`${SPOTIFY_API_URL}/me/tracks`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-		if (!data) {
-			createHttpError(404, "No saved tracks found.");
-		}
-
-		console.log("Saved tracks fetched from Spotify.", data);
-		return data;
-	}
-
 	async function getSpotifyArtists(token: string) {
-		const tracks = await getSavedTracks(token);
+		const tracks = await api.getSavedTracks(token);
 
 		const artistMap = new Map<string, Artist>();
 
@@ -192,43 +138,6 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		return result;
 	}
 
-	async function getFollowedArtists(token: string): Promise<Array<Artist>> {
-		let artists: Array<Artist> = [];
-
-		let nextUrl: string | null =
-			`${SPOTIFY_API_URL}/me/following?type=artist&limit=50`;
-
-		while (nextUrl) {
-			const { data }: AxiosResponse<FollowedArtistsI> = await axios.get(
-				nextUrl,
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				},
-			);
-			artists = artists.concat(data.artists.items);
-			nextUrl = data.artists.next;
-		}
-
-		console.log(`${artists.length} followed artists fetched from spotify.`);
-		return artists;
-	}
-
-	async function getSingleArtist(token: string, id: string) {
-		const { data } = await axios.get(`${SPOTIFY_API_URL}/artists/${id}`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-
-		if (!data) {
-			createHttpError(404, "No artist found.");
-		}
-
-		console.log("Single artist fetched from spotify.", {
-			id: data.id,
-			name: data.name,
-		});
-		return data;
-	}
-
 	async function removeSavedArtist(userId: string, id: string) {
 		const result = await repository.removeSavedArtist(userId, id);
 
@@ -251,68 +160,6 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		return savedArtists;
 	}
 
-	async function getAlbumTracks(token: string, albumId: string) {
-		const { data } = await axios.get(
-			`${SPOTIFY_API_URL}/albums/${albumId}/tracks`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
-
-		const tracks = data.items.map((track: { uri: string }) => track.uri);
-		console.log("getAlbumTracks:Album tracks returned - ", tracks);
-		return tracks;
-	}
-
-	async function getArtistAlbums(
-		token: string,
-		artistId: string,
-		fromDate?: string,
-	) {
-		try {
-			const { data } = await axios.get<ArtistAlbumsI>(
-				`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
-				{
-					headers: { Authorization: `Bearer ${token}` },
-					params: { include_groups: "single,album,appears_on", limit: 4 },
-				},
-			);
-
-			console.log(`Releases fetched for ${artistId}:`, data.total);
-
-			const today = new Date().toISOString().split("T")[0];
-			const filteredAlbums = data.items
-				.filter(({ release_date }) => {
-					if (!fromDate) return release_date === today;
-
-					const releaseTimestamp = new Date(release_date).getTime();
-					const fromTimestamp = new Date(fromDate).getTime();
-
-					return releaseTimestamp >= fromTimestamp;
-				})
-				.map((props) => ({
-					id: props.id,
-					uri: props.uri,
-					artists: props.artists.map(({ name, id, external_urls }) => ({
-						name,
-						id,
-						url: external_urls.spotify,
-					})),
-					name: props.name,
-					image: props.images[0].url,
-					url: props.external_urls.spotify,
-				}));
-
-			return filteredAlbums;
-		} catch (error) {
-			console.log(
-				"getNewReleasesForArtist:No releases found for artist. -",
-				error,
-			);
-			throw new Error("No releases found for artist.");
-		}
-	}
-
 	async function fetchNewReleases(
 		userId: string,
 		token: string,
@@ -326,36 +173,25 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 
 		console.log(`${artists.length} Artists retrieved from MongoDB.`);
 
+		const limit = pLimit(5);
+
 		const releasesArray = await Promise.all(
-			artists.map((artist) => getArtistAlbums(token, artist.id, fromDate)),
+			artists.map((artist) =>
+				limit(async () => {
+					try {
+						return await api.getArtistAlbums(token, artist.id, fromDate);
+					} catch (error) {
+						console.error(
+							`Failed to fetch albums for artist ${artist.id}:`,
+							error,
+						);
+						return [];
+					}
+				}),
+			),
 		);
 
 		return releasesArray.flat();
-	}
-
-	async function addTracksToPlaylist(
-		token: string,
-		playlistId: string,
-		trackUris: Array<string>,
-	) {
-		const { data } = await axios.post(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{ uris: trackUris },
-			{
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			},
-		);
-
-		if (data.snapshot_id) {
-			console.log(`Added ${trackUris.length} tracks to playlist.`);
-			return { tracks: trackUris };
-		}
-
-		console.error("Failed to add tracks to playlist.");
-		return data;
 	}
 
 	async function updateUserPlaylist({
@@ -379,36 +215,15 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 			await Promise.all(
 				newReleases.map(async ({ uri, id }) => {
 					if (uri.includes("album")) {
-						return await getAlbumTracks(token, id);
+						return await api.getAlbumTracks(token, id);
 					}
 					return uri;
 				}),
 			)
 		).flat();
 
-		const result = await addTracksToPlaylist(token, playlist.id, trackUris);
+		const result = await api.addTracksToPlaylist(token, playlist.id, trackUris);
 		return result;
-	}
-
-	async function createSpotifyPlaylist(token: string) {
-		const { data: userProfile } = await axios.get(`${SPOTIFY_API_URL}/me`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-
-		const userId = userProfile.id;
-
-		const { data: playlist } = await axios.post<SpotifyPlaylistI>(
-			`${SPOTIFY_API_URL}/users/${userId}/playlists`,
-			{
-				name: "New Music Releases",
-				description: "A playlist of today's new releases.",
-				public: true,
-			},
-			{ headers: { Authorization: `Bearer ${token}` } },
-		);
-
-		console.log("Playlist created in Spotify:", playlist);
-		return playlist;
 	}
 
 	async function getSpotifyPlaylist(userId: string, token: string) {
@@ -419,7 +234,7 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		}
 
 		console.log(`No playlist found in MongoDB for ${userId}`);
-		const newPlaylist = await createSpotifyPlaylist(token);
+		const newPlaylist = await api.createSpotifyPlaylist(token);
 
 		if (newPlaylist) {
 			const res = await repository.createPlaylist(userId, newPlaylist);
@@ -429,17 +244,6 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 			}
 		}
 		return null;
-	}
-
-	async function getSpotifyPlaylistItems(token: string, playlistId: string) {
-		const { data: playlistItems } = await axios.get<PlaylistTracksI>(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
-
-		return playlistItems;
 	}
 
 	async function updateNewReleases(
@@ -504,56 +308,21 @@ export function SpotifyService({ repository, env }: SpotifyServiceI) {
 		}
 	}
 
-	async function saveSongToPlaylist({
-		spotifyAccessToken,
-		trackId,
-		playlistId,
-	}: SaveSongToPlaylistI) {
-		const { data: playlistItems } = await axios.post(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{
-				uris: [`spotify:track:${trackId}`],
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${spotifyAccessToken}`,
-					"Content-Type": "application/json",
-				},
-			},
-		);
-
-		return playlistItems;
-	}
-
 	return {
 		initialize,
 		shutdown,
 		callbackHandler,
 		getTokens,
-		getSpotifyUserProfile,
 		getUser,
 		saveUser,
 		refreshToken,
-		validateToken,
-		// Artists
-		getFollowedArtists,
 		saveArtists,
-		getSingleArtist,
 		removeSavedArtist,
 		getAllArtistsIds,
 		getSpotifyArtists,
-		// Tracks
-		searchItem,
-		getSavedTracks,
-		getAlbumTracks,
 		fetchNewReleases,
-		addTracksToPlaylist,
 		updateNewReleases,
 		updatePlaylistsForAllUsers,
-		// Playlist
-		createSpotifyPlaylist,
 		getSpotifyPlaylist,
-		getSpotifyPlaylistItems,
-		saveSongToPlaylist,
 	};
 }
