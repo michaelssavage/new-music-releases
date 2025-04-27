@@ -1,6 +1,5 @@
-import type { Track } from "./spotify/liked-tracks";
+import type { Artist, Track } from "./spotify/liked-tracks";
 import type { SpotifyPlaylistI } from "./spotify/playlist";
-import type { Artist } from "./spotify/search";
 import type { PlaylistTracksI } from "./spotify/tracks";
 
 export interface SpotifyDataProps {

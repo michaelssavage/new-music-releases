@@ -1,5 +1,5 @@
 import type { NewReleasesI, SavedArtistI } from "@model/spotify";
-import type { Artist } from "@model/spotify/search";
+import type { Artist } from "@model/spotify/liked-tracks";
 import type { User } from "@model/spotify/user";
 import type { SpotifyServiceI } from "@server/container/types";
 import axios from "axios";
@@ -211,14 +211,18 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			return [];
 		}
 
+		const limit = pLimit(5);
+
 		const trackUris = (
 			await Promise.all(
-				newReleases.map(async ({ uri, id }) => {
-					if (uri.includes("album")) {
-						return await api.getAlbumTracks(token, id);
-					}
-					return uri;
-				}),
+				newReleases.map(({ uri, id }) =>
+					limit(async () => {
+						if (uri.includes("album")) {
+							return await api.getAlbumTracks(token, id);
+						}
+						return uri;
+					}),
+				),
 			)
 		).flat();
 
@@ -277,7 +281,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 
 			console.log(`Updating playlists for ${users.length} users.`);
 
-			const results = await Promise.all(
+			const results = await Promise.allSettled(
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);

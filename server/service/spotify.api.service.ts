@@ -1,27 +1,29 @@
 import type { ArtistAlbumsI, FollowedArtistsI } from "@model/spotify";
-import type { SpotifyPlaylistI } from "@model/spotify/playlist";
+import type { LikedTracksI } from "@model/spotify/liked-tracks";
+import type { Artist } from "@model/spotify/liked-tracks";
+import type {
+	SavedTrackToPlaylistI,
+	SpotifyPlaylistI,
+} from "@model/spotify/playlist";
 import type { SearchResponse } from "@model/spotify/search";
-import type { Artist } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile } from "@model/spotify/user";
 import { SPOTIFY_API_URL } from "@server/utils/constants";
-import axios, { type AxiosResponse } from "axios";
+import { getRequest, postRequest } from "@server/utils/fetch";
+import axios from "axios";
 import createHttpError from "http-errors";
 import type { SaveSongToPlaylistI } from "./types";
 
 export function SpotifyApi() {
 	async function validateToken(token: string) {
-		return await axios.get(`${SPOTIFY_API_URL}/me`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const { status } = await getRequest(`${SPOTIFY_API_URL}/me`, token);
+		return status;
 	}
 
 	async function getSpotifyUserProfile(access_token: string) {
-		const { data } = await axios.get<SpotifyUserProfile>(
+		const { data } = await getRequest<SpotifyUserProfile>(
 			`${SPOTIFY_API_URL}/me`,
-			{
-				headers: { Authorization: `Bearer ${access_token}` },
-			},
+			access_token,
 		);
 
 		return data;
@@ -32,48 +34,69 @@ export function SpotifyApi() {
 		artistId: string,
 		fromDate?: string,
 	) {
-		try {
-			const { data } = await axios.get<ArtistAlbumsI>(
-				`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
-				{
-					headers: { Authorization: `Bearer ${token}` },
-					params: { include_groups: "single,album,appears_on", limit: 4 },
-				},
-			);
+		const maxRetries = 3;
+		let attempt = 0;
 
-			console.log(`Releases fetched for ${artistId}:`, data.total);
+		while (attempt < maxRetries) {
+			try {
+				const { data } = await getRequest<ArtistAlbumsI>(
+					`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
+					token,
+					{ include_groups: "single,album,appears_on", limit: 4 },
+				);
 
-			const today = new Date().toISOString().split("T")[0];
-			const filteredAlbums = data.items
-				.filter(({ release_date }) => {
-					if (!fromDate) return release_date === today;
+				console.log(`Releases fetched for ${artistId}:`, data.total);
 
-					const releaseTimestamp = new Date(release_date).getTime();
-					const fromTimestamp = new Date(fromDate).getTime();
+				const today = new Date().toISOString().split("T")[0];
+				const filteredAlbums = data.items
+					.filter(({ release_date }) => {
+						if (!fromDate) return release_date === today;
 
-					return releaseTimestamp >= fromTimestamp;
-				})
-				.map((props) => ({
-					id: props.id,
-					uri: props.uri,
-					artists: props.artists.map(({ name, id, external_urls }) => ({
-						name,
-						id,
-						url: external_urls.spotify,
-					})),
-					name: props.name,
-					image: props.images[0].url,
-					url: props.external_urls.spotify,
-				}));
+						const releaseTimestamp = new Date(release_date).getTime();
+						const fromTimestamp = new Date(fromDate).getTime();
 
-			return filteredAlbums;
-		} catch (error) {
-			console.log(
-				"getNewReleasesForArtist:No releases found for artist. -",
-				error,
-			);
-			throw new Error("No releases found for artist.");
+						return releaseTimestamp >= fromTimestamp;
+					})
+					.map((props) => ({
+						id: props.id,
+						uri: props.uri,
+						artists: props.artists.map(({ name, id, external_urls }) => ({
+							name,
+							id,
+							url: external_urls.spotify,
+						})),
+						name: props.name,
+						image: props.images[0].url,
+						url: props.external_urls.spotify,
+					}));
+
+				return filteredAlbums;
+			} catch (error) {
+				if (axios.isAxiosError(error)) {
+					if (error.response?.status === 429) {
+						const retryAfter = error.response.headers["retry-after"];
+						const waitTime =
+							(retryAfter ? Number.parseInt(retryAfter, 10) : 1) * 1000;
+						console.warn(`Rate limited. Retrying after ${waitTime}ms...`);
+						await new Promise((resolve) => setTimeout(resolve, waitTime));
+					} else if (error.response && error.response?.status >= 500) {
+						console.warn(`Server error. Retrying attempt ${attempt + 1}...`);
+						await new Promise((resolve) =>
+							setTimeout(resolve, 1000 * (attempt + 1)),
+						);
+					} else {
+						throw error;
+					}
+				} else {
+					throw error;
+				}
+			}
+			attempt++;
 		}
+
+		throw new Error(
+			`Failed to fetch albums for artist ${artistId} after ${maxRetries} attempts.`,
+		);
 	}
 
 	async function getRecommendations(
@@ -81,13 +104,11 @@ export function SpotifyApi() {
 		seedArtists: string[],
 		limit: number,
 	) {
-		const { data } = await axios.get(
-			`${SPOTIFY_API_URL}/recommendations?seed_artists=${seedArtists.join(
-				",",
-			)}&limit=${limit}`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
+		const stringifiedArtists = seedArtists.join(",");
+
+		const data = await getRequest(
+			`${SPOTIFY_API_URL}/recommendations?seed_artists=${stringifiedArtists}&limit=${limit}`,
+			token,
 		);
 
 		if (!data) {
@@ -103,11 +124,9 @@ export function SpotifyApi() {
 		type: Array<string>,
 		limit: number,
 	): Promise<SearchResponse> {
-		const { data } = await axios.get(
+		const { data } = await getRequest<SearchResponse>(
 			`${SPOTIFY_API_URL}/search?q=${query}&type=${type.join(",")}&limit=${limit}`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
+			token,
 		);
 		if (!data) {
 			createHttpError(404, "No data found.");
@@ -123,12 +142,8 @@ export function SpotifyApi() {
 			`${SPOTIFY_API_URL}/me/following?type=artist&limit=50`;
 
 		while (nextUrl) {
-			const { data }: AxiosResponse<FollowedArtistsI> = await axios.get(
-				nextUrl,
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				},
-			);
+			const { data }: { data: FollowedArtistsI } =
+				await getRequest<FollowedArtistsI>(nextUrl, token);
 			artists = artists.concat(data.artists.items);
 			nextUrl = data.artists.next;
 		}
@@ -138,9 +153,10 @@ export function SpotifyApi() {
 	}
 
 	async function getSavedTracks(token: string) {
-		const { data } = await axios.get(`${SPOTIFY_API_URL}/me/tracks`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const { data } = await getRequest<LikedTracksI>(
+			`${SPOTIFY_API_URL}/me/tracks`,
+			token,
+		);
 		if (!data) {
 			createHttpError(404, "No saved tracks found.");
 		}
@@ -150,9 +166,10 @@ export function SpotifyApi() {
 	}
 
 	async function getSingleArtist(token: string, id: string) {
-		const { data } = await axios.get(`${SPOTIFY_API_URL}/artists/${id}`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const { data } = await getRequest<Artist>(
+			`${SPOTIFY_API_URL}/artists/${id}`,
+			token,
+		);
 
 		if (!data) {
 			createHttpError(404, "No artist found.");
@@ -166,11 +183,9 @@ export function SpotifyApi() {
 	}
 
 	async function getAlbumTracks(token: string, albumId: string) {
-		const { data } = await axios.get(
+		const { data } = await getRequest<ArtistAlbumsI>(
 			`${SPOTIFY_API_URL}/albums/${albumId}/tracks`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
+			token,
 		);
 
 		const tracks = data.items.map((track: { uri: string }) => track.uri);
@@ -183,30 +198,29 @@ export function SpotifyApi() {
 		playlistId: string,
 		trackUris: Array<string>,
 	) {
-		const { data } = await axios.post(
+		const res = await postRequest<SavedTrackToPlaylistI>(
 			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{ uris: trackUris },
+			token,
 			{
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
+				uris: trackUris,
 			},
 		);
 
-		if (data.snapshot_id) {
+		if (res.data.snapshot_id) {
 			console.log(`Added ${trackUris.length} tracks to playlist.`);
-			return { tracks: trackUris };
+			const data = { tracks: trackUris };
+			return { data, status: res.status };
 		}
 
 		console.error("Failed to add tracks to playlist.");
-		return data;
+		return res;
 	}
 
 	async function createSpotifyPlaylist(token: string) {
-		const { data: userProfile } = await axios.get(`${SPOTIFY_API_URL}/me`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const { data: userProfile } = await getRequest<SpotifyUserProfile>(
+			`${SPOTIFY_API_URL}/me`,
+			token,
+		);
 
 		const userId = userProfile.id;
 
@@ -225,11 +239,9 @@ export function SpotifyApi() {
 	}
 
 	async function getSpotifyPlaylistItems(token: string, playlistId: string) {
-		const { data: playlistItems } = await axios.get<PlaylistTracksI>(
+		const playlistItems = await getRequest<PlaylistTracksI>(
 			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
+			token,
 		);
 
 		return playlistItems;

@@ -15,7 +15,7 @@ export interface ShowItem {
 
 export interface Track {
 	album: Album;
-	artists: Artist[];
+	artists: Array<Artist>;
 	available_markets: string[];
 	disc_number: number;
 	duration_ms: number;
@@ -54,10 +54,19 @@ export interface Album {
 }
 
 export interface Artist {
-	external_urls: ExternalUrls;
+	external_urls: {
+		spotify: string;
+	};
+	followers: {
+		href: string;
+		total: number;
+	};
+	genres: string[];
 	href: string;
 	id: string;
+	images: Array<Image>;
 	name: string;
+	popularity: number;
 	type: string;
 	uri: string;
 }

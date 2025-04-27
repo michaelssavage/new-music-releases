@@ -1,4 +1,4 @@
-import type { Artist } from "@model/spotify/search";
+import type { Artist } from "@model/spotify/liked-tracks";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyControllerI } from "@server/container/types";
 import { getAuthorizationUrl, requireSpotifyToken } from "@server/utils/auth";
@@ -84,8 +84,8 @@ export function SpotifyController({
 		}
 
 		try {
-			const response = await api.validateToken(token);
-			res.sendStatus(response.status);
+			const status = await api.validateToken(token);
+			res.sendStatus(status);
 		} catch (error) {
 			console.log("Error validating token:", error);
 			res.status(401).json({ error: "Invalid token" });

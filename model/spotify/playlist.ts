@@ -132,6 +132,10 @@ export interface SpotifyPlaylistI {
 	uri: string;
 }
 
+export interface SavedTrackToPlaylistI {
+	snapshot_id: string;
+}
+
 export interface SaveSongRequestI {
 	trackId: string;
 	userId: string;
