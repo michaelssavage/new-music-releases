@@ -1,7 +1,7 @@
 import noPhoto from "@client/assets/no-photo.jpg";
 import { getArtist } from "@client/lib/spotify";
 import styled from "@emotion/styled";
-import type { Artist, Track } from "@model/spotify/search";
+import type { Artist, Track } from "@model/spotify/liked-tracks";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "../Button";

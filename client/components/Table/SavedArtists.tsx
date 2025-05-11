@@ -9,7 +9,7 @@ import { displayDate } from "@client/utils/dates";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { SavedArtistI } from "@model/spotify";
-import type { Artist } from "@model/spotify/search";
+import type { Artist } from "@model/spotify/liked-tracks";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	type ColumnFiltersState,

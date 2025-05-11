@@ -1,7 +1,8 @@
 import { logger } from "@client/utils/logger";
 import type { SavedArtistI, SpotifyDataProps } from "@model/spotify";
+import type { Artist } from "@model/spotify/liked-tracks";
 import type { SaveSongRequestI } from "@model/spotify/playlist";
-import type { Artist, SearchProps } from "@model/spotify/search";
+import type { SearchProps } from "@model/spotify/search";
 import type { UserID } from "@model/spotify/user";
 import axios from "axios";
 import Cookies from "js-cookie";

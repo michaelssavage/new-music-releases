@@ -1,7 +1,7 @@
 import noPhoto from "@client/assets/no-photo.jpg";
 import { removeArtist, saveArtist } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
-import type { Artist } from "@model/spotify/search";
+import type { Artist } from "@model/spotify/liked-tracks";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { Anchor } from "../Anchor";

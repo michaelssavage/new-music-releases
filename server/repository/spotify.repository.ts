@@ -1,6 +1,6 @@
 import type { SavedArtistI } from "@model/spotify";
+import type { Artist } from "@model/spotify/liked-tracks";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
-import type { Artist } from "@model/spotify/search";
 import type { User } from "@model/spotify/user";
 import { type Collection, type Db, MongoClient } from "mongodb";
 
