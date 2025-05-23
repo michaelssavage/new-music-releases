@@ -1,3 +1,4 @@
+import { logger } from "@client/utils/logger";
 import type { ArtistAlbumsI, FollowedArtistsI } from "@model/spotify";
 import type { LikedTracksI } from "@model/spotify/liked-tracks";
 import type { Artist } from "@model/spotify/liked-tracks";
@@ -45,7 +46,10 @@ export function SpotifyApi() {
 					{ include_groups: "single,album,appears_on", limit: 4 },
 				);
 
-				console.log(`Releases fetched for ${artistId}:`, data.total);
+				logger.info(
+					`getArtistAlbums:Releases fetched for ${artistId}:`,
+					data.total,
+				);
 
 				const today = new Date().toISOString().split("T")[0];
 				const filteredAlbums = data.items
@@ -148,7 +152,9 @@ export function SpotifyApi() {
 			nextUrl = data.artists.next;
 		}
 
-		console.log(`${artists.length} followed artists fetched from spotify.`);
+		logger.info(
+			`getFollowedArtists:${artists.length} followed artists fetched from spotify.`,
+		);
 		return artists;
 	}
 
@@ -161,7 +167,7 @@ export function SpotifyApi() {
 			createHttpError(404, "No saved tracks found.");
 		}
 
-		console.log("Saved tracks fetched from Spotify.", data);
+		logger.info("getSavedTracks:Saved tracks fetched from Spotify.", data);
 		return data;
 	}
 
@@ -175,7 +181,7 @@ export function SpotifyApi() {
 			createHttpError(404, "No artist found.");
 		}
 
-		console.log("Single artist fetched from spotify.", {
+		logger.info("getSingleArtist:Single artist fetched from spotify.", {
 			id: data.id,
 			name: data.name,
 		});
@@ -189,7 +195,7 @@ export function SpotifyApi() {
 		);
 
 		const tracks = data.items.map((track: { uri: string }) => track.uri);
-		console.log("getAlbumTracks:Album tracks returned - ", tracks);
+		logger.info("getAlbumTracks:Album tracks returned - ", tracks);
 		return tracks;
 	}
 
@@ -198,6 +204,11 @@ export function SpotifyApi() {
 		playlistId: string,
 		trackUris: Array<string>,
 	) {
+		logger.info("addTracksToPlaylist:call post endpoint - ", {
+			playlistId,
+			trackUris: trackUris.length,
+		});
+
 		const res = await postRequest<SavedTrackToPlaylistI>(
 			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
 			token,
@@ -207,12 +218,14 @@ export function SpotifyApi() {
 		);
 
 		if (res.data.snapshot_id) {
-			console.log(`Added ${trackUris.length} tracks to playlist.`);
+			logger.info(
+				`addTracksToPlaylist:Added ${trackUris.length} tracks to playlist.`,
+			);
 			const data = { tracks: trackUris };
 			return { data, status: res.status };
 		}
 
-		console.error("Failed to add tracks to playlist.");
+		logger.error("addTracksToPlaylist:Failed to add tracks to playlist.");
 		return res;
 	}
 
@@ -234,7 +247,7 @@ export function SpotifyApi() {
 			{ headers: { Authorization: `Bearer ${token}` } },
 		);
 
-		console.log("Playlist created in Spotify:", playlist);
+		logger.info("createSpotifyPlaylist:Playlist created in Spotify:", playlist);
 		return playlist;
 	}
 

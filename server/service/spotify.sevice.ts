@@ -1,3 +1,4 @@
+import { logger } from "@client/utils/logger";
 import type { NewReleasesI, SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { User } from "@model/spotify/user";
@@ -59,7 +60,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			const { data } = await refreshToken(user.refresh_token);
 			user.access_token = data.access_token;
 			await saveUser(user);
-			console.log("Token refreshed.");
+			logger.info("getValidToken:Token refreshed.");
 			return data.access_token;
 		}
 	}
@@ -78,7 +79,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 		);
 
 		const { access_token, refresh_token } = data;
-		console.log("Tokens fetched from Spotify.", {
+		logger.info("getTokens:Tokens fetched from Spotify.", {
 			expires: data.expires_in,
 			redirect_uri: `${env.SERVER_URL}/api/callback`,
 		});
@@ -97,7 +98,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 	async function saveUser(user: User) {
 		const result = await repository.saveUser(user);
 
-		console.log("User saved in MongoDB.", result);
+		logger.info("saveUser:User saved in MongoDB.", result);
 		return result;
 	}
 
@@ -114,13 +115,16 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			}
 		}
 
-		console.log("Artists fetched from saved tracks.", artistMap.size);
+		logger.info(
+			"getSpotifyArtists:Artists fetched from saved tracks.",
+			artistMap.size,
+		);
 		return Array.from(artistMap.values());
 	}
 
 	async function saveArtists(userId: string, artists: Array<Artist>) {
 		if (artists.length === 0) {
-			console.log("No artists to save.");
+			logger.warn("saveArtists:No artists to save.");
 			return null;
 		}
 
@@ -134,14 +138,18 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 
 		const result = await repository.saveArtists(userId, artistsToSave);
 
-		console.log(`${artists.length} artists added/updated in the database.`);
+		logger.info(
+			`saveArtists:${artists.length} artists added/updated in the database.`,
+		);
 		return result;
 	}
 
 	async function removeSavedArtist(userId: string, id: string) {
 		const result = await repository.removeSavedArtist(userId, id);
 
-		console.log(`Removed artist with id: ${id} from the database.`);
+		logger.info(
+			`removeSavedArtist:Removed artist with id: ${id} from the database.`,
+		);
 		return result;
 	}
 
@@ -149,8 +157,8 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 		userId: string,
 	): Promise<Array<SavedArtistI>> {
 		const savedArtists = await repository.getAllArtists(userId);
-		console.log(
-			`Fetched ${savedArtists.length} saved artists for user ${userId}.`,
+		logger.info(
+			`getAllArtistsIds:Fetched ${savedArtists.length} saved artists for user ${userId}.`,
 		);
 
 		if (!savedArtists) {
@@ -167,11 +175,13 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 	) {
 		const artists = await repository.getAllArtists(userId);
 		if (!artists || artists.length === 0) {
-			console.log("No artists found for user:", userId);
+			logger.warn("fetchNewReleases:No artists found for user:", userId);
 			return [];
 		}
 
-		console.log(`${artists.length} Artists retrieved from MongoDB.`);
+		logger.info(
+			`fetchNewReleases:${artists.length} Artists retrieved from MongoDB.`,
+		);
 
 		const limit = pLimit(5);
 
@@ -181,8 +191,8 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 					try {
 						return await api.getArtistAlbums(token, artist.id, fromDate);
 					} catch (error) {
-						console.error(
-							`Failed to fetch albums for artist ${artist.id}:`,
+						logger.error(
+							`fetchNewReleases:Failed to fetch albums for artist ${artist.id}:`,
 							error,
 						);
 						return [];
@@ -206,8 +216,13 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			fromDate,
 		);
 
+		logger.info("updateUserPlaylist:All new releases collected from Spotify.", {
+			newReleases: newReleases.length,
+			userId,
+		});
+
 		if (newReleases.length === 0) {
-			console.log(`No new releases found for ${userId}`);
+			logger.warn(`updateUserPlaylist:No new releases found for ${userId}`);
 			return [];
 		}
 
@@ -226,6 +241,11 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			)
 		).flat();
 
+		logger.info("updateUserPlaylist:Flattened track Uris", {
+			trackUris: trackUris.length,
+			userId,
+		});
+
 		const result = await api.addTracksToPlaylist(token, playlist.id, trackUris);
 		return result;
 	}
@@ -233,17 +253,25 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 	async function getSpotifyPlaylist(userId: string, token: string) {
 		const existingPlaylist = await repository.getPlaylist(userId);
 		if (existingPlaylist) {
-			console.log("Playlist found in MongoDB:", existingPlaylist.name);
+			logger.info(
+				"getSpotifyPlaylist:Playlist found in MongoDB:",
+				existingPlaylist.name,
+			);
 			return existingPlaylist;
 		}
 
-		console.log(`No playlist found in MongoDB for ${userId}`);
+		logger.warn(
+			`getSpotifyPlaylist:No playlist found in MongoDB for ${userId}`,
+		);
 		const newPlaylist = await api.createSpotifyPlaylist(token);
 
 		if (newPlaylist) {
 			const res = await repository.createPlaylist(userId, newPlaylist);
 			if (res.acknowledged) {
-				console.log("Playlist created in MongoDB:", newPlaylist.name);
+				logger.info(
+					"getSpotifyPlaylist:Playlist created in MongoDB:",
+					newPlaylist.name,
+				);
 				return newPlaylist;
 			}
 		}
@@ -258,7 +286,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 		const playlist = await getSpotifyPlaylist(userId, token);
 
 		if (!playlist) {
-			console.log("No playlist found for user:", userId);
+			logger.warn("updateNewReleases:No playlist found for user:", userId);
 			return;
 		}
 
@@ -275,24 +303,41 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			const users = await repository.getAllUsers();
 
 			if (!users || users.length === 0) {
-				console.log("No users found for updating playlists.");
+				logger.warn(
+					"updatePlaylistsForAllUsers:No users found for updating playlists.",
+				);
 				return;
 			}
 
-			console.log(`Updating playlists for ${users.length} users.`);
+			logger.info(
+				`updatePlaylistsForAllUsers:Updating playlists for ${users.length} users.`,
+			);
 
 			const results = await Promise.allSettled(
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);
-						console.log(`token received for user ${user.userId}`, token);
+						logger.info(
+							`updatePlaylistsForAllUsers:token received for user ${user.userId}`,
+							token,
+						);
 
 						return await updateNewReleases(user.userId, token, fromDate);
 					} catch (error) {
-						console.error(
-							`Error updating playlist for user ${user.userId}:`,
-							(error as Error).message,
-						);
+						if (axios.isAxiosError(error)) {
+							logger.error(
+								`updatePlaylistsForAllUsers:Error updating playlist for user ${user.userId}:`,
+								{
+									status: error.response?.status,
+									message: error.response?.data || error.message,
+								},
+							);
+						} else {
+							logger.error(
+								"updatePlaylistsForAllUsers:An unexpected error occurred while updating user playlist:",
+								error,
+							);
+						}
 						return null;
 					}
 				}),
@@ -303,12 +348,19 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			);
 			const errors = results.filter((result) => result?.status === "rejected");
 
-			console.log(`Successful updates: ${successfulUpdates.length}`);
-			console.error(`Failed updates: ${errors.length}`);
+			logger.info(
+				`updatePlaylistsForAllUsers:Successful updates: ${successfulUpdates.length}`,
+			);
+			logger.error(
+				`updatePlaylistsForAllUsers:Failed updates: ${errors.length}`,
+			);
 
 			return results;
 		} catch (error) {
-			console.error("Error in updating playlists:", error);
+			logger.error(
+				"updatePlaylistsForAllUsers:Error in updating playlists:",
+				error,
+			);
 		}
 	}
 
