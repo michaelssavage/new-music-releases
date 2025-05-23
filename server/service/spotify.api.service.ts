@@ -1,4 +1,3 @@
-import { logger } from "@client/utils/logger";
 import type { ArtistAlbumsI, FollowedArtistsI } from "@model/spotify";
 import type { LikedTracksI } from "@model/spotify/liked-tracks";
 import type { Artist } from "@model/spotify/liked-tracks";
@@ -11,6 +10,7 @@ import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile } from "@model/spotify/user";
 import { SPOTIFY_API_URL } from "@server/utils/constants";
 import { getRequest, postRequest } from "@server/utils/fetch";
+import { logger } from "@server/utils/logger";
 import axios from "axios";
 import createHttpError from "http-errors";
 import type { SaveSongToPlaylistI } from "./types";

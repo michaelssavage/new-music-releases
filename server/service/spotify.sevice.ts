@@ -1,8 +1,8 @@
-import { logger } from "@client/utils/logger";
 import type { NewReleasesI, SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { User } from "@model/spotify/user";
 import type { SpotifyServiceI } from "@server/container/types";
+import { logger } from "@server/utils/logger";
 import axios from "axios";
 import createHttpError from "http-errors";
 import pLimit from "p-limit";
