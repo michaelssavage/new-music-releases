@@ -74,6 +74,10 @@ function Releases() {
 		},
 	});
 
+	console.log("!!!", {
+		items: data?.playlistItems?.items,
+	});
+
 	const tabs: Array<Tab> = [
 		{
 			key: "playlist",
@@ -103,7 +107,7 @@ function Releases() {
 
 					{data ? (
 						<PlaylistUpdatesTable
-							tracks={data?.playlistItems.items}
+							tracks={data?.playlistItems?.items}
 							userData={userData}
 						/>
 					) : (

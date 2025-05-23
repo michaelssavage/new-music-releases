@@ -7,13 +7,17 @@ import type { UserID } from "@model/spotify/user";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-export const isAuthValid = async (accessToken: string) => {
-	const res = await axios.get("/api/validate-token", {
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-		},
-	});
-	return res.data;
+export const isAuthValid = async (accessToken: string): Promise<boolean> => {
+	try {
+		const res = await axios.get("/api/validate-token", {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		});
+		return res.data.status === "OK";
+	} catch {
+		return false;
+	}
 };
 
 export async function refreshAuthToken(
@@ -26,11 +30,15 @@ export async function refreshAuthToken(
 		const { access_token } = data;
 
 		if (access_token) {
-			Cookies.set("spotify_access_token", access_token, { expires: 1 }); // 1 day expiration
+			Cookies.set("spotify_access_token", access_token, {
+				expires: new Date(Date.now() + 3600 * 1000),
+				sameSite: "Strict",
+				secure: process.env.NODE_ENV === "production",
+			}); // 1 hour
 			return access_token;
 		}
 	} catch (error) {
-		logger.error("Failed to refresh token:", error);
+		logger.error("refreshAuthToken:Failed to refresh token:", error);
 	}
 	return null;
 }
@@ -42,11 +50,11 @@ export const getUser = async (userId: UserID) => {
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get user:",
+				"getUser:Failed to get user:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("getUser:An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -57,7 +65,7 @@ export const saveArtist = async ({
 	data,
 }: { userId: UserID; data: Artist }) => {
 	try {
-		logger.info(`Saving ${data.name}`, data);
+		logger.info(`saveArtist:Saving ${data.name}`, data.id);
 		return await axios.post("/api/save-artists", {
 			userId,
 			artists: [data],
@@ -69,7 +77,7 @@ export const saveArtist = async ({
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("saveArtist:An unexpected error occurred:", error);
 		}
 	}
 };
@@ -80,16 +88,16 @@ export const removeArtist = async ({
 	id,
 }: { userId: UserID; name: string; id: string }) => {
 	try {
-		logger.info(`Removing Artist ${name} with id ${id}`);
+		logger.info(`removeArtist:Removing Artist ${name} with id ${id}`);
 		await axios.delete(`/api/remove-artist/${id}?userId=${userId}`);
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to remove artist:",
+				"removeArtist:Failed to remove artist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("removeArtist:An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -106,11 +114,11 @@ export const getArtist = async (id?: string) => {
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get artist:",
+				"getArtist:Failed to get artist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("getArtist:An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -124,23 +132,25 @@ export const getSavedArtists = async (userId: UserID) => {
 	}
 
 	try {
-		const status = await isAuthValid(accessToken);
-		if (status === "OK") {
+		const valid = await isAuthValid(accessToken);
+		if (valid) {
 			const res = await axios.get<Array<SavedArtistI>>(
 				`/api/get-artists?userId=${userId}`,
 			);
 			return res.data;
 		}
-		logger.error("Failed to get saved artists: Invalid access token");
+		logger.error(
+			"getSavedArtists:Failed to get saved artists: Invalid access token",
+		);
 		return [];
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get saved artists:",
+				"getSavedArtists:Failed to get saved artists:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("getSavedArtists:An unexpected error occurred:", error);
 		}
 		return [];
 	}
@@ -157,11 +167,11 @@ export const getUserTracks = async () => {
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get user tracks:",
+				"getUserTracks:Failed to get user tracks:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("getUserTracks:An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -181,11 +191,11 @@ export const getNextTracks = async (nextUrl: string) => {
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get next tracks:",
+				"getNextTracks:Failed to get next tracks:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("getNextTracks:An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -223,11 +233,11 @@ export const getSpotifyPlaylist = async (userId: UserID) => {
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get playlist:",
+				"getSpotifyPlaylist:Failed to get playlist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("getSpotifyPlaylist:An unexpected error occurred:", error);
 		}
 		return null;
 	}
@@ -247,11 +257,14 @@ export const updateSpotifyPlaylistReleases = async (userId: UserID) => {
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to get spotify playlist releases:",
+				"updateSpotifyPlaylistReleases:Failed to get spotify playlist releases:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error(
+				"updateSpotifyPlaylistReleases:An unexpected error occurred:",
+				error,
+			);
 		}
 		return null;
 	}
@@ -277,11 +290,11 @@ export const saveSongToPlaylist = async ({
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			logger.error(
-				"Failed to save song to playlist:",
+				"saveSongToPlaylist:Failed to save song to playlist:",
 				error.response?.data || error.message,
 			);
 		} else {
-			logger.error("An unexpected error occurred:", error);
+			logger.error("saveSongToPlaylist:An unexpected error occurred:", error);
 		}
 		return null;
 	}

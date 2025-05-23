@@ -146,10 +146,10 @@ export function SpotifyApi() {
 			`${SPOTIFY_API_URL}/me/following?type=artist&limit=50`;
 
 		while (nextUrl) {
-			const { data }: { data: FollowedArtistsI } =
+			const res: { data: FollowedArtistsI } =
 				await getRequest<FollowedArtistsI>(nextUrl, token);
-			artists = artists.concat(data.artists.items);
-			nextUrl = data.artists.next;
+			artists = artists.concat(res?.data.artists.items);
+			nextUrl = res?.data.artists.next;
 		}
 
 		logger.info(
@@ -252,12 +252,29 @@ export function SpotifyApi() {
 	}
 
 	async function getSpotifyPlaylistItems(token: string, playlistId: string) {
-		const playlistItems = await getRequest<PlaylistTracksI>(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			token,
-		);
+		let allItems: PlaylistTracksI["items"] = [];
+		let nextUrl: string | null =
+			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks?limit=100`;
 
-		return playlistItems;
+		while (nextUrl) {
+			const res: { data: PlaylistTracksI } = await getRequest<PlaylistTracksI>(
+				nextUrl,
+				token,
+			);
+
+			if (res?.data?.items) {
+				allItems = allItems.concat(res?.data.items);
+				nextUrl = res?.data.next;
+			} else {
+				break;
+			}
+		}
+
+		logger.info(
+			"getSpotifyPlaylistItems:get all playlist items in Spotify:",
+			allItems,
+		);
+		return { items: allItems };
 	}
 
 	async function saveSongToPlaylist({

@@ -1,11 +1,16 @@
 import axios from "axios";
 
+export interface ApiResponse<T> {
+	data: T;
+	status: number;
+}
+
 export async function getRequest<T>(
 	url: string,
 	token: string,
 	params?: Record<string, unknown>,
-): Promise<{ data: T; status: number }> {
-	const response = await axios.get(url, {
+): Promise<ApiResponse<T>> {
+	const response = await axios.get<T>(url, {
 		headers: { Authorization: `Bearer ${token}` },
 		params,
 	});
@@ -17,8 +22,8 @@ export async function postRequest<T>(
 	url: string,
 	token: string,
 	params?: Record<string, unknown>,
-): Promise<{ data: T; status: number }> {
-	const response = await axios.post(
+): Promise<ApiResponse<T>> {
+	const response = await axios.post<T>(
 		url,
 		{ params },
 		{

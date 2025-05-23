@@ -19,6 +19,10 @@ const LinkStyle = styled.a<IStyle>`
   gap: 4px;
   max-height: 40px;
 
+  > span {
+    white-space: nowrap;
+  }
+
   svg {
     flex-shrink: 0;
   }
@@ -100,7 +104,8 @@ export const Anchor = memo(
 				rel={isExternal ? "noopener noreferrer" : undefined}
 				target={isExternal ? "_blank" : undefined}
 			>
-				{text ? text : link} {isExternal && !icon ? <ExternalLinkIcon /> : icon}
+				{text ? <span>{text}</span> : link}{" "}
+				{isExternal && !icon ? <ExternalLinkIcon /> : icon}
 			</LinkStyle>
 		);
 	},

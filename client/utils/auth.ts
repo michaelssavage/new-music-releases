@@ -18,8 +18,8 @@ export async function checkAuthState(): Promise<AuthState> {
 	}
 
 	try {
-		const status = await isAuthValid(accessToken);
-		if (status === "OK") {
+		const valid = await isAuthValid(accessToken);
+		if (valid) {
 			return { isAuthenticated: true, accessToken };
 		}
 
@@ -64,9 +64,9 @@ export function setupAuthRefresh() {
 
 			if (refreshToken && accessToken) {
 				try {
-					const status = await isAuthValid(accessToken);
+					const valid = await isAuthValid(accessToken);
 
-					if (status !== "OK") {
+					if (valid) {
 						const newAccessToken = await refreshAuthToken(refreshToken);
 						if (newAccessToken) {
 							logger.info("Access token refreshed successfully.");

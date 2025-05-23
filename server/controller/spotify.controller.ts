@@ -85,7 +85,7 @@ export function SpotifyController({
 
 		try {
 			const status = await api.validateToken(token);
-			res.sendStatus(status);
+			res.status(status).json({ status: status === 200 ? "OK" : "Invalid" });
 		} catch (error) {
 			console.log("Error validating token:", error);
 			res.status(401).json({ error: "Invalid token" });
