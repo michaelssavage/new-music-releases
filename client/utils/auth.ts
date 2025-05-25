@@ -69,11 +69,16 @@ export function setupAuthRefresh() {
 					if (valid) {
 						const newAccessToken = await refreshAuthToken(refreshToken);
 						if (newAccessToken) {
-							logger.info("Access token refreshed successfully.");
+							logger.info(
+								"setupAuthRefresh:Access token refreshed successfully.",
+							);
 						}
 					}
 				} catch (error) {
-					console.error("Error during periodic token refresh:", error);
+					console.error(
+						"setupAuthRefresh:Error during periodic token refresh:",
+						error,
+					);
 				}
 			}
 		},

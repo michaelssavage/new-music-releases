@@ -74,10 +74,6 @@ function Releases() {
 		},
 	});
 
-	console.log("!!!", {
-		items: data?.playlistItems?.items,
-	});
-
 	const tabs: Array<Tab> = [
 		{
 			key: "playlist",

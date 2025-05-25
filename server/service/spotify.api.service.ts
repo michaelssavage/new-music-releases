@@ -167,7 +167,10 @@ export function SpotifyApi() {
 			createHttpError(404, "No saved tracks found.");
 		}
 
-		logger.info("getSavedTracks:Saved tracks fetched from Spotify.", data);
+		logger.info(
+			"getSavedTracks:Saved tracks fetched from Spotify.",
+			data.total,
+		);
 		return data;
 	}
 
@@ -195,7 +198,7 @@ export function SpotifyApi() {
 		);
 
 		const tracks = data.items.map((track: { uri: string }) => track.uri);
-		logger.info("getAlbumTracks:Album tracks returned - ", tracks);
+		logger.info("getAlbumTracks:Album tracks returned - ", tracks.length);
 		return tracks;
 	}
 
@@ -247,7 +250,10 @@ export function SpotifyApi() {
 			{ headers: { Authorization: `Bearer ${token}` } },
 		);
 
-		logger.info("createSpotifyPlaylist:Playlist created in Spotify:", playlist);
+		logger.info(
+			"createSpotifyPlaylist:Playlist created in Spotify:",
+			playlist.name,
+		);
 		return playlist;
 	}
 
@@ -272,7 +278,7 @@ export function SpotifyApi() {
 
 		logger.info(
 			"getSpotifyPlaylistItems:get all playlist items in Spotify:",
-			allItems,
+			allItems.length,
 		);
 		return { items: allItems };
 	}
