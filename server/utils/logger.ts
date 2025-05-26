@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -18,7 +19,7 @@ class Logger {
 		data?: unknown,
 	): LogMessage {
 		return {
-			timestamp: format(new Date(), "dd-MM-yyyy HH:mm:ss"),
+			timestamp: format(new Date(), "dd-MM-yyyy HH:mm:ss", { locale: es }),
 			level,
 			message,
 			data,

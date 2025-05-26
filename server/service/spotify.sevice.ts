@@ -189,7 +189,17 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			artists.map((artist) =>
 				limit(async () => {
 					try {
-						return await api.getArtistAlbums(token, artist.id, fromDate);
+						const release = await api.getArtistAlbums(
+							token,
+							artist.id,
+							fromDate,
+						);
+
+						logger.info(
+							`fetchNewReleases:Release returned for ${artist.id}:`,
+							release,
+						);
+						return release;
 					} catch (error) {
 						logger.error(
 							`fetchNewReleases:Failed to fetch albums for artist ${artist.id}:`,
@@ -351,9 +361,12 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			logger.info(
 				`updatePlaylistsForAllUsers:Successful updates: ${successfulUpdates.length}`,
 			);
-			logger.error(
-				`updatePlaylistsForAllUsers:Failed updates: ${errors.length}`,
-			);
+
+			if (errors.length > 0) {
+				logger.error(
+					`updatePlaylistsForAllUsers:Failed updates: ${errors.length}`,
+				);
+			}
 
 			return results;
 		} catch (error) {
