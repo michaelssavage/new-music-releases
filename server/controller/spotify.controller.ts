@@ -304,7 +304,7 @@ export function SpotifyController({
 		}
 
 		try {
-			const data = spotifyService.updateNewReleases(
+			const data = await spotifyService.updateNewReleases(
 				userId,
 				spotify_access_token,
 			);

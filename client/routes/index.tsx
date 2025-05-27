@@ -61,7 +61,9 @@ function Releases() {
 	const { isPending, mutate } = useMutation({
 		mutationFn: updateSpotifyPlaylistReleases,
 		onSuccess: (data) => {
-			if (Array.isArray(data.tracks) && data.tracks?.length > 0) {
+			if (!data) {
+				toast.custom(<Info text="No data returned" />);
+			} else if (Array.isArray(data.tracks) && data.tracks?.length > 0) {
 				toast.success("Fetched new playlist releases");
 				refetchPlaylist();
 			} else {

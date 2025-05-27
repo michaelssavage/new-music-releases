@@ -266,7 +266,7 @@ export const updateSpotifyPlaylistReleases = async (userId: UserID) => {
 				error,
 			);
 		}
-		return null;
+		throw error;
 	}
 };
 
