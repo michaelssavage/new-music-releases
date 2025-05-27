@@ -46,11 +46,6 @@ export function SpotifyApi() {
 					{ include_groups: "single,album,appears_on", limit: 4 },
 				);
 
-				logger.info(
-					`getArtistAlbums:Releases fetched for ${artistId}:`,
-					data.total,
-				);
-
 				const today = new Date().toISOString().split("T")[0];
 				const filteredAlbums = data.items
 					.filter(({ release_date }) => {
@@ -73,6 +68,11 @@ export function SpotifyApi() {
 						image: props.images[0].url,
 						url: props.external_urls.spotify,
 					}));
+
+				logger.debug(`getArtistAlbums:Releases fetched for ${artistId}:`, {
+					total: data.total,
+					filteredAlbumsToToday: filteredAlbums.length,
+				});
 
 				return filteredAlbums;
 			} catch (error) {
@@ -207,11 +207,6 @@ export function SpotifyApi() {
 		playlistId: string,
 		trackUris: Array<string>,
 	) {
-		logger.info("addTracksToPlaylist:call post endpoint - ", {
-			playlistId,
-			trackUris,
-		});
-
 		const res = await postRequest<SavedTrackToPlaylistI>(
 			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
 			token,
@@ -222,13 +217,20 @@ export function SpotifyApi() {
 
 		if (res.data.snapshot_id) {
 			logger.info(
-				`addTracksToPlaylist:Added ${trackUris.length} tracks to playlist.`,
+				`addTracksToPlaylist:Added ${trackUris.length} new track${trackUris.length !== 1 && "s"} to playlist.`,
+				{
+					playlistId,
+					trackUris,
+				},
 			);
 			const data = { tracks: trackUris };
 			return { data, status: res.status };
 		}
 
-		logger.error("addTracksToPlaylist:Failed to add tracks to playlist.");
+		logger.error("addTracksToPlaylist:Failed to add tracks to playlist.", {
+			playlistId,
+			trackUris,
+		});
 		return res;
 	}
 

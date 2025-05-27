@@ -60,7 +60,6 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 			const { data } = await refreshToken(user.refresh_token);
 			user.access_token = data.access_token;
 			await saveUser(user);
-			logger.info("getValidToken:Token refreshed.");
 			return data.access_token;
 		}
 	}
@@ -98,7 +97,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 	async function saveUser(user: User) {
 		const result = await repository.saveUser(user);
 
-		logger.info("saveUser:User saved in MongoDB.", result);
+		logger.debug("saveUser:User saved in MongoDB.", user);
 		return result;
 	}
 
@@ -195,9 +194,15 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 							fromDate,
 						);
 
-						logger.info(`fetchNewReleases:Release returned for ${artist.id}:`, {
-							release: release.map(({ name }) => name),
-						});
+						if (release.length > 0) {
+							logger.info(
+								`fetchNewReleases:Release returned for ${artist.id}:`,
+								{
+									release: release.map(({ name }) => name),
+								},
+							);
+						}
+
 						return release;
 					} catch (error) {
 						logger.error(
@@ -326,9 +331,8 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 				users.map(async (user) => {
 					try {
 						const token = await getValidToken(user);
-						logger.info(
+						logger.debug(
 							`updatePlaylistsForAllUsers:token received for user ${user.userId}`,
-							token,
 						);
 
 						return await updateNewReleases(user.userId, token, fromDate);
