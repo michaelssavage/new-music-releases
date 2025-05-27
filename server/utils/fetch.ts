@@ -21,18 +21,14 @@ export async function getRequest<T>(
 export async function postRequest<T>(
 	url: string,
 	token: string,
-	params?: Record<string, unknown>,
+	data?: Record<string, unknown>,
 ): Promise<ApiResponse<T>> {
-	const response = await axios.post<T>(
-		url,
-		{ params },
-		{
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
+	const response = await axios.post<T>(url, data, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
 		},
-	);
+	});
 
 	return { data: response.data, status: response.status };
 }

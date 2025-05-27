@@ -2,6 +2,7 @@ import type { Artist } from "@model/spotify/liked-tracks";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyControllerI } from "@server/container/types";
 import { getAuthorizationUrl, requireSpotifyToken } from "@server/utils/auth";
+import { logger } from "@server/utils/logger";
 import axios from "axios";
 import type { Request, Response } from "express";
 
@@ -44,7 +45,7 @@ export function SpotifyController({
 				`${frontend_uri}/callback?user_id=${userProfile.id}&access_token=${access_token}&refresh_token=${refresh_token}`,
 			);
 		} catch (error) {
-			console.error("Error during callback:", error);
+			logger.error("Error during callback:", error);
 			res.status(500).send("Authentication failed.");
 		}
 	}
@@ -67,7 +68,7 @@ export function SpotifyController({
 				res.status(500).json({ error: "Failed to refresh token" });
 			}
 		} catch (error) {
-			console.error("Error refreshing token:", error);
+			logger.error("Error refreshing token:", error);
 			res.status(500).send("Failed to refresh token.");
 		}
 	}
@@ -87,7 +88,7 @@ export function SpotifyController({
 			const status = await api.validateToken(token);
 			res.status(status).json({ status: status === 200 ? "OK" : "Invalid" });
 		} catch (error) {
-			console.log("Error validating token:", error);
+			logger.error("Error validating token:", error);
 			res.status(401).json({ error: "Invalid token" });
 		}
 	}
@@ -104,7 +105,7 @@ export function SpotifyController({
 			const response = await spotifyService.getUser(userId);
 			res.json(response);
 		} catch (error) {
-			console.error("Error saving artists:", error);
+			logger.error("Error saving artists:", error);
 			res.status(500).json({ error: "Failed to save artists" });
 		}
 	}
@@ -129,7 +130,7 @@ export function SpotifyController({
 			);
 			res.json(data);
 		} catch (error) {
-			console.error("Search error:", error);
+			logger.error("Search error:", error);
 			res.status(500).json({ error: "Failed to search" });
 		}
 	}
@@ -142,7 +143,7 @@ export function SpotifyController({
 			const tracks = await api.getSavedTracks(spotify_access_token as string);
 			res.json(tracks);
 		} catch (error) {
-			console.error("Error retrieving saved tracks:", error);
+			logger.error("Error retrieving saved tracks:", error);
 			res.status(500).json({ error: "Failed to retrieve saved tracks" });
 		}
 	}
@@ -157,7 +158,7 @@ export function SpotifyController({
 			);
 			res.json(artists);
 		} catch (error) {
-			console.error("Error retrieving artists:", error);
+			logger.error("Error retrieving artists:", error);
 			res.status(500).json({ error: "Failed to retrieve artists" });
 		}
 	}
@@ -179,7 +180,7 @@ export function SpotifyController({
 			await spotifyService.saveArtists(userId, artists);
 			res.status(201).json({ message: "Artists saved successfully" });
 		} catch (error) {
-			console.error("Error saving artists:", error);
+			logger.error("Error saving artists:", error);
 			res.status(500).json({ error: "Failed to save artists" });
 		}
 	}
@@ -202,7 +203,7 @@ export function SpotifyController({
 			);
 			res.json(artist);
 		} catch (error) {
-			console.error("Error retrieving artist:", error);
+			logger.error("Error retrieving artist:", error);
 			res.status(500).json({ error: "Failed to retrieve artist" });
 		}
 	}
@@ -219,7 +220,7 @@ export function SpotifyController({
 			const artistIds = await spotifyService.getAllArtistsIds(userId);
 			res.json(artistIds);
 		} catch (error) {
-			console.error("Error retrieving artists:", error);
+			logger.error("Error retrieving artists:", error);
 			res.status(500).json({ error: "Failed to retrieve artists" });
 		}
 	}
@@ -245,7 +246,7 @@ export function SpotifyController({
 			await spotifyService.removeSavedArtist(userId, id);
 			res.json({ message: "Artists removed successfully" });
 		} catch (error) {
-			console.error("Error removing artists:", error);
+			logger.error("Error removing artists:", error);
 			res.status(500).json({ error: "Failed to remove artists" });
 		}
 	}
@@ -287,7 +288,7 @@ export function SpotifyController({
 
 			res.json({ playlist, playlistItems });
 		} catch (error) {
-			console.error("Error retrieving playlist:", error);
+			logger.error("Error retrieving playlist:", error);
 			res.status(500).json({ error: "Failed to retrieve playlist" });
 		}
 	}
@@ -310,7 +311,7 @@ export function SpotifyController({
 			);
 			res.json(data);
 		} catch (error) {
-			console.error("Error updating playlist releases:", error);
+			logger.error("Error updating playlist releases:", error);
 			res.status(500).json({ error: "Failed to update playlist releases" });
 		}
 	}
@@ -346,7 +347,7 @@ export function SpotifyController({
 			});
 			res.json(data);
 		} catch (error) {
-			console.error("Error updating playlist releases:", error);
+			logger.error("Error updating playlist releases:", error);
 			res.status(500).json({ error: "Failed to update playlist releases" });
 		}
 	}
@@ -366,7 +367,7 @@ export function SpotifyController({
 			res.json(data);
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
-				console.log("Error retrieving recommendations:", {
+				logger.error("Error retrieving recommendations:", {
 					status: error?.status,
 					response: error?.response,
 				});
