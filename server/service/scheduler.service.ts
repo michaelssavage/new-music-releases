@@ -1,6 +1,5 @@
 import type { SchedulerServiceI } from "@server/container/types";
 import { logger } from "@server/utils/logger";
-import { CronJob } from "cron";
 
 interface ExecuteJobProps {
 	manual?: boolean;
@@ -12,50 +11,6 @@ export function SchedulerService({
 	spotifyService,
 }: SchedulerServiceI) {
 	let isJobRunning = false;
-
-	const job = new CronJob(
-		"0 22 * * *", // Run at 22:00 every day
-		async () => {
-			await executeJob({ manual: false });
-		},
-		null,
-		false,
-		"Europe/Madrid",
-	);
-
-	async function initialize(): Promise<void> {
-		try {
-			// Create index on executionTime if it doesn't exist
-			await repository.createIndex({ executionTime: -1 });
-
-			// Check if we missed any updates during downtime
-			const lastExecution = await repository.findOne(
-				{},
-				{ sort: { executionTime: -1 } },
-			);
-
-			const now = new Date();
-			const timeSinceLastRun = lastExecution
-				? now.getTime() - lastExecution.executionTime.getTime()
-				: Number.POSITIVE_INFINITY;
-
-			if (timeSinceLastRun > 24 * 60 * 60 * 1000) {
-				logger.info("Missed update detected, triggering immediate update...");
-				await executeJob({ manual: false });
-			}
-
-			job.start();
-			logger.info("Scheduler initialized successfully");
-		} catch (error) {
-			console.error("Failed to initialize scheduler:", error);
-			throw error;
-		}
-	}
-
-	function shutdown(): void {
-		job.stop();
-		logger.info("Scheduler shut down successfully");
-	}
 
 	async function executeJob({ manual, fromDate }: ExecuteJobProps) {
 		if (isJobRunning) {
@@ -111,5 +66,5 @@ export function SchedulerService({
 		}
 	}
 
-	return { initialize, shutdown, executeJob };
+	return { executeJob };
 }

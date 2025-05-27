@@ -57,7 +57,6 @@ app.use(errorMiddleware);
 async function startServer() {
 	try {
 		await spotifyService.initialize();
-		await schedulerService.initialize();
 
 		app.listen(PORT, () => {
 			logger.info(`Server is running on port ${PORT}`);
@@ -74,7 +73,6 @@ async function shutdown() {
 
 	try {
 		await spotifyService.shutdown();
-		await schedulerService.shutdown();
 
 		process.exit(0);
 	} catch (error) {
