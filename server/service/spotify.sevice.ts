@@ -195,10 +195,9 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 							fromDate,
 						);
 
-						logger.info(
-							`fetchNewReleases:Release returned for ${artist.id}:`,
-							release,
-						);
+						logger.info(`fetchNewReleases:Release returned for ${artist.id}:`, {
+							release: release.map(({ name }) => name),
+						});
 						return release;
 					} catch (error) {
 						logger.error(
