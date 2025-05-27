@@ -71,7 +71,7 @@ function Releases() {
 			}
 		},
 		onError: (error) => {
-			console.error(error);
+			console.error(error?.message);
 			toast.error("Failed to fetch new releases");
 		},
 	});

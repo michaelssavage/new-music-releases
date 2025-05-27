@@ -252,7 +252,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 		).flat();
 
 		logger.info("updateUserPlaylist:Flattened track Uris", {
-			trackUris: trackUris.length,
+			trackUris,
 			userId,
 		});
 

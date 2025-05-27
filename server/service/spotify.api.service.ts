@@ -209,7 +209,7 @@ export function SpotifyApi() {
 	) {
 		logger.info("addTracksToPlaylist:call post endpoint - ", {
 			playlistId,
-			trackUris: trackUris.length,
+			trackUris,
 		});
 
 		const res = await postRequest<SavedTrackToPlaylistI>(
