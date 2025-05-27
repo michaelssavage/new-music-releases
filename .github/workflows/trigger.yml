@@ -1,0 +1,17 @@
+name: Trigger Render Schedule
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight UTC
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: POST to Render App
+        run: |
+          curl -X POST https://new-music-releases.onrender.com/api/trigger-schedule \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.TRIGGER_TOKEN }}" \
+            --fail --show-error --max-time 300
