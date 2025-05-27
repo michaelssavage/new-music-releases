@@ -62,7 +62,7 @@ export const SearchBox = () => {
 	}, []);
 
 	const handleType = (newValue: MultiValue<TypeI>) => {
-		setType(newValue as TypeI[]);
+		setType(newValue as Array<TypeI>);
 	};
 
 	const { isPending, mutate } = useMutation({

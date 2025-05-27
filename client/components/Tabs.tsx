@@ -12,7 +12,7 @@ export interface Tab {
 }
 
 interface TabsProps {
-	data: Tab[];
+	data: Array<Tab>;
 	defaultTab?: string;
 	loading?: boolean;
 }

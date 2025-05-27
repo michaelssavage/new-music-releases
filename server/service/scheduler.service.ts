@@ -1,4 +1,5 @@
 import type { SchedulerServiceI } from "@server/container/types";
+import { logger } from "@server/utils/logger";
 import { CronJob } from "cron";
 
 interface ExecuteJobProps {
@@ -39,26 +40,26 @@ export function SchedulerService({
 				: Number.POSITIVE_INFINITY;
 
 			if (timeSinceLastRun > 24 * 60 * 60 * 1000) {
-				console.log("Missed update detected, triggering immediate update...");
+				logger.info("Missed update detected, triggering immediate update...");
 				await executeJob({ manual: false });
 			}
 
 			job.start();
-			console.log("Scheduler initialized successfully");
+			logger.info("Scheduler initialized successfully");
 		} catch (error) {
 			console.error("Failed to initialize scheduler:", error);
 			throw error;
 		}
 	}
 
-	async function shutdown(): Promise<void> {
+	function shutdown(): void {
 		job.stop();
-		console.log("Scheduler shut down successfully");
+		logger.info("Scheduler shut down successfully");
 	}
 
 	async function executeJob({ manual, fromDate }: ExecuteJobProps) {
 		if (isJobRunning) {
-			console.log("Previous job still running, skipping...");
+			logger.info("Previous job still running, skipping...");
 			return;
 		}
 
@@ -78,11 +79,11 @@ export function SchedulerService({
 
 			// if less than 20 hours since last successful run, skip
 			if (timeSinceLastRun < 20 * 60 * 60 * 1000 && !manual) {
-				console.log("Last execution was too recent, skipping...");
+				logger.info("Last execution was too recent, skipping...");
 				return;
 			}
 
-			console.log("Starting playlist update...");
+			logger.info("Starting playlist update...");
 			const result = await spotifyService.updatePlaylistsForAllUsers(fromDate);
 
 			// Log successful execution

@@ -105,7 +105,7 @@ export function SpotifyApi() {
 
 	async function getRecommendations(
 		token: string,
-		seedArtists: string[],
+		seedArtists: Array<string>,
 		limit: number,
 	) {
 		const stringifiedArtists = seedArtists.join(",");

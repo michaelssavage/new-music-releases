@@ -26,7 +26,7 @@ export function SpotifyController({
 	api,
 	env,
 }: SpotifyControllerI) {
-	async function loginHandler(_req: Request, res: Response): Promise<void> {
+	function loginHandler(_req: Request, res: Response): void {
 		const url = getAuthorizationUrl(
 			`${env.SERVER_URL}/api/callback`,
 			`${env.SPOTIFY_CLIENT_ID}`,
@@ -113,7 +113,7 @@ export function SpotifyController({
 	async function searchHandler(req: SearchQuery, res: Response): Promise<void> {
 		const { q, type, limit } = req.query;
 
-		if (!q || !type) {
+		if (!(q && type)) {
 			res.status(400).json({ error: "Missing required parameters" });
 			return;
 		}
@@ -166,7 +166,7 @@ export function SpotifyController({
 	async function saveArtists(req: SaveQuery, res: Response): Promise<void> {
 		const { artists, userId } = req.body;
 
-		if (!artists || !artists.length || !Array.isArray(artists)) {
+		if (!(artists?.length && Array.isArray(artists))) {
 			res.status(400).json({ error: "Invalid artists data" });
 			return;
 		}
@@ -325,7 +325,7 @@ export function SpotifyController({
 
 		const { userId, trackId } = req.body;
 
-		if (!userId || !trackId) {
+		if (!(userId && trackId)) {
 			res.status(400).json({ error: "Missing required parameters" });
 			return;
 		}

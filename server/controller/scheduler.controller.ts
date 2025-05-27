@@ -1,3 +1,4 @@
+import { logger } from "@server/utils/logger";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { SchedulerControllerI } from "../container/types";
@@ -41,7 +42,7 @@ export function SchedulerController({
 				return;
 			}
 
-			console.log("Triggering manual update", {
+			logger.info("Triggering manual update", {
 				fromDate: fromDate ? new Date(fromDate) : undefined,
 			});
 

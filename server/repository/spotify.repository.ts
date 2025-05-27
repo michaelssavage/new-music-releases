@@ -2,6 +2,7 @@ import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
 import type { User } from "@model/spotify/user";
+import { logger } from "@server/utils/logger";
 import { type Collection, type Db, MongoClient } from "mongodb";
 
 interface SpotifyRepositoryI {
@@ -23,13 +24,13 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 		userDb = db.collection("users");
 		artistDb = db.collection("saved_artists");
 		playlistDb = db.collection("playlist");
-		console.log("Connected to MongoDB.");
+		logger.info("Connected to MongoDB.");
 	}
 
 	async function disconnect(): Promise<void> {
 		if (client) {
 			await client.close();
-			console.log("Disconnected from MongoDB.");
+			logger.info("Disconnected from MongoDB.");
 		}
 	}
 
@@ -50,7 +51,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 	}
 
 	async function saveArtists(userId: string, artists: Array<SavedArtistI>) {
-		console.log(
+		logger.info(
 			`${userId} is saving artists: ${artists.map(({ name }) => name)}`,
 		);
 
@@ -90,7 +91,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 		const user = await userDb.findOne<{ saved_artists: Array<string> }>({
 			userId,
 		});
-		if (!user || !user.saved_artists || user.saved_artists.length === 0) {
+		if (!user?.saved_artists || user.saved_artists.length === 0) {
 			return [];
 		}
 

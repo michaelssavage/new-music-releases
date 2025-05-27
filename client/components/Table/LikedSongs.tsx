@@ -86,7 +86,7 @@ export const LikedSongsTable = () => {
 	const columnHelper = createColumnHelper<ShowItem>();
 	const [sorting, setSorting] = useState<SortingState>([]);
 
-	const [tracks, setTracks] = useState<ShowItem[]>([]);
+	const [tracks, setTracks] = useState<Array<ShowItem>>([]);
 	const [nextUrl, setNextUrl] = useState<string | null>(null);
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 

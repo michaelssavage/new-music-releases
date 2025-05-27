@@ -22,7 +22,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
@@ -171,13 +171,13 @@ export const SavedArtistsTable = () => {
 
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
 		setColumnFilters(value ? [{ id: "name", value }] : []);
 	};
 
 	const [artistId, setArtistId] = useState<string>();
-	const [removedArtists, setRemovedArtists] = useState<string[]>([]);
+	const [removedArtists, setRemovedArtists] = useState<Array<string>>([]);
 
 	const { savedArtists, userId } = useAppStore();
 

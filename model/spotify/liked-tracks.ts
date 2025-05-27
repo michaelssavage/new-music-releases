@@ -5,7 +5,7 @@ export interface LikedTracksI {
 	offset: number;
 	previous: string | null;
 	total: number;
-	items: ShowItem[];
+	items: Array<ShowItem>;
 }
 
 export interface ShowItem {
@@ -16,7 +16,7 @@ export interface ShowItem {
 export interface Track {
 	album: Album;
 	artists: Array<Artist>;
-	available_markets: string[];
+	available_markets: Array<string>;
 	disc_number: number;
 	duration_ms: number;
 	explicit: boolean;
@@ -39,18 +39,18 @@ export interface Track {
 export interface Album {
 	album_type: string;
 	total_tracks: number;
-	available_markets: string[];
+	available_markets: Array<string>;
 	external_urls: ExternalUrls;
 	href: string;
 	id: string;
-	images: Image[];
+	images: Array<Image>;
 	name: string;
 	release_date: string;
 	release_date_precision: string;
 	restrictions?: Restrictions;
 	type: string;
 	uri: string;
-	artists: Artist[];
+	artists: Array<Artist>;
 }
 
 export interface Artist {
@@ -61,7 +61,7 @@ export interface Artist {
 		href: string;
 		total: number;
 	};
-	genres: string[];
+	genres: Array<string>;
 	href: string;
 	id: string;
 	images: Array<Image>;

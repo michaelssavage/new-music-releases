@@ -59,7 +59,7 @@ export interface SpotifyPlaylistI {
 				album: {
 					album_type: string;
 					total_tracks: number;
-					available_markets: string[];
+					available_markets: Array<string>;
 					external_urls: {
 						spotify: string;
 					};
@@ -99,7 +99,7 @@ export interface SpotifyPlaylistI {
 					type: string;
 					uri: string;
 				}>;
-				available_markets: string[];
+				available_markets: Array<string>;
 				disc_number: number;
 				duration_ms: number;
 				explicit: boolean;

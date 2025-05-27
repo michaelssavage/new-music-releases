@@ -2,7 +2,7 @@ import { slideInAnimation } from "@client/styles/abstracts/animations.styled";
 import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type MouseEvent, type ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "./Button";
 import { CloseIcon } from "./Icons/Close";
@@ -63,7 +63,7 @@ interface ModalProps {
 export const Modal = ({ isOpen, setIsOpen, children, width }: ModalProps) => {
 	const backdrop = useRef(null);
 
-	const onBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+	const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
 		if (e.target === backdrop.current) {
 			requestAnimationFrame(() => setIsOpen(false));
 		}

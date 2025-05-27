@@ -23,7 +23,42 @@
 			"recommended": true,
 			"correctness": {
 				"noUnusedImports": "warn",
-				"noUnusedVariables": "warn"
+				"noUnusedVariables": "warn",
+				"noUndeclaredVariables": "error",
+				"noUnreachable": "error"
+			},
+			"suspicious": {
+				"noAsyncPromiseExecutor": "error",
+				"noThenProperty": "warn",
+				"noConsoleLog": "warn",
+				"noDebugger": "error",
+				"noEmptyBlockStatements": "error",
+				"noImplicitAnyLet": "error",
+				"useAwait": "error"
+			},
+			"complexity": {
+				"noVoid": "error",
+				"useLiteralKeys": "error",
+				"useSimplifiedLogicExpression": "warn"
+			},
+			"style": {
+				"noNegationElse": "warn",
+				"noParameterAssign": "error",
+				"noUnusedTemplateLiteral": "warn",
+				"useCollapsedElseIf": "warn",
+				"useConsistentArrayType": {
+					"level": "warn",
+					"options": {
+						"syntax": "generic"
+					}
+				},
+				"useForOf": "warn",
+				"useNodejsImportProtocol": "error",
+				"useNumberNamespace": "error",
+				"useShorthandFunctionType": "error"
+			},
+			"performance": {
+				"noAccumulatingSpread": "warn"
 			}
 		}
 	},

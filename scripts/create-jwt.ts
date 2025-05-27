@@ -1,9 +1,10 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { logger } from "@server/utils/logger";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
-(async () => {
+(() => {
 	const __filename = fileURLToPath(import.meta.url);
 	const __dirname = path.dirname(__filename);
 	const envPath = path.resolve(__dirname, "../.env");
@@ -14,6 +15,6 @@ import jwt from "jsonwebtoken";
 
 	if (secret) {
 		const token = jwt.sign(payload, secret);
-		console.log(token);
+		logger.info(token);
 	}
 })();

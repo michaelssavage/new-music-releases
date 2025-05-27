@@ -7,7 +7,7 @@ export interface PlaylistTracksI {
 	offset: number;
 	previous: string | null;
 	total: number;
-	items: ShowItem[];
+	items: Array<ShowItem>;
 }
 
 export interface ShowItem {

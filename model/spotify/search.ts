@@ -8,6 +8,6 @@ export interface SearchResponse {
 
 export interface SearchProps {
 	search: string;
-	type: string[];
+	type: Array<string>;
 	limit?: number;
 }

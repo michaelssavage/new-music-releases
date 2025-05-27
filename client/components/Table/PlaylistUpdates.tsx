@@ -1,5 +1,6 @@
 import { saveSongToPlaylist } from "@client/lib/spotify";
 import { displayDate } from "@client/utils/dates";
+import { logger } from "@client/utils/logger";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { Track } from "@model/spotify/liked-tracks";
@@ -100,10 +101,10 @@ export const PlaylistUpdatesTable = ({
 	const saveSongMutation = useMutation({
 		mutationFn: (props: SaveSongRequestI) => saveSongToPlaylist(props),
 		onSuccess: (data) => {
-			console.log("Song saved successfully!", data);
+			logger.info("Song saved successfully!", data);
 		},
 		onError: (error) => {
-			console.error("Error saving song:", error);
+			logger.error("Error saving song:", error);
 		},
 	});
 

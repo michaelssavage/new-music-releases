@@ -39,7 +39,7 @@ export async function checkAuthState(): Promise<AuthState> {
 export async function requireAuth() {
 	const { isAuthenticated, accessToken } = await checkAuthState();
 
-	if (!isAuthenticated || !accessToken) {
+	if (!(isAuthenticated && accessToken)) {
 		throw redirect({ to: "/login" });
 	}
 

@@ -45,6 +45,7 @@ class Logger {
 
 		switch (level) {
 			case "debug":
+				// biome-ignore lint/suspicious/noConsoleLog: logging
 				console.log(formattedMessage);
 				break;
 			case "info":

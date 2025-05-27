@@ -11,6 +11,7 @@ import { createServiceContainer } from "./container/index.js";
 import errorMiddleware from "./middleware/error.middleware.js";
 import { SchedulerRouter } from "./router/scheduler.router.js";
 import { SpotifyRouter } from "./router/spotify.router.js";
+import { logger } from "./utils/logger.js";
 import { resolvePath } from "./utils/resolvePath.js";
 
 const envPath = resolvePath(".env");
@@ -59,17 +60,17 @@ async function startServer() {
 		await schedulerService.initialize();
 
 		app.listen(PORT, () => {
-			console.log(`Server is running on port ${PORT}`);
+			logger.info(`Server is running on port ${PORT}`);
 		});
 	} catch (error) {
-		console.error("Failed to initialize services:", error);
+		logger.error("Failed to initialize services:", error);
 		await shutdown();
 		process.exit(1);
 	}
 }
 
 async function shutdown() {
-	console.log("Shutting down server...");
+	logger.info("Shutting down server...");
 
 	try {
 		await spotifyService.shutdown();
