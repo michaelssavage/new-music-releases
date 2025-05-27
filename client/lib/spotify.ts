@@ -273,13 +273,19 @@ export const updateSpotifyPlaylistReleases = async (userId: UserID) => {
 export const saveSongToPlaylist = async ({
 	userId,
 	trackId,
+	playlistId,
 }: SaveSongRequestI) => {
 	const spotify_access_token = Cookies.get("spotify_access_token");
+
+	if (!playlistId) {
+		logger.error("saveSongToPlaylist:No playlistId provided");
+		throw new Error("No playlistId provided");
+	}
 
 	try {
 		const res = await axios.post(
 			"/api/save-song-to-playlist",
-			{ userId, trackId },
+			{ userId, trackId, playlistId },
 			{
 				headers: {
 					spotify_access_token,
@@ -293,8 +299,34 @@ export const saveSongToPlaylist = async ({
 				"saveSongToPlaylist:Failed to save song to playlist:",
 				error.response?.data || error.message,
 			);
+			throw new Error(error.response?.data?.message || error.message);
+		}
+		logger.error("saveSongToPlaylist:An unexpected error occurred:", error);
+		throw new Error("Unknown error");
+	}
+};
+
+export const getPlaylistTracks = async (playlistId?: string) => {
+	const spotify_access_token = Cookies.get("spotify_access_token");
+
+	if (!playlistId) {
+		logger.error("getPlaylistTracks:No playlistId provided");
+		return null;
+	}
+
+	try {
+		const res = await axios.get(`/api/get-playlist-tracks/${playlistId}`, {
+			headers: { spotify_access_token },
+		});
+		return res.data;
+	} catch (error) {
+		if (axios.isAxiosError(error)) {
+			logger.error(
+				"getPlaylistTracks:Failed to get playlist tracks:",
+				error.response?.data || error.message,
+			);
 		} else {
-			logger.error("saveSongToPlaylist:An unexpected error occurred:", error);
+			logger.error("getPlaylistTracks:An unexpected error occurred:", error);
 		}
 		return null;
 	}

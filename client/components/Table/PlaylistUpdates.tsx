@@ -1,3 +1,4 @@
+import { useListenLater } from "@client/hooks/use-listen-later.hook";
 import { saveSongToPlaylist } from "@client/lib/spotify";
 import { displayDate } from "@client/utils/dates";
 import { logger } from "@client/utils/logger";
@@ -18,12 +19,15 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
 import { Group } from "../Group";
+import { FolderCheckIcon } from "../Icons/FolderCheck";
 import { PlusIcon } from "../Icons/Plus";
 import { SortIcon } from "../Icons/Sort";
 import { SpotifyIcon } from "../Icons/Spotify";
+import { Info } from "../InfoToast";
 
 interface PlaylistTableProps {
 	tracks: Array<ShowItem>;
@@ -78,6 +82,10 @@ const plusStyles = css`
 	svg {
 		color: #353232
 	}
+
+	&:disabled {
+		background-color: transparent;
+	}
 `;
 
 const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
@@ -98,10 +106,16 @@ export const PlaylistUpdatesTable = ({
 		},
 	]);
 
+	const { isTrackInListenLater, refetchListenLater } = useListenLater(
+		userData.listen_later_playlist,
+	);
+
 	const saveSongMutation = useMutation({
 		mutationFn: (props: SaveSongRequestI) => saveSongToPlaylist(props),
 		onSuccess: (data) => {
 			logger.info("Song saved successfully!", data);
+			toast.success("Song saved to Listen Later playlist!");
+			refetchListenLater();
 		},
 		onError: (error) => {
 			logger.error("Error saving song:", error);
@@ -109,10 +123,31 @@ export const PlaylistUpdatesTable = ({
 	});
 
 	const saveForLater = (track: Track) => {
+		if (isTrackInListenLater(track.id)) {
+			logger.info("Track already exists in Listen Later playlist");
+			toast.custom(
+				<Info text="Track already exists in Listen Later playlist" />,
+			);
+			return;
+		}
+
 		saveSongMutation.mutate({
 			userId: userData.userId,
 			trackId: track.id,
+			playlistId: userData.listen_later_playlist,
 		});
+	};
+
+	const renderListenLaterIcon = (trackId: string) => {
+		if (isTrackInListenLater(trackId)) {
+			return <FolderCheckIcon />;
+		}
+		return <PlusIcon />;
+	};
+
+	const disableListenLater = (trackId: string): boolean => {
+		if (!userData.listen_later_playlist) return true;
+		return isTrackInListenLater(trackId) || saveSongMutation.isPending;
 	};
 
 	const columns = [
@@ -149,7 +184,8 @@ export const PlaylistUpdatesTable = ({
 						<Button
 							onClick={() => saveForLater(info.row.original.track)}
 							variant="link"
-							icon={<PlusIcon />}
+							icon={renderListenLaterIcon(info.row.original.track.id)}
+							disabled={disableListenLater(info.row.original.track.id)}
 							styles={plusStyles}
 						/>
 					)}

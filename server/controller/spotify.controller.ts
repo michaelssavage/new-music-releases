@@ -251,6 +251,27 @@ export function SpotifyController({
 		}
 	}
 
+	async function getPlaylistTracks(req: Request, res: Response): Promise<void> {
+		const spotify_access_token = requireSpotifyToken(req, res);
+		if (!spotify_access_token) return;
+
+		const playlistId = req.params.playlistId as string;
+		if (!playlistId) {
+			res.status(400).json({ error: "No playlist id provided to get tracks" });
+			return;
+		}
+		try {
+			const playlistItems = await api.getSpotifyPlaylistItems(
+				spotify_access_token as string,
+				playlistId,
+			);
+			res.json(playlistItems);
+		} catch (error) {
+			logger.error("Error retrieving playlist tracks:", error);
+			res.status(500).json({ error: "Failed to retrieve playlist tracks" });
+		}
+	}
+
 	async function getSpotifyPlaylist(
 		req: Request,
 		res: Response,
@@ -323,7 +344,7 @@ export function SpotifyController({
 		const spotify_access_token = requireSpotifyToken(req, res);
 		if (!spotify_access_token) return;
 
-		const { userId, trackId } = req.body;
+		const { userId, trackId, playlistId } = req.body;
 
 		if (!(userId && trackId)) {
 			res.status(400).json({ error: "Missing required parameters" });
@@ -336,8 +357,6 @@ export function SpotifyController({
 			res.status(404).json({ error: "User not found" });
 			return;
 		}
-
-		const playlistId = user.listen_later_playlist as string;
 
 		try {
 			const data = await api.saveSongToPlaylist({
@@ -391,6 +410,8 @@ export function SpotifyController({
 		getSingleArtist,
 		getAllArtistsIds,
 		removeSavedArtist,
+		// playlist
+		getPlaylistTracks,
 		getSpotifyPlaylist,
 		updateNewReleases,
 		saveSongToPlaylist,

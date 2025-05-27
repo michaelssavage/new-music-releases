@@ -128,7 +128,6 @@ const ButtonStyled = styled.button<StyledI>`
   ${SpinnerStyled} {
     grid-column: 1;
     grid-row: 1;
-		opacity: ${({ isLoading }) => (isLoading ? 1 : 0)};
     transition: opacity 0.2s;
     height: 24px;
     width: 24px;
@@ -174,7 +173,7 @@ export const Button = ({
 				{text && <Text>{text}</Text>}
 				{icon ? icon : null}
 			</Content>
-			<Spinner />
+			{loading && <Spinner />}
 		</ButtonStyled>
 	);
 };

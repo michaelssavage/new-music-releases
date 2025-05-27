@@ -139,4 +139,5 @@ export interface SavedTrackToPlaylistI {
 export interface SaveSongRequestI {
 	trackId: string;
 	userId: string;
+	playlistId?: string;
 }

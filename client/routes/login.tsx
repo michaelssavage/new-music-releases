@@ -73,7 +73,7 @@ function Login() {
 				</p>
 				<Button
 					onClick={handleSignIn}
-					text="Sign in"
+					text="Log in with Spotify"
 					styles={customLoginStyles}
 				/>
 

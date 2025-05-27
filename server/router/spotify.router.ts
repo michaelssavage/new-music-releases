@@ -30,6 +30,10 @@ export function SpotifyRouter({
 	router.delete("/remove-artist/:id", spotifyController.removeSavedArtist);
 
 	router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
+	router.get(
+		"/get-playlist-tracks/:playlistId",
+		spotifyController.getPlaylistTracks,
+	);
 	router.get("/update-playlist-releases", spotifyController.updateNewReleases);
 	router.post("/save-song-to-playlist", spotifyController.saveSongToPlaylist);
 
