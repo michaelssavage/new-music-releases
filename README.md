@@ -1,11 +1,11 @@
 # new-music-releases
 
-Automatically share my saved artist's new releases to a Spotify playlist.
+Automatically collect my saved artist's new releases and add to a Spotify playlist.
 
 [New Music Releases write-up](https://michaelsavage.ie/projects/new-music-releases)
 
 ### Frontend
-- Create a frontend for searching for artists, tracks, or albums, then save the selections to a database.
+- UI for searching for artists, tracks, or albums, then save the selections to a database.
 - Edit and delete options
 
 ### Backend 
@@ -15,9 +15,6 @@ Automatically share my saved artist's new releases to a Spotify playlist.
 - CRON Job to get new releases at the same time each day
 
 Vite / React / Typescript / Express/ MongoDB
-
-### Scripts
-`npx tsx ./scripts/.....`
 
 
 ## Video Demo
