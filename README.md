@@ -1,4 +1,4 @@
-# new-music-releases
+# New Music Releases
 
 Automatically collecting my saved artist's new releases and adding them to a Spotify playlist.
 
