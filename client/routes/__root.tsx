@@ -14,42 +14,42 @@ import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 export const Route = createRootRoute({
-	component: RootComponent,
+  component: RootComponent,
 });
 
 function RootComponent() {
-	const { userId, setSavedArtists, setRefetchArtists } = useAppStore();
+  const { userId, setSavedArtists, setRefetchArtists } = useAppStore();
 
-	useEffect(() => {
-		setupAuthRefresh();
-	}, []);
+  useEffect(() => {
+    setupAuthRefresh();
+  }, []);
 
-	const { data, refetch } = useQuery<Array<SavedArtistI>>({
-		queryKey: ["root", userId],
-		queryFn: () => getSavedArtists(userId),
-		enabled: userId !== null,
-		refetchOnWindowFocus: false,
-		refetchOnMount: false,
-	});
+  const { data, refetch } = useQuery<Array<SavedArtistI>>({
+    queryKey: ["root", userId],
+    queryFn: () => getSavedArtists(userId),
+    enabled: userId !== null,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
-	useEffect(() => {
-		if (data) {
-			setSavedArtists(data);
-			setRefetchArtists(refetch);
-		}
-	}, [data, setSavedArtists, setRefetchArtists, refetch]);
+  useEffect(() => {
+    if (data) {
+      setSavedArtists(data);
+      setRefetchArtists(refetch);
+    }
+  }, [data, setSavedArtists, setRefetchArtists, refetch]);
 
-	const isLoginRoute = useMatch({ from: "/login", shouldThrow: false });
+  const isLoginRoute = useMatch({ from: "/login", shouldThrow: false });
 
-	return (
-		<TabsContextProvider>
-			<Global styles={globalStyles()} />
-			<Toaster position="top-right" reverseOrder />
-			{!isLoginRoute && <Navbar />}
-			<ErrorBoundary>
-				<Outlet />
-			</ErrorBoundary>
-			<TanStackRouterDevtools position="bottom-right" />
-		</TabsContextProvider>
-	);
+  return (
+    <TabsContextProvider>
+      <Global styles={globalStyles()} />
+      <Toaster position="top-right" reverseOrder />
+      {!isLoginRoute && <Navbar />}
+      <ErrorBoundary>
+        <Outlet />
+      </ErrorBoundary>
+      <TanStackRouterDevtools position="bottom-right" />
+    </TabsContextProvider>
+  );
 }

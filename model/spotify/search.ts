@@ -1,13 +1,13 @@
 import type { Album, Artist, Track } from "./liked-tracks";
 
 export interface SearchResponse {
-	tracks: Array<Track>;
-	artists: Array<Artist>;
-	albums: Array<Album>;
+  tracks: Array<Track>;
+  artists: Array<Artist>;
+  albums: Array<Album>;
 }
 
 export interface SearchProps {
-	search: string;
-	type: Array<string>;
-	limit?: number;
+  search: string;
+  type: Array<string>;
+  limit?: number;
 }

@@ -5,13 +5,13 @@ import makeAnimated from "react-select/animated";
 import { Group } from "../Group";
 
 interface Props {
-	id: string;
-	label?: string;
-	options: Array<{ value: string; label: string }>;
-	value: Array<{ value: string; label: string }>;
-	onChange: (e: MultiValue<TypeI>) => void;
-	isMulti?: boolean;
-	closeMenuOnSelect?: boolean;
+  id: string;
+  label?: string;
+  options: Array<{ value: string; label: string }>;
+  value: Array<{ value: string; label: string }>;
+  onChange: (e: MultiValue<TypeI>) => void;
+  isMulti?: boolean;
+  closeMenuOnSelect?: boolean;
 }
 
 const Label = styled.label`
@@ -19,27 +19,27 @@ const Label = styled.label`
 `;
 
 export const Select = ({
-	id,
-	label,
-	options,
-	value,
-	onChange,
-	closeMenuOnSelect = false,
+  id,
+  label,
+  options,
+  value,
+  onChange,
+  closeMenuOnSelect = false,
 }: Props) => {
-	const animatedComponents = makeAnimated();
+  const animatedComponents = makeAnimated();
 
-	return (
-		<Group direction="column" gap="0.2rem" align="flex-start">
-			<Label htmlFor={id}>{label}</Label>
-			<ReactSelect
-				id={id}
-				components={animatedComponents}
-				options={options}
-				value={value}
-				onChange={onChange}
-				closeMenuOnSelect={closeMenuOnSelect}
-				isMulti={true}
-			/>
-		</Group>
-	);
+  return (
+    <Group direction="column" gap="0.2rem" align="flex-start">
+      <Label htmlFor={id}>{label}</Label>
+      <ReactSelect
+        id={id}
+        components={animatedComponents}
+        options={options}
+        value={value}
+        onChange={onChange}
+        closeMenuOnSelect={closeMenuOnSelect}
+        isMulti={true}
+      />
+    </Group>
+  );
 };

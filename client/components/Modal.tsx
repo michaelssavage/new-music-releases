@@ -15,17 +15,17 @@ const Backdrop = styled.div`
   left: 0;
   width: 100%;
   height: 100vh;
-	overflow-y: auto;
+  overflow-y: auto;
 `;
 
 const Container = styled.div<{ width?: string }>`
   background-color: #f5faf7;
   max-width: ${({ width }) => width || "700px"};
-	border-radius: 4px;
+  border-radius: 4px;
   margin: 50px auto;
   padding: 2.5rem;
   transform-origin: center center;
-	position: relative;
+  position: relative;
 
   ${slideInAnimation("100px")}
 
@@ -48,61 +48,61 @@ const Header = styled.div`
   align-items: center;
   margin-bottom: 1rem;
 
-	position: absolute;
-	top: 0;
-	right: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
 `;
 
 interface ModalProps {
-	isOpen: boolean;
-	setIsOpen: (state: boolean) => void;
-	children: ReactNode;
-	width?: string;
+  isOpen: boolean;
+  setIsOpen: (state: boolean) => void;
+  children: ReactNode;
+  width?: string;
 }
 
 export const Modal = ({ isOpen, setIsOpen, children, width }: ModalProps) => {
-	const backdrop = useRef(null);
+  const backdrop = useRef(null);
 
-	const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
-		if (e.target === backdrop.current) {
-			requestAnimationFrame(() => setIsOpen(false));
-		}
-	};
+  const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target === backdrop.current) {
+      requestAnimationFrame(() => setIsOpen(false));
+    }
+  };
 
-	useEffect(() => {
-		const handleKeydown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setIsOpen(false);
-		};
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
 
-		if (isOpen) {
-			document.addEventListener("keydown", handleKeydown);
-		} else {
-			document.body.style.overflow = "auto";
-		}
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeydown);
+    } else {
+      document.body.style.overflow = "auto";
+    }
 
-		return () => {
-			document.removeEventListener("keydown", handleKeydown);
-			document.body.style.overflow = "auto";
-		};
-	}, [isOpen, setIsOpen]);
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen, setIsOpen]);
 
-	return createPortal(
-		isOpen && (
-			<Backdrop ref={backdrop} onClick={onBackdropClick}>
-				<Container width={width}>
-					<Header>
-						<Button
-							onClick={() => setIsOpen(false)}
-							variant="ghost"
-							aria-label="Close Modal"
-							text="Close"
-							icon={<CloseIcon />}
-						/>
-					</Header>
-					<div>{children}</div>
-				</Container>
-			</Backdrop>
-		),
-		document.body,
-	);
+  return createPortal(
+    isOpen && (
+      <Backdrop ref={backdrop} onClick={onBackdropClick}>
+        <Container width={width}>
+          <Header>
+            <Button
+              onClick={() => setIsOpen(false)}
+              variant="ghost"
+              aria-label="Close Modal"
+              text="Close"
+              icon={<CloseIcon />}
+            />
+          </Header>
+          <div>{children}</div>
+        </Container>
+      </Backdrop>
+    ),
+    document.body
+  );
 };

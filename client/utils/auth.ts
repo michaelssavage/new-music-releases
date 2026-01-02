@@ -5,83 +5,83 @@ import Cookies from "js-cookie";
 import { logger } from "./logger";
 
 interface AuthState {
-	isAuthenticated: boolean;
-	accessToken: string | null;
+  isAuthenticated: boolean;
+  accessToken: string | null;
 }
 
 export async function checkAuthState(): Promise<AuthState> {
-	const accessToken = Cookies.get("spotify_access_token");
-	const refreshToken = Cookies.get("spotify_refresh_token");
+  const accessToken = Cookies.get("spotify_access_token");
+  const refreshToken = Cookies.get("spotify_refresh_token");
 
-	if (!accessToken) {
-		return { isAuthenticated: false, accessToken: null };
-	}
+  if (!accessToken) {
+    return { isAuthenticated: false, accessToken: null };
+  }
 
-	try {
-		const valid = await isAuthValid(accessToken);
-		if (valid) {
-			return { isAuthenticated: true, accessToken };
-		}
+  try {
+    const valid = await isAuthValid(accessToken);
+    if (valid) {
+      return { isAuthenticated: true, accessToken };
+    }
 
-		if (refreshToken) {
-			const newAccessToken = await refreshAuthToken(refreshToken);
-			if (newAccessToken) {
-				return { isAuthenticated: true, accessToken: newAccessToken };
-			}
-		}
-	} catch (error) {
-		console.error("Auth validation error:", error);
-	}
+    if (refreshToken) {
+      const newAccessToken = await refreshAuthToken(refreshToken);
+      if (newAccessToken) {
+        return { isAuthenticated: true, accessToken: newAccessToken };
+      }
+    }
+  } catch (error) {
+    console.error("Auth validation error:", error);
+  }
 
-	return { isAuthenticated: false, accessToken: null };
+  return { isAuthenticated: false, accessToken: null };
 }
 
 export async function requireAuth() {
-	const { isAuthenticated, accessToken } = await checkAuthState();
+  const { isAuthenticated, accessToken } = await checkAuthState();
 
-	if (!(isAuthenticated && accessToken)) {
-		throw redirect({ to: "/login" });
-	}
+  if (!(isAuthenticated && accessToken)) {
+    throw redirect({ to: "/login" });
+  }
 
-	return { isAuthenticated, accessToken };
+  return { isAuthenticated, accessToken };
 }
 
 export async function requireUnauth() {
-	const { isAuthenticated } = await checkAuthState();
+  const { isAuthenticated } = await checkAuthState();
 
-	if (isAuthenticated) {
-		throw redirect({ to: "/" });
-	}
+  if (isAuthenticated) {
+    throw redirect({ to: "/" });
+  }
 
-	return { isAuthenticated };
+  return { isAuthenticated };
 }
 
 export function setupAuthRefresh() {
-	setInterval(
-		async () => {
-			const refreshToken = Cookies.get("spotify_refresh_token");
-			const accessToken = Cookies.get("spotify_access_token");
+  setInterval(
+    async () => {
+      const refreshToken = Cookies.get("spotify_refresh_token");
+      const accessToken = Cookies.get("spotify_access_token");
 
-			if (refreshToken && accessToken) {
-				try {
-					const valid = await isAuthValid(accessToken);
+      if (refreshToken && accessToken) {
+        try {
+          const valid = await isAuthValid(accessToken);
 
-					if (valid) {
-						const newAccessToken = await refreshAuthToken(refreshToken);
-						if (newAccessToken) {
-							logger.info(
-								"setupAuthRefresh:Access token refreshed successfully.",
-							);
-						}
-					}
-				} catch (error) {
-					console.error(
-						"setupAuthRefresh:Error during periodic token refresh:",
-						error,
-					);
-				}
-			}
-		},
-		4 * 60 * 1000,
-	);
+          if (valid) {
+            const newAccessToken = await refreshAuthToken(refreshToken);
+            if (newAccessToken) {
+              logger.info(
+                "setupAuthRefresh:Access token refreshed successfully."
+              );
+            }
+          }
+        } catch (error) {
+          console.error(
+            "setupAuthRefresh:Error during periodic token refresh:",
+            error
+          );
+        }
+      }
+    },
+    4 * 60 * 1000
+  );
 }

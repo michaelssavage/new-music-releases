@@ -10,72 +10,72 @@ import { Group } from "../Group";
 import { CardWrapper, Content, Fact, Genres } from "./Card.styled";
 
 interface CardI {
-	image: string;
-	artist: Artist;
+  image: string;
+  artist: Artist;
 }
 
 export const ArtistCard = ({ image, artist }: CardI) => {
-	const {
-		id,
-		name,
-		genres,
-		followers = null,
-		external_urls: { spotify: link },
-	} = artist;
+  const {
+    id,
+    name,
+    genres,
+    followers = null,
+    external_urls: { spotify: link },
+  } = artist;
 
-	const { savedArtists, userId, refetchArtists } = useAppStore();
+  const { savedArtists, userId, refetchArtists } = useAppStore();
 
-	const isSaved = savedArtists.some((savedArtist) => savedArtist.id === id);
+  const isSaved = savedArtists.some((savedArtist) => savedArtist.id === id);
 
-	const handleRefetch = () => {
-		if (refetchArtists) refetchArtists();
-		else {
-			console.error("Refetch function is not set in the store");
-		}
-	};
+  const handleRefetch = () => {
+    if (refetchArtists) refetchArtists();
+    else {
+      console.error("Refetch function is not set in the store");
+    }
+  };
 
-	const { isPending: loadingSave, mutate: mutateSave } = useMutation({
-		mutationFn: saveArtist,
-		onSuccess: () => {
-			toast.success("Artist saved!");
-			handleRefetch();
-		},
-	});
+  const { isPending: loadingSave, mutate: mutateSave } = useMutation({
+    mutationFn: saveArtist,
+    onSuccess: () => {
+      toast.success("Artist saved!");
+      handleRefetch();
+    },
+  });
 
-	const { isPending: loadingRemove, mutate: mutateRemove } = useMutation({
-		mutationFn: removeArtist,
-		onSuccess: () => {
-			toast.success("Artist removed!");
-			handleRefetch();
-		},
-	});
+  const { isPending: loadingRemove, mutate: mutateRemove } = useMutation({
+    mutationFn: removeArtist,
+    onSuccess: () => {
+      toast.success("Artist removed!");
+      handleRefetch();
+    },
+  });
 
-	const handleAction = () => {
-		if (isSaved) mutateRemove({ userId, name, id });
-		else mutateSave({ userId, data: artist });
-	};
+  const handleAction = () => {
+    if (isSaved) mutateRemove({ userId, name, id });
+    else mutateSave({ userId, data: artist });
+  };
 
-	return (
-		<CardWrapper>
-			<img src={image ? image : noPhoto} alt={name} />
+  return (
+    <CardWrapper>
+      <img src={image ? image : noPhoto} alt={name} />
 
-			<h2>{name}</h2>
+      <h2>{name}</h2>
 
-			<Content>
-				{followers && (
-					<Fact>{`${followers.total.toLocaleString()} Followers`}</Fact>
-				)}
-				{genres?.length ? <Genres>Genres: {genres.join(", ")}</Genres> : null}
-				<Group>
-					<Button
-						onClick={handleAction}
-						variant={isSaved ? "remove" : undefined}
-						text={`${isSaved ? "Remove" : "Save"} Artist`}
-						loading={loadingSave || loadingRemove}
-					/>
-					{link && <Anchor link={link} text="Open Artist" isExternal />}
-				</Group>
-			</Content>
-		</CardWrapper>
-	);
+      <Content>
+        {followers && (
+          <Fact>{`${followers.total.toLocaleString()} Followers`}</Fact>
+        )}
+        {genres?.length ? <Genres>Genres: {genres.join(", ")}</Genres> : null}
+        <Group>
+          <Button
+            onClick={handleAction}
+            variant={isSaved ? "remove" : undefined}
+            text={`${isSaved ? "Remove" : "Save"} Artist`}
+            loading={loadingSave || loadingRemove}
+          />
+          {link && <Anchor link={link} text="Open Artist" isExternal />}
+        </Group>
+      </Content>
+    </CardWrapper>
+  );
 };

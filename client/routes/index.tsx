@@ -10,9 +10,9 @@ import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
 import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
 import { type Tab, Tabs } from "@client/components/Tabs";
 import {
-	getSpotifyPlaylist,
-	getUser,
-	updateSpotifyPlaylistReleases,
+  getSpotifyPlaylist,
+  getUser,
+  updateSpotifyPlaylistReleases,
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
@@ -25,8 +25,8 @@ import {} from "date-fns";
 import { toast } from "react-hot-toast";
 
 export const Route = createFileRoute("/")({
-	beforeLoad: async () => await requireAuth(),
-	component: Releases,
+  beforeLoad: async () => await requireAuth(),
+  component: Releases,
 });
 
 const Content = styled.div`
@@ -34,117 +34,117 @@ const Content = styled.div`
 `;
 
 const LoadingStyled = styled.div`
-	margin: 4rem auto;
-	width: 100%;
-	display: flex;
-	justify-content: center;
+  margin: 4rem auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 `;
 
 function Releases() {
-	const { savedArtists, userId } = useAppStore();
+  const { savedArtists, userId } = useAppStore();
 
-	const { data: userData } = useQuery({
-		queryKey: ["user", userId],
-		queryFn: () => getUser(userId),
-	});
+  const { data: userData } = useQuery({
+    queryKey: ["user", userId],
+    queryFn: () => getUser(userId),
+  });
 
-	const {
-		data,
-		refetch: refetchPlaylist,
-		isLoading,
-	} = useQuery<SpotifyDataProps | null>({
-		queryKey: ["playlist"],
-		queryFn: () => getSpotifyPlaylist(userId),
-		refetchOnWindowFocus: false,
-	});
+  const {
+    data,
+    refetch: refetchPlaylist,
+    isLoading,
+  } = useQuery<SpotifyDataProps | null>({
+    queryKey: ["playlist"],
+    queryFn: () => getSpotifyPlaylist(userId),
+    refetchOnWindowFocus: false,
+  });
 
-	const { isPending, mutate } = useMutation({
-		mutationFn: updateSpotifyPlaylistReleases,
-		onSuccess: (data) => {
-			if (!data) {
-				toast.custom(<Info text="No data returned" />);
-			} else if (Array.isArray(data.tracks) && data.tracks?.length > 0) {
-				toast.success("Fetched new playlist releases");
-				refetchPlaylist();
-			} else {
-				toast.custom(<Info text="No new releases found" />);
-			}
-		},
-		onError: (error) => {
-			console.error(error?.message);
-			toast.error("Failed to fetch new releases");
-		},
-	});
+  const { isPending, mutate } = useMutation({
+    mutationFn: updateSpotifyPlaylistReleases,
+    onSuccess: (data) => {
+      if (!data) {
+        toast.custom(<Info text="No data returned" />);
+      } else if (Array.isArray(data.tracks) && data.tracks?.length > 0) {
+        toast.success("Fetched new playlist releases");
+        refetchPlaylist();
+      } else {
+        toast.custom(<Info text="No new releases found" />);
+      }
+    },
+    onError: (error) => {
+      console.error(error?.message);
+      toast.error("Failed to fetch new releases");
+    },
+  });
 
-	const tabs: Array<Tab> = [
-		{
-			key: "playlist",
-			tab: "Playlist Updates",
-			panel: (
-				<Panel direction="column">
-					<Group justify="center" width="100%">
-						{userData?.roles?.includes("admin") && (
-							<Button
-								onClick={() => mutate(userId)}
-								text="Fetch new releases"
-								variant="secondary"
-								loading={isPending}
-							/>
-						)}
+  const tabs: Array<Tab> = [
+    {
+      key: "playlist",
+      tab: "Playlist Updates",
+      panel: (
+        <Panel direction="column">
+          <Group justify="center" width="100%">
+            {userData?.roles?.includes("admin") && (
+              <Button
+                onClick={() => mutate(userId)}
+                text="Fetch new releases"
+                variant="secondary"
+                loading={isPending}
+              />
+            )}
 
-						{data?.playlist && (
-							<Anchor
-								link={data?.playlist.external_urls.spotify}
-								text="Open playlist"
-								variant="secondary"
-								icon={<SpotifyIcon />}
-								isExternal
-							/>
-						)}
-					</Group>
+            {data?.playlist && (
+              <Anchor
+                link={data?.playlist.external_urls.spotify}
+                text="Open playlist"
+                variant="secondary"
+                icon={<SpotifyIcon />}
+                isExternal
+              />
+            )}
+          </Group>
 
-					{data ? (
-						<PlaylistUpdatesTable
-							tracks={data?.playlistItems?.items}
-							userData={userData}
-						/>
-					) : (
-						<p>No tracks found</p>
-					)}
-				</Panel>
-			),
-		},
-		{
-			key: "artists",
-			tab: `Saved Artists (${savedArtists.length})`,
-			panel: (
-				<Panel>
-					<SavedArtistsTable />
-				</Panel>
-			),
-		},
-		{
-			key: "liked",
-			tab: "Liked Songs",
-			panel: (
-				<Panel>
-					<LikedSongsTable />
-				</Panel>
-			),
-		},
-	];
+          {data ? (
+            <PlaylistUpdatesTable
+              tracks={data?.playlistItems?.items}
+              userData={userData}
+            />
+          ) : (
+            <p>No tracks found</p>
+          )}
+        </Panel>
+      ),
+    },
+    {
+      key: "artists",
+      tab: `Saved Artists (${savedArtists.length})`,
+      panel: (
+        <Panel>
+          <SavedArtistsTable />
+        </Panel>
+      ),
+    },
+    {
+      key: "liked",
+      tab: "Liked Songs",
+      panel: (
+        <Panel>
+          <LikedSongsTable />
+        </Panel>
+      ),
+    },
+  ];
 
-	if (isLoading) {
-		return (
-			<LoadingStyled>
-				<Loader />
-			</LoadingStyled>
-		);
-	}
+  if (isLoading) {
+    return (
+      <LoadingStyled>
+        <Loader />
+      </LoadingStyled>
+    );
+  }
 
-	return (
-		<Content>
-			<Tabs data={tabs} defaultTab="playlist" />
-		</Content>
-	);
+  return (
+    <Content>
+      <Tabs data={tabs} defaultTab="playlist" />
+    </Content>
+  );
 }

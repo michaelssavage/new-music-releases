@@ -31,7 +31,7 @@ export const SpinnerStyled = styled.svg`
   margin: 0 auto;
   transform-origin: center;
   animation: ${rotate} 2s linear infinite;
-  
+
   circle {
     stroke: currentColor;
     stroke-width: 4;
@@ -42,17 +42,17 @@ export const SpinnerStyled = styled.svg`
 `;
 
 export const Spinner = ({ size = 24, color = "currentColor" }) => {
-	return (
-		<SpinnerStyled
-			role="img"
-			aria-label="Loading spinner"
-			width={size}
-			height={size}
-			viewBox="0 0 50 50"
-			xmlns="http://www.w3.org/2000/svg"
-			color={color}
-		>
-			<circle cx="25" cy="25" r="20" />
-		</SpinnerStyled>
-	);
+  return (
+    <SpinnerStyled
+      role="img"
+      aria-label="Loading spinner"
+      width={size}
+      height={size}
+      viewBox="0 0 50 50"
+      xmlns="http://www.w3.org/2000/svg"
+      color={color}
+    >
+      <circle cx="25" cy="25" r="20" />
+    </SpinnerStyled>
+  );
 };

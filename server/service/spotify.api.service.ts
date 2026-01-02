@@ -1,9 +1,8 @@
 import type { ArtistAlbumsI, FollowedArtistsI } from "@model/spotify";
-import type { LikedTracksI } from "@model/spotify/liked-tracks";
-import type { Artist } from "@model/spotify/liked-tracks";
+import type { Artist, LikedTracksI } from "@model/spotify/liked-tracks";
 import type {
-	SavedTrackToPlaylistI,
-	SpotifyPlaylistI,
+  SavedTrackToPlaylistI,
+  SpotifyPlaylistI,
 } from "@model/spotify/playlist";
 import type { SearchResponse } from "@model/spotify/search";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
@@ -16,309 +15,309 @@ import createHttpError from "http-errors";
 import type { SaveSongToPlaylistI } from "./types";
 
 export function SpotifyApi() {
-	async function validateToken(token: string) {
-		const { status } = await getRequest(`${SPOTIFY_API_URL}/me`, token);
-		return status;
-	}
+  async function validateToken(token: string) {
+    const { status } = await getRequest(`${SPOTIFY_API_URL}/me`, token);
+    return status;
+  }
 
-	async function getSpotifyUserProfile(access_token: string) {
-		const { data } = await getRequest<SpotifyUserProfile>(
-			`${SPOTIFY_API_URL}/me`,
-			access_token,
-		);
+  async function getSpotifyUserProfile(access_token: string) {
+    const { data } = await getRequest<SpotifyUserProfile>(
+      `${SPOTIFY_API_URL}/me`,
+      access_token
+    );
 
-		return data;
-	}
+    return data;
+  }
 
-	async function getArtistAlbums(
-		token: string,
-		artistId: string,
-		fromDate?: string,
-	) {
-		const maxRetries = 3;
-		let attempt = 0;
+  async function getArtistAlbums(
+    token: string,
+    artistId: string,
+    fromDate?: string
+  ) {
+    const maxRetries = 3;
+    let attempt = 0;
 
-		while (attempt < maxRetries) {
-			try {
-				const { data } = await getRequest<ArtistAlbumsI>(
-					`${SPOTIFY_API_URL}/artists/${artistId}/albums`,
-					token,
-					{ include_groups: "single,album,appears_on", limit: 4 },
-				);
+    while (attempt < maxRetries) {
+      try {
+        const { data } = await getRequest<ArtistAlbumsI>(
+          `${SPOTIFY_API_URL}/artists/${artistId}/albums`,
+          token,
+          { include_groups: "single,album,appears_on", limit: 4 }
+        );
 
-				const today = new Date().toISOString().split("T")[0];
-				const filteredAlbums = data.items
-					.filter(({ release_date }) => {
-						if (!fromDate) return release_date === today;
+        const today = new Date().toISOString().split("T")[0];
+        const filteredAlbums = data.items
+          .filter(({ release_date }) => {
+            if (!fromDate) return release_date === today;
 
-						const releaseTimestamp = new Date(release_date).getTime();
-						const fromTimestamp = new Date(fromDate).getTime();
+            const releaseTimestamp = new Date(release_date).getTime();
+            const fromTimestamp = new Date(fromDate).getTime();
 
-						return releaseTimestamp >= fromTimestamp;
-					})
-					.map((props) => ({
-						id: props.id,
-						uri: props.uri,
-						artists: props.artists.map(({ name, id, external_urls }) => ({
-							name,
-							id,
-							url: external_urls.spotify,
-						})),
-						name: props.name,
-						image: props.images[0].url,
-						url: props.external_urls.spotify,
-					}));
+            return releaseTimestamp >= fromTimestamp;
+          })
+          .map((props) => ({
+            id: props.id,
+            uri: props.uri,
+            artists: props.artists.map(({ name, id, external_urls }) => ({
+              name,
+              id,
+              url: external_urls.spotify,
+            })),
+            name: props.name,
+            image: props.images[0].url,
+            url: props.external_urls.spotify,
+          }));
 
-				logger.debug(`getArtistAlbums:Releases fetched for ${artistId}:`, {
-					total: data.total,
-					filteredAlbumsToToday: filteredAlbums.length,
-				});
+        logger.debug(`getArtistAlbums:Releases fetched for ${artistId}:`, {
+          total: data.total,
+          filteredAlbumsToToday: filteredAlbums.length,
+        });
 
-				return filteredAlbums;
-			} catch (error) {
-				if (axios.isAxiosError(error)) {
-					if (error.response?.status === 429) {
-						const retryAfter = error.response.headers["retry-after"];
-						const waitTime =
-							(retryAfter ? Number.parseInt(retryAfter, 10) : 1) * 1000;
-						console.warn(`Rate limited. Retrying after ${waitTime}ms...`);
-						await new Promise((resolve) => setTimeout(resolve, waitTime));
-					} else if (error.response && error.response?.status >= 500) {
-						console.warn(`Server error. Retrying attempt ${attempt + 1}...`);
-						await new Promise((resolve) =>
-							setTimeout(resolve, 1000 * (attempt + 1)),
-						);
-					} else {
-						throw error;
-					}
-				} else {
-					throw error;
-				}
-			}
-			attempt++;
-		}
+        return filteredAlbums;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 429) {
+            const retryAfter = error.response.headers["retry-after"];
+            const waitTime =
+              (retryAfter ? Number.parseInt(retryAfter, 10) : 1) * 1000;
+            console.warn(`Rate limited. Retrying after ${waitTime}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+          } else if (error.response && error.response?.status >= 500) {
+            console.warn(`Server error. Retrying attempt ${attempt + 1}...`);
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1000 * (attempt + 1))
+            );
+          } else {
+            throw error;
+          }
+        } else {
+          throw error;
+        }
+      }
+      attempt++;
+    }
 
-		throw new Error(
-			`Failed to fetch albums for artist ${artistId} after ${maxRetries} attempts.`,
-		);
-	}
+    throw new Error(
+      `Failed to fetch albums for artist ${artistId} after ${maxRetries} attempts.`
+    );
+  }
 
-	async function getRecommendations(
-		token: string,
-		seedArtists: Array<string>,
-		limit: number,
-	) {
-		const stringifiedArtists = seedArtists.join(",");
+  async function getRecommendations(
+    token: string,
+    seedArtists: Array<string>,
+    limit: number
+  ) {
+    const stringifiedArtists = seedArtists.join(",");
 
-		const data = await getRequest(
-			`${SPOTIFY_API_URL}/recommendations?seed_artists=${stringifiedArtists}&limit=${limit}`,
-			token,
-		);
+    const data = await getRequest(
+      `${SPOTIFY_API_URL}/recommendations?seed_artists=${stringifiedArtists}&limit=${limit}`,
+      token
+    );
 
-		if (!data) {
-			createHttpError(404, "No recommendations found.");
-		}
+    if (!data) {
+      createHttpError(404, "No recommendations found.");
+    }
 
-		return data;
-	}
+    return data;
+  }
 
-	async function searchItem(
-		token: string,
-		query: string,
-		type: Array<string>,
-		limit: number,
-	): Promise<SearchResponse> {
-		const { data } = await getRequest<SearchResponse>(
-			`${SPOTIFY_API_URL}/search?q=${query}&type=${type.join(",")}&limit=${limit}`,
-			token,
-		);
-		if (!data) {
-			createHttpError(404, "No data found.");
-		}
+  async function searchItem(
+    token: string,
+    query: string,
+    type: Array<string>,
+    limit: number
+  ): Promise<SearchResponse> {
+    const { data } = await getRequest<SearchResponse>(
+      `${SPOTIFY_API_URL}/search?q=${query}&type=${type.join(",")}&limit=${limit}`,
+      token
+    );
+    if (!data) {
+      createHttpError(404, "No data found.");
+    }
 
-		return data;
-	}
+    return data;
+  }
 
-	async function getFollowedArtists(token: string): Promise<Array<Artist>> {
-		let artists: Array<Artist> = [];
+  async function getFollowedArtists(token: string): Promise<Array<Artist>> {
+    let artists: Array<Artist> = [];
 
-		let nextUrl: string | null =
-			`${SPOTIFY_API_URL}/me/following?type=artist&limit=50`;
+    let nextUrl: string | null =
+      `${SPOTIFY_API_URL}/me/following?type=artist&limit=50`;
 
-		while (nextUrl) {
-			const res: { data: FollowedArtistsI } =
-				await getRequest<FollowedArtistsI>(nextUrl, token);
-			artists = artists.concat(res?.data.artists.items);
-			nextUrl = res?.data.artists.next;
-		}
+    while (nextUrl) {
+      const res: { data: FollowedArtistsI } =
+        await getRequest<FollowedArtistsI>(nextUrl, token);
+      artists = artists.concat(res?.data.artists.items);
+      nextUrl = res?.data.artists.next;
+    }
 
-		logger.info(
-			`getFollowedArtists:${artists.length} followed artists fetched from spotify.`,
-		);
-		return artists;
-	}
+    logger.info(
+      `getFollowedArtists:${artists.length} followed artists fetched from spotify.`
+    );
+    return artists;
+  }
 
-	async function getSavedTracks(token: string) {
-		const { data } = await getRequest<LikedTracksI>(
-			`${SPOTIFY_API_URL}/me/tracks`,
-			token,
-		);
-		if (!data) {
-			createHttpError(404, "No saved tracks found.");
-		}
+  async function getSavedTracks(token: string) {
+    const { data } = await getRequest<LikedTracksI>(
+      `${SPOTIFY_API_URL}/me/tracks`,
+      token
+    );
+    if (!data) {
+      createHttpError(404, "No saved tracks found.");
+    }
 
-		logger.info(
-			"getSavedTracks:Saved tracks fetched from Spotify.",
-			data.total,
-		);
-		return data;
-	}
+    logger.info(
+      "getSavedTracks:Saved tracks fetched from Spotify.",
+      data.total
+    );
+    return data;
+  }
 
-	async function getSingleArtist(token: string, id: string) {
-		const { data } = await getRequest<Artist>(
-			`${SPOTIFY_API_URL}/artists/${id}`,
-			token,
-		);
+  async function getSingleArtist(token: string, id: string) {
+    const { data } = await getRequest<Artist>(
+      `${SPOTIFY_API_URL}/artists/${id}`,
+      token
+    );
 
-		if (!data) {
-			createHttpError(404, "No artist found.");
-		}
+    if (!data) {
+      createHttpError(404, "No artist found.");
+    }
 
-		logger.info("getSingleArtist:Single artist fetched from spotify.", {
-			id: data.id,
-			name: data.name,
-		});
-		return data;
-	}
+    logger.info("getSingleArtist:Single artist fetched from spotify.", {
+      id: data.id,
+      name: data.name,
+    });
+    return data;
+  }
 
-	async function getAlbumTracks(token: string, albumId: string) {
-		const { data } = await getRequest<ArtistAlbumsI>(
-			`${SPOTIFY_API_URL}/albums/${albumId}/tracks`,
-			token,
-		);
+  async function getAlbumTracks(token: string, albumId: string) {
+    const { data } = await getRequest<ArtistAlbumsI>(
+      `${SPOTIFY_API_URL}/albums/${albumId}/tracks`,
+      token
+    );
 
-		const tracks = data.items.map((track: { uri: string }) => track.uri);
-		logger.info("getAlbumTracks:Album tracks returned - ", tracks.length);
-		return tracks;
-	}
+    const tracks = data.items.map((track: { uri: string }) => track.uri);
+    logger.info("getAlbumTracks:Album tracks returned - ", tracks.length);
+    return tracks;
+  }
 
-	async function addTracksToPlaylist(
-		token: string,
-		playlistId: string,
-		trackUris: Array<string>,
-	) {
-		const res = await postRequest<SavedTrackToPlaylistI>(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			token,
-			{
-				uris: trackUris,
-			},
-		);
+  async function addTracksToPlaylist(
+    token: string,
+    playlistId: string,
+    trackUris: Array<string>
+  ) {
+    const res = await postRequest<SavedTrackToPlaylistI>(
+      `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+      token,
+      {
+        uris: trackUris,
+      }
+    );
 
-		if (res.data.snapshot_id) {
-			logger.info(
-				`addTracksToPlaylist:Added ${trackUris.length} new track${trackUris.length !== 1 && "s"} to playlist.`,
-				{
-					playlistId,
-					trackUris,
-				},
-			);
-			const data = { tracks: trackUris };
-			return { data, status: res.status };
-		}
+    if (res.data.snapshot_id) {
+      logger.info(
+        `addTracksToPlaylist:Added ${trackUris.length} new track${trackUris.length !== 1 && "s"} to playlist.`,
+        {
+          playlistId,
+          trackUris,
+        }
+      );
+      const data = { tracks: trackUris };
+      return { data, status: res.status };
+    }
 
-		logger.error("addTracksToPlaylist:Failed to add tracks to playlist.", {
-			playlistId,
-			trackUris,
-		});
-		return res;
-	}
+    logger.error("addTracksToPlaylist:Failed to add tracks to playlist.", {
+      playlistId,
+      trackUris,
+    });
+    return res;
+  }
 
-	async function createSpotifyPlaylist(token: string) {
-		const { data: userProfile } = await getRequest<SpotifyUserProfile>(
-			`${SPOTIFY_API_URL}/me`,
-			token,
-		);
+  async function createSpotifyPlaylist(token: string) {
+    const { data: userProfile } = await getRequest<SpotifyUserProfile>(
+      `${SPOTIFY_API_URL}/me`,
+      token
+    );
 
-		const userId = userProfile.id;
+    const userId = userProfile.id;
 
-		const { data: playlist } = await axios.post<SpotifyPlaylistI>(
-			`${SPOTIFY_API_URL}/users/${userId}/playlists`,
-			{
-				name: "New Music Releases",
-				description: "A playlist of today's new releases.",
-				public: true,
-			},
-			{ headers: { Authorization: `Bearer ${token}` } },
-		);
+    const { data: playlist } = await axios.post<SpotifyPlaylistI>(
+      `${SPOTIFY_API_URL}/users/${userId}/playlists`,
+      {
+        name: "New Music Releases",
+        description: "A playlist of today's new releases.",
+        public: true,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-		logger.info(
-			"createSpotifyPlaylist:Playlist created in Spotify:",
-			playlist.name,
-		);
-		return playlist;
-	}
+    logger.info(
+      "createSpotifyPlaylist:Playlist created in Spotify:",
+      playlist.name
+    );
+    return playlist;
+  }
 
-	async function getSpotifyPlaylistItems(token: string, playlistId: string) {
-		let allItems: PlaylistTracksI["items"] = [];
-		let nextUrl: string | null =
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks?limit=100`;
+  async function getSpotifyPlaylistItems(token: string, playlistId: string) {
+    let allItems: PlaylistTracksI["items"] = [];
+    let nextUrl: string | null =
+      `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks?limit=100`;
 
-		while (nextUrl) {
-			const res: { data: PlaylistTracksI } = await getRequest<PlaylistTracksI>(
-				nextUrl,
-				token,
-			);
+    while (nextUrl) {
+      const res: { data: PlaylistTracksI } = await getRequest<PlaylistTracksI>(
+        nextUrl,
+        token
+      );
 
-			if (res?.data?.items) {
-				allItems = allItems.concat(res?.data.items);
-				nextUrl = res?.data.next;
-			} else {
-				break;
-			}
-		}
+      if (res?.data?.items) {
+        allItems = allItems.concat(res?.data.items);
+        nextUrl = res?.data.next;
+      } else {
+        break;
+      }
+    }
 
-		logger.info(
-			"getSpotifyPlaylistItems:get all playlist items in Spotify:",
-			allItems.length,
-		);
-		return { items: allItems };
-	}
+    logger.info(
+      "getSpotifyPlaylistItems:get all playlist items in Spotify:",
+      allItems.length
+    );
+    return { items: allItems };
+  }
 
-	async function saveSongToPlaylist({
-		spotifyAccessToken,
-		trackId,
-		playlistId,
-	}: SaveSongToPlaylistI) {
-		const { data: playlistItems } = await axios.post(
-			`${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-			{
-				uris: [`spotify:track:${trackId}`],
-			},
-			{
-				headers: {
-					Authorization: `Bearer ${spotifyAccessToken}`,
-					"Content-Type": "application/json",
-				},
-			},
-		);
+  async function saveSongToPlaylist({
+    spotifyAccessToken,
+    trackId,
+    playlistId,
+  }: SaveSongToPlaylistI) {
+    const { data: playlistItems } = await axios.post(
+      `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+      {
+        uris: [`spotify:track:${trackId}`],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${spotifyAccessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-		return playlistItems;
-	}
+    return playlistItems;
+  }
 
-	return {
-		getArtistAlbums,
-		getRecommendations,
-		getSpotifyUserProfile,
-		validateToken,
-		searchItem,
-		getSingleArtist,
-		addTracksToPlaylist,
-		getAlbumTracks,
-		getSavedTracks,
-		getFollowedArtists,
-		createSpotifyPlaylist,
-		getSpotifyPlaylistItems,
-		saveSongToPlaylist,
-	};
+  return {
+    getArtistAlbums,
+    getRecommendations,
+    getSpotifyUserProfile,
+    validateToken,
+    searchItem,
+    getSingleArtist,
+    addTracksToPlaylist,
+    getAlbumTracks,
+    getSavedTracks,
+    getFollowedArtists,
+    createSpotifyPlaylist,
+    getSpotifyPlaylistItems,
+    saveSongToPlaylist,
+  };
 }

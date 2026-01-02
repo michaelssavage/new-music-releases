@@ -9,9 +9,9 @@ import { fileURLToPath } from "node:url";
  * @example const envPath = resolvePath('.env');
  */
 export const resolvePath = (relativePath: string): string => {
-	const currentFilePath = fileURLToPath(import.meta.url);
-	const currentDir = path.dirname(currentFilePath);
-	const rootDir = path.resolve(currentDir, "../../");
+  const currentFilePath = fileURLToPath(import.meta.url);
+  const currentDir = path.dirname(currentFilePath);
+  const rootDir = path.resolve(currentDir, "../../");
 
-	return path.resolve(rootDir, relativePath);
+  return path.resolve(rootDir, relativePath);
 };

@@ -11,14 +11,14 @@ import { ArtistCard } from "./Artist";
 import { CardWrapper } from "./Card.styled";
 
 interface CardI {
-	image: string;
-	name: string;
-	artists?: Array<Artist>;
-	track: Track;
+  image: string;
+  name: string;
+  artists?: Array<Artist>;
+  track: Track;
 }
 
 const Content = styled.div`
-	padding: 0.5rem;
+  padding: 0.5rem;
   font-size: 1rem;
 `;
 
@@ -26,71 +26,71 @@ const Artists = styled.p`
   margin: 0.25rem 0;
   display: flex;
   flex-wrap: wrap;
-	align-items: center;
-	> p {
-		padding: 0;
-		margin-right: 0.25rem;
-	}
+  align-items: center;
+  > p {
+    padding: 0;
+    margin-right: 0.25rem;
+  }
 `;
 
 export const TrackCard = ({ image, name, artists }: CardI) => {
-	const [isOpen, setIsOpen] = useState(false);
-	const [artistId, setArtistId] = useState<string>();
+  const [isOpen, setIsOpen] = useState(false);
+  const [artistId, setArtistId] = useState<string>();
 
-	const handleArtistClick = (id: string) => {
-		setIsOpen(true);
-		setArtistId(id);
-	};
+  const handleArtistClick = (id: string) => {
+    setIsOpen(true);
+    setArtistId(id);
+  };
 
-	const {
-		data: artistData,
-		isLoading,
-		isError,
-	} = useQuery({
-		queryKey: ["artist", artistId],
-		queryFn: () => getArtist(artistId),
-		enabled: artistId !== undefined,
-		refetchOnWindowFocus: false,
-	});
+  const {
+    data: artistData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["artist", artistId],
+    queryFn: () => getArtist(artistId),
+    enabled: artistId !== undefined,
+    refetchOnWindowFocus: false,
+  });
 
-	const renderArtist = () => {
-		if (!artistData) return null;
-		if (isLoading) return <Loader />;
-		if (isError) return <p>Error fetching Artist, please try again</p>;
+  const renderArtist = () => {
+    if (!artistData) return null;
+    if (isLoading) return <Loader />;
+    if (isError) return <p>Error fetching Artist, please try again</p>;
 
-		return (
-			<ArtistCard image={artistData.images?.[0].url} artist={artistData} />
-		);
-	};
+    return (
+      <ArtistCard image={artistData.images?.[0].url} artist={artistData} />
+    );
+  };
 
-	return (
-		<CardWrapper>
-			<img src={image ? image : noPhoto} alt={name} />
+  return (
+    <CardWrapper>
+      <img src={image ? image : noPhoto} alt={name} />
 
-			<h2>{name}</h2>
+      <h2>{name}</h2>
 
-			<Content>
-				{artists?.length ? (
-					<Artists>
-						<p>Artists: </p>
-						{artists.map((artist, index) => (
-							<>
-								<Button
-									key={`${artist.id}-${index}`}
-									variant="link"
-									onClick={() => handleArtistClick(artist.id)}
-									text={artist.name}
-								/>
-								{index < artists.length - 1 && ", "}
-							</>
-						))}
-					</Artists>
-				) : null}
-			</Content>
+      <Content>
+        {artists?.length ? (
+          <Artists>
+            <p>Artists: </p>
+            {artists.map((artist, index) => (
+              <>
+                <Button
+                  key={`${artist.id}-${index}`}
+                  variant="link"
+                  onClick={() => handleArtistClick(artist.id)}
+                  text={artist.name}
+                />
+                {index < artists.length - 1 && ", "}
+              </>
+            ))}
+          </Artists>
+        ) : null}
+      </Content>
 
-			<Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-				{renderArtist()}
-			</Modal>
-		</CardWrapper>
-	);
+      <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+        {renderArtist()}
+      </Modal>
+    </CardWrapper>
+  );
 };

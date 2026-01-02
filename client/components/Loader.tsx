@@ -36,13 +36,13 @@ const Ellipsis = styled.div`
 
   div {
     box-sizing: border-box;
-  position: absolute;
-  top: 33.33333px;
-  width: 13.33333px;
-  height: 13.33333px;
-  border-radius: 50%;
-  background: currentColor;
-  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+    position: absolute;
+    top: 33.33333px;
+    width: 13.33333px;
+    height: 13.33333px;
+    border-radius: 50%;
+    background: currentColor;
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
   }
 
   div:nth-of-type(1) {
@@ -64,10 +64,9 @@ const Ellipsis = styled.div`
 `;
 
 export const Loader = () => (
-	<Ellipsis>
-		{Array.from({ length: 4 }).map((_, index) => (
-			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<div key={index} />
-		))}
-	</Ellipsis>
+  <Ellipsis>
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} />
+    ))}
+  </Ellipsis>
 );

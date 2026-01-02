@@ -6,30 +6,30 @@ import type { SpotifyService } from "@server/service/spotify.sevice";
 import type { EnvVars } from "@server/utils/validateEnv";
 
 export interface ServiceContainer {
-	spotifyService: ReturnType<typeof SpotifyService>;
-	schedulerService: ReturnType<typeof SchedulerService>;
-	api: ReturnType<typeof SpotifyApi>;
-	env: EnvVars;
+  spotifyService: ReturnType<typeof SpotifyService>;
+  schedulerService: ReturnType<typeof SchedulerService>;
+  api: ReturnType<typeof SpotifyApi>;
+  env: EnvVars;
 }
 
 export interface SpotifyControllerI {
-	spotifyService: ReturnType<typeof SpotifyService>;
-	api: ReturnType<typeof SpotifyApi>;
-	env: EnvVars;
+  spotifyService: ReturnType<typeof SpotifyService>;
+  api: ReturnType<typeof SpotifyApi>;
+  env: EnvVars;
 }
 
 export interface SpotifyServiceI {
-	repository: ReturnType<typeof SpotifyRepository>;
-	env: EnvVars;
-	api: ReturnType<typeof SpotifyApi>;
+  repository: ReturnType<typeof SpotifyRepository>;
+  env: EnvVars;
+  api: ReturnType<typeof SpotifyApi>;
 }
 
 export interface SchedulerControllerI {
-	schedulerService: ReturnType<typeof SchedulerService>;
-	env: EnvVars;
+  schedulerService: ReturnType<typeof SchedulerService>;
+  env: EnvVars;
 }
 
 export interface SchedulerServiceI {
-	repository: ReturnType<typeof SchedulerRepository>;
-	spotifyService: ReturnType<typeof SpotifyService>;
+  repository: ReturnType<typeof SchedulerRepository>;
+  spotifyService: ReturnType<typeof SpotifyService>;
 }

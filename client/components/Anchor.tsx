@@ -6,8 +6,8 @@ import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 
 interface IStyle {
-	variant?: AnchorVariants;
-	isExternal?: boolean;
+  variant?: AnchorVariants;
+  isExternal?: boolean;
 }
 
 const LinkStyle = styled.a<IStyle>`
@@ -28,9 +28,9 @@ const LinkStyle = styled.a<IStyle>`
   }
 
   ${({ variant }) => {
-		switch (variant) {
-			case "secondary":
-				return css`
+    switch (variant) {
+      case "secondary":
+        return css`
           border: none;
           padding: 0.5rem 0.75rem;
           border-radius: 4px;
@@ -44,8 +44,8 @@ const LinkStyle = styled.a<IStyle>`
             background-color: #08433b;
           }
         `;
-			case "button":
-				return css`
+      case "button":
+        return css`
           border: none;
           padding: 0.5rem 0.75rem;
           border-radius: 4px;
@@ -57,56 +57,57 @@ const LinkStyle = styled.a<IStyle>`
           border: 1px solid #4e6db0;
           transition: background-color 0.25s;
 
-          &:hover, &:active {
+          &:hover,
+          &:active {
             background-color: initial;
             background-position: 0 0;
             color: #4e6db0;
           }
         `;
-			case "link":
-				return css`
+      case "link":
+        return css`
           color: blue;
           text-decoration-color: blue;
           position: relative;
           transition: all 0.25s;
           z-index: 4;
           word-break: break-word;
-          overflow-wrap: break-word; 
+          overflow-wrap: break-word;
           white-space: normal;
           &:hover {
             text-decoration: underline;
           }
         `;
-			default:
-				return null;
-		}
-	}}
+      default:
+        return null;
+    }
+  }}
 `;
 
 type AnchorVariants = "button" | "link" | "text" | "secondary";
 
 interface Props {
-	link: string;
-	text?: string;
-	isExternal?: boolean;
-	variant?: AnchorVariants;
-	icon?: ReactElement;
-	style?: SerializedStyles;
+  link: string;
+  text?: string;
+  isExternal?: boolean;
+  variant?: AnchorVariants;
+  icon?: ReactElement;
+  style?: SerializedStyles;
 }
 
 export const Anchor = memo(
-	({ link, text, icon, isExternal = false, variant = "button" }: Props) => {
-		return (
-			<LinkStyle
-				href={link}
-				variant={variant}
-				isExternal={isExternal}
-				rel={isExternal ? "noopener noreferrer" : undefined}
-				target={isExternal ? "_blank" : undefined}
-			>
-				{text ? <span>{text}</span> : link}{" "}
-				{isExternal && !icon ? <ExternalLinkIcon /> : icon}
-			</LinkStyle>
-		);
-	},
+  ({ link, text, icon, isExternal = false, variant = "button" }: Props) => {
+    return (
+      <LinkStyle
+        href={link}
+        variant={variant}
+        isExternal={isExternal}
+        rel={isExternal ? "noopener noreferrer" : undefined}
+        target={isExternal ? "_blank" : undefined}
+      >
+        {text ? <span>{text}</span> : link}{" "}
+        {isExternal && !icon ? <ExternalLinkIcon /> : icon}
+      </LinkStyle>
+    );
+  }
 );

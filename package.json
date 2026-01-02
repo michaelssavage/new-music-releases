@@ -1,35 +1,42 @@
 {
-	"name": "new-music-releases",
-	"author": "Michael Savage",
-	"version": "1.0.0",
-	"description": "new music releases from Spotify",
-	"private": true,
-	"type": "module",
-	"workspaces": [
-		"client",
-		"server"
-	],
-	"scripts": {
-		"dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\" ",
-		"dev:client": "npm run dev --workspace=client",
-		"dev:server": "npm run dev --workspace=server",
-		"build": "npm run build:client && npm run build:server",
-		"build:client": "npm run build --workspace=client",
-		"build:server": "npm run build --workspace=server",
-		"start": "npm run start --workspace=server",
-		"start:client": "npm run start --workspace=client",
-		"start:server": "npm run start --workspace=server",
-		"lint": "biome lint --error-on-warnings ./",
-		"format": "biome format ./"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
-		"@types/jsonwebtoken": "^9.0.7",
-		"concurrently": "^9.1.2"
-	},
-	"dependencies": {
-		"date-fns": "^4.1.0",
-		"jsonwebtoken": "^9.0.2",
-		"p-limit": "^6.2.0"
-	}
+  "name": "new-music-releases",
+  "author": "Michael Savage",
+  "version": "1.0.0",
+  "description": "new music releases from Spotify",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\" ",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "start": "npm run start --workspace=server",
+    "start:client": "npm run start --workspace=client",
+    "start:server": "npm run start --workspace=server",
+    "lint": "eslint ./client ./server",
+    "lint:fix": "eslint ./client ./server --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/jsonwebtoken": "^9.0.7",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.39.2",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^15.14.0",
+    "prettier": "^3.7.4",
+    "typescript-eslint": "^8.51.0"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "p-limit": "^6.2.0"
+  }
 }
