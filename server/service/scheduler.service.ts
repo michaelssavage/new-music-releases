@@ -24,7 +24,7 @@ export function SchedulerService({
     try {
       const lastExecution = await repository.findOne(
         {},
-        { sort: { executionTime: -1 } }
+        { sort: { executionTime: -1 } },
       );
 
       const now = new Date();
@@ -39,7 +39,7 @@ export function SchedulerService({
       }
 
       logger.info("Starting playlist update...");
-      const result = await spotifyService.updatePlaylistsForAllUsers(fromDate);
+      const result = await spotifyService.syncNewReleasesForAllUsers(fromDate);
 
       // Log successful execution
       await repository.insertOne({

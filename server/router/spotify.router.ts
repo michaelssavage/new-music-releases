@@ -8,38 +8,32 @@ export function SpotifyRouter({
   env,
 }: SpotifyControllerI) {
   const router = express.Router();
-  const spotifyController = SpotifyController({ spotifyService, api, env });
+  const c = SpotifyController({ spotifyService, api, env });
 
-  router.get("/login", spotifyController.loginHandler);
-  router.get("/callback", spotifyController.callbackHandler);
-  router.get("/refresh", spotifyController.refreshToken);
-  router.get("/validate-token", spotifyController.validateTokenHandler);
+  router.get("/login", c.handleLogin);
+  router.get("/callback", c.handleOAuthCallback);
+  router.get("/refresh", c.handleTokenRefresh);
+  router.get("/validate-token", c.handleValidateToken);
 
-  router.get("/user", spotifyController.getUser);
+  router.get("/user", c.handleGetUser);
 
-  router.get("/search", spotifyController.searchHandler);
+  router.get("/search", c.handleSearch);
 
-  router.get("/saved-tracks", spotifyController.getSavedTracks);
+  router.get("/saved-tracks", c.handleGetLikedTracks);
 
-  router.get("/spotify-artists", spotifyController.getSpotifyArtists);
+  router.get("/spotify-artists", c.handleListArtistsFromLikedTracks);
 
-  router.post("/save-artists", spotifyController.saveArtists);
-  router.get("/get-artist/:id", spotifyController.getSingleArtist);
-  router.get("/get-artists", spotifyController.getAllArtistsIds);
+  router.post("/save-artists", c.handlePersistTrackedArtists);
+  router.get("/get-artist/:id", c.handleGetArtistById);
+  router.get("/get-artists", c.handleListSavedArtists);
 
-  router.delete("/remove-artist/:id", spotifyController.removeSavedArtist);
+  router.delete("/remove-artist/:id", c.handleRemoveTrackedArtist);
 
-  router.get("/get-playlist", spotifyController.getSpotifyPlaylist);
-  router.get(
-    "/get-playlist-tracks/:playlistId",
-    spotifyController.getPlaylistTracks
-  );
-  router.get("/update-playlist-releases", spotifyController.updateNewReleases);
-  router.post("/save-song-to-playlist", spotifyController.saveSongToPlaylist);
+  router.get("/get-playlist", c.handleGetUserReleasesPlaylist);
+  router.get("/get-playlist-tracks/:playlistId", c.handleGetPlaylistTracks);
+  router.get("/update-playlist-releases", c.handleSyncPlaylistReleases);
+  router.post("/save-song-to-playlist", c.handleAddTrackToPlaylist);
 
-  router.post(
-    "/get-recommendations",
-    spotifyController.getRecommendationsHandler
-  );
+  router.post("/get-recommendations", c.handleGetRecommendations);
   return router;
 }
