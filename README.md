@@ -5,10 +5,12 @@ Automatically collecting my saved artist's new releases and adding them to a Spo
 [New Music Releases write-up](https://michaelsavage.ie/projects/new-music-releases)
 
 ### Frontend
+
 - UI for searching for artists, tracks, or albums, then save the selections to a database.
 - Edit and delete options
 
 ### Backend 
+
 - Get and create a playlist on Spotify
 - Get users saved artists from Spotify
 - Get new releases if released that day
