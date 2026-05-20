@@ -1,6 +1,6 @@
 # New Music Releases
 
-Automatically collecting my saved artist's new releases and adding them to a Spotify playlist.
+Automatically collecting my saved artist's new releases and adding them to a Spotify playlist by checking daily for updates.
 
 [New Music Releases write-up](https://michaelsavage.ie/projects/new-music-releases)
 
