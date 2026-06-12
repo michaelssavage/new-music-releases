@@ -1,5 +1,6 @@
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { SpotifyControllerI } from "@server/container/types";
+import { ARTIST_TRACKER_PLAYLIST_ID } from "@server/utils/constants";
 import { logger } from "@server/utils/logger";
 import axios from "axios";
 import type { Request, Response } from "express";
@@ -176,6 +177,33 @@ export function createLibraryHandlers({
     }
   }
 
+  async function handleSyncArtistsFromTrackerPlaylist(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    const userId = req.query.userId as string;
+
+    if (!userId) {
+      res.status(400).json({ error: "No user id provided" });
+      return;
+    }
+
+    const token = bearerTokenOr401(req, res);
+    if (!token) return;
+
+    try {
+      const result = await spotifyService.syncArtistsFromPlaylist(
+        userId,
+        token,
+        ARTIST_TRACKER_PLAYLIST_ID,
+      );
+      res.json(result);
+    } catch (error) {
+      logger.error("Error syncing artists from tracker playlist:", error);
+      res.status(500).json({ error: "Failed to sync artists from playlist" });
+    }
+  }
+
   async function handleGetRecommendations(
     req: Request,
     res: Response,
@@ -210,6 +238,7 @@ export function createLibraryHandlers({
     handleGetArtistById,
     handleListSavedArtists,
     handleRemoveTrackedArtist,
+    handleSyncArtistsFromTrackerPlaylist,
     handleGetRecommendations,
   };
 }

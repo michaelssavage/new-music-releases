@@ -1,4 +1,5 @@
 import type { SpotifyServiceI } from "@server/container/types";
+import { logger } from "@server/utils/logger";
 import { createSpotifyOAuth } from "./spotify-domain/oauth";
 import { createReleasesPlaylistService } from "./spotify-domain/releases-playlist";
 import { createTrackedArtistsService } from "./spotify-domain/tracked-artists";
@@ -22,6 +23,54 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     await repository.disconnect();
   }
 
+  async function syncArtistsFromPlaylistForAllUsers(playlistId: string) {
+    const users = await repository.getAllUsers();
+
+    if (!users || users.length === 0) {
+      logger.warn("syncArtistsFromPlaylistForAllUsers:No users found.");
+      return;
+    }
+
+    logger.info(
+      `syncArtistsFromPlaylistForAllUsers:Syncing playlist ${playlistId} for ${users.length} users.`,
+    );
+
+    const results = await Promise.allSettled(
+      users.map(async (user) => {
+        try {
+          const token = await userSession.ensureValidAccessToken(user);
+          return await trackedArtists.syncArtistsFromPlaylist(
+            user.userId,
+            token,
+            playlistId,
+          );
+        } catch (error) {
+          logger.error(
+            `syncArtistsFromPlaylistForAllUsers:Failed for user ${user.userId}:`,
+            error,
+          );
+          return null;
+        }
+      }),
+    );
+
+    const saved = results
+      .filter((r) => r.status === "fulfilled" && r.value)
+      .reduce(
+        (sum, r) =>
+          sum +
+          ((r as PromiseFulfilledResult<{ saved: number } | null>).value
+            ?.saved ?? 0),
+        0,
+      );
+
+    logger.info(
+      `syncArtistsFromPlaylistForAllUsers:Done. ${saved} new artists saved across all users.`,
+    );
+
+    return results;
+  }
+
   return {
     initialize,
     shutdown,
@@ -39,6 +88,8 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     persistTrackedArtists: trackedArtists.persistTrackedArtists,
     removeTrackedArtist: trackedArtists.removeTrackedArtist,
     listSavedArtistsForUser: trackedArtists.listSavedArtistsForUser,
+    syncArtistsFromPlaylist: trackedArtists.syncArtistsFromPlaylist,
+    syncArtistsFromPlaylistForAllUsers,
 
     collectNewReleasesForUser: releasesPlaylist.collectNewReleasesForUser,
     appendNewReleasesToPlaylist: releasesPlaylist.appendNewReleasesToPlaylist,

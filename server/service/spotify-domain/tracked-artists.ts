@@ -74,10 +74,47 @@ export function createTrackedArtistsService(deps: {
     return savedArtists ?? [];
   }
 
+  async function syncArtistsFromPlaylist(
+    userId: string,
+    token: string,
+    playlistId: string,
+  ) {
+    const { items } = await api.fetchPlaylistTracks(token, playlistId);
+
+    const artistMap = new Map<string, Artist>();
+    for (const item of items) {
+      for (const artist of item.track.artists) {
+        if (!artistMap.has(artist.id)) {
+          artistMap.set(artist.id, artist);
+        }
+      }
+    }
+
+    logger.info(
+      `syncArtistsFromPlaylist:Found ${artistMap.size} unique artists in playlist ${playlistId}.`,
+    );
+
+    const savedArtists = await repository.getAllArtists(userId);
+    const savedIds = new Set(savedArtists.map((a) => a.id));
+    const newArtists = Array.from(artistMap.values()).filter(
+      (a) => !savedIds.has(a.id),
+    );
+
+    logger.info(
+      `syncArtistsFromPlaylist:${newArtists.length} new artists to save (${savedIds.size} already saved).`,
+    );
+
+    if (newArtists.length === 0) return { saved: 0 };
+
+    await persistTrackedArtists(userId, newArtists);
+    return { saved: newArtists.length };
+  }
+
   return {
     listUniqueArtistsFromLikedTracks,
     persistTrackedArtists,
     removeTrackedArtist,
     listSavedArtistsForUser,
+    syncArtistsFromPlaylist,
   };
 }

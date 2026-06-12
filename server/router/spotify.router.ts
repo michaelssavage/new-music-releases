@@ -29,6 +29,8 @@ export function SpotifyRouter({
 
   router.delete("/remove-artist/:id", c.handleRemoveTrackedArtist);
 
+  router.post("/sync-tracker-playlist", c.handleSyncArtistsFromTrackerPlaylist);
+
   router.get("/get-playlist", c.handleGetUserReleasesPlaylist);
   router.get("/get-playlist-tracks/:playlistId", c.handleGetPlaylistTracks);
   router.get("/update-playlist-releases", c.handleSyncPlaylistReleases);
