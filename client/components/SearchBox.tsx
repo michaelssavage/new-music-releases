@@ -27,9 +27,10 @@ import { Group } from "./Group";
 import { SearchIcon } from "./Icons/Search";
 import { Modal } from "./Modal";
 import { Panel } from "./Panel";
-import { type Tab, Tabs } from "./Tabs";
+import { type Tab, TabList, TabPanel } from "./Tabs";
 
 const customButtonStyles = css`
+  padding: 0.25rem;
   ${Content} {
     width: 300px;
     flex-direction: row-reverse;
@@ -44,7 +45,7 @@ const TabContent = styled.div`
 const searchBoxStyling = css`
   margin-left: auto;
 
-  @media screen and (max-width: 440px) {
+  @media screen and (max-width: 600px) {
     margin-left: unset;
   }
 `;
@@ -194,7 +195,11 @@ export const SearchBox = () => {
         </Group>
 
         <TabContent>
-          <Tabs
+          <TabList
+            data={data.filter(({ visible }) => visible)}
+            defaultTab={getActiveTabKey(results)}
+          />
+          <TabPanel
             data={data.filter(({ visible }) => visible)}
             loading={loading}
           />

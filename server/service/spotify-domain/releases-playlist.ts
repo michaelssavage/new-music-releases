@@ -258,7 +258,12 @@ export function createReleasesPlaylistService(deps: {
     }
 
     const playlistItems = await api.fetchPlaylistTracks(token, playlist.id);
-    return { playlist, playlistItems };
+
+    const sortedItems = [...playlistItems.items].sort(
+      (a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime(),
+    );
+
+    return { playlist, playlistItems: { items: sortedItems } };
   }
 
   return {

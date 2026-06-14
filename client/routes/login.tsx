@@ -46,11 +46,11 @@ export const Route = createFileRoute("/login")({
   component: Login,
 });
 
-function Login() {
-  const handleSignIn = () => {
-    window.location.href = "/api/login";
-  };
+const handleSignIn = () => {
+  window.location.href = "/api/login";
+};
 
+function Login() {
   return (
     <LoginPage>
       <NavBox>New Music Releases</NavBox>

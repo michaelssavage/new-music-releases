@@ -6,6 +6,8 @@ import { defineConfig } from "vite";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+const PORT = Number(process.env.PORT) || 5000;
+
 export default defineConfig({
   plugins: [
     TanStackRouterVite(),
@@ -21,7 +23,7 @@ export default defineConfig({
     open: true,
     proxy: {
       "/api": {
-        target: "http://localhost:5003",
+        target: `http://localhost:${PORT}`,
         changeOrigin: true,
       },
     },

@@ -1,9 +1,8 @@
+import { TabList } from "@client/components/Tabs";
+import { useTabs } from "@client/context/tabs.context";
 import { useAppStore } from "@client/store/appStore";
-import {} from "@client/utils/defaults";
-import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { HomeIcon } from "./Icons/Home";
 import { SearchBox } from "./SearchBox";
 
 interface NavLinkProps {
@@ -11,73 +10,66 @@ interface NavLinkProps {
 }
 
 const NavbarContainer = styled.nav`
-  padding: 3rem 2rem;
-  background-color: ${({ color }) => color || "#8090c0"};
-
+  padding: 2rem 2rem 1rem;
+  background-color: #eaecf1;
   display: flex;
-  align-items: center;
-
-  @media screen and (max-width: 440px) {
-    flex-direction: column;
-    gap: 2rem;
-  }
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 const NavItems = styled.div`
-  background-color: #333;
-  color: white;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
 
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 2rem;
+
+  @media screen and (max-width: 600px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 `;
 
 const NavLink = styled(Link, {
   shouldForwardProp: (prop) => prop !== "isActive",
 })<NavLinkProps>`
   text-decoration: none;
-  font-size: 1.4rem;
   transition: transform 0.3s ease;
 
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  font-size: 1.3rem;
+  font-weight: bold;
 
-  ${({ isActive }) => {
-    if (!isActive) {
-      return css`
-        color: #bababa;
-        transform: scale(1.1);
-      `;
-    }
-    return css`
-      color: white;
-    `;
-  }}
+  color: #171717;
+
+  &:hover {
+    color: #2f2f2f;
+  }
 `;
 
 const LogoutButton = styled.button`
   background: none;
   border: none;
-  color: #bababa;
-  font-size: 1.4rem;
+  color: #171717;
   cursor: pointer;
+  font-weight: bold;
+  font-size: 1.3rem;
 
   &:hover {
-    color: white;
+    color: #2f2f2f;
   }
 `;
-
-const navItems = [{ icon: <HomeIcon />, label: "Home", link: "/" }];
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const { isAuthenticated, logout } = useAppStore();
+  const { tabs } = useTabs();
 
   const handleLogout = () => {
     logout();
@@ -87,17 +79,17 @@ export const Navbar = () => {
   return (
     <NavbarContainer>
       <NavItems>
-        {navItems.map(({ icon, label, link }) => (
-          <NavLink key={label} to={link} isActive={matchRoute({ to: link })}>
-            {icon} {label}
-          </NavLink>
-        ))}
+        <NavLink to="/" isActive={matchRoute({ to: "/" })}>
+          HOME
+        </NavLink>
+
         {isAuthenticated && (
-          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+          <LogoutButton onClick={handleLogout}>LOGOUT</LogoutButton>
         )}
+        <SearchBox />
       </NavItems>
 
-      <SearchBox />
+      {tabs && <TabList data={tabs} defaultTab={tabs[0]?.key} />}
     </NavbarContainer>
   );
 };

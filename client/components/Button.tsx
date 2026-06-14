@@ -13,7 +13,7 @@ export const Content = styled.div``;
 
 const Text = styled.span``;
 
-const ButtonStyled = styled.button<StyledI>`
+export const ButtonStyled = styled.button<StyledI>`
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
   transition: all 0.2s ease-in-out;
@@ -93,8 +93,7 @@ const ButtonStyled = styled.button<StyledI>`
     }
 
     return css`
-      color: #f5f5f5;
-      background-color: #0cb57c;
+      background-color: #1ed4b6;
 
       &:hover:not(:disabled) {
         color: #f5faf7;

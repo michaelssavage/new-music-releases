@@ -9,23 +9,12 @@ import type { SaveSongRequestI } from "@model/spotify/playlist";
 import type { ShowItem } from "@model/spotify/tracks";
 import type { User } from "@model/spotify/user";
 import { useMutation } from "@tanstack/react-query";
-import {
-  type SortingFn,
-  type SortingState,
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useState } from "react";
 import toast from "react-hot-toast";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
 import { Group } from "../Group";
 import { FolderCheckIcon } from "../Icons/FolderCheck";
 import { PlusIcon } from "../Icons/Plus";
-import { SortIcon } from "../Icons/Sort";
 import { SpotifyIcon } from "../Icons/Spotify";
 import { Info } from "../InfoToast";
 
@@ -34,51 +23,92 @@ interface PlaylistTableProps {
   userData: User;
 }
 
-const TableContainer = styled.div`
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 0 0.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Card = styled.div`
   background: white;
   border-radius: 8px;
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 `;
 
-const TableWrapper = styled.div`
-  overflow-x: auto;
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-
-    th {
-      padding: 0.5rem 1rem;
-      text-align: left;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #6b7280;
-    }
-
-    td {
-      padding: 0.5rem 1rem;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    tr:hover {
-      background-color: #f9fafb;
-    }
-  }
-`;
-
-const SortableHeader = styled.div`
+const CardHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
+  gap: 1rem;
+`;
+
+const AlbumArt = styled.img`
+  width: 80px;
+  height: 80px;
+  border-top-left-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
+const TrackName = styled.span`
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const TrackInfo = styled.a`
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem;
+  min-width: 0;
+  text-decoration: none;
+  transition: transform 0.2s ease;
 
   &:hover {
-    color: #4b5563;
+    ${TrackName} {
+      transform: scale(1.04);
+    }
   }
+`;
+
+const ArtistName = styled.span`
+  font-size: 0.8125rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const CardFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem;
+`;
+
+const DateAdded = styled.span`
+  font-size: 0.8125rem;
+  color: #9ca3af;
 `;
 
 const plusStyles = css`
+  color: #353232;
+
+  &&:hover {
+    color: #2e1313;
+  }
+
   svg {
     color: #353232;
   }
@@ -88,26 +118,12 @@ const plusStyles = css`
   }
 `;
 
-const sortDateFn: SortingFn<ShowItem> = (rowA, rowB) => {
-  const dateA = new Date(rowA.original.added_at).getTime();
-  const dateB = new Date(rowB.original.added_at).getTime();
-  return dateA < dateB ? -1 : dateA > dateB ? 1 : 0;
-};
-
 export const PlaylistUpdatesTable = ({
   tracks,
   userData,
 }: PlaylistTableProps) => {
-  const columnHelper = createColumnHelper<ShowItem>();
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "added_at",
-      desc: true,
-    },
-  ]);
-
   const { isTrackInListenLater, refetchListenLater } = useListenLater(
-    userData.listen_later_playlist
+    userData.listen_later_playlist,
   );
 
   const saveSongMutation = useMutation({
@@ -126,7 +142,7 @@ export const PlaylistUpdatesTable = ({
     if (isTrackInListenLater(track.id)) {
       logger.info("Track already exists in Listen Later playlist");
       toast.custom(
-        <Info text="Track already exists in Listen Later playlist" />
+        <Info text="Track already exists in Listen Later playlist" />,
       );
       return;
     }
@@ -150,99 +166,54 @@ export const PlaylistUpdatesTable = ({
     return isTrackInListenLater(trackId) || saveSongMutation.isPending;
   };
 
-  const columns = [
-    columnHelper.accessor(
-      (row) => row.track.artists.map((artist) => artist.name).join(", "),
-      {
-        id: "artist_names",
-        header: "Artists",
-        cell: (info) => <span>{info.getValue()}</span>,
-      }
-    ),
-    columnHelper.accessor((row) => row.track.name, {
-      id: "track_name",
-      header: "Track Name",
-      cell: (info) => <span>{info.getValue()}</span>,
-    }),
-    columnHelper.accessor((row) => row.added_at, {
-      id: "added_at",
-      header: ({ column }) => (
-        <SortableHeader onClick={column.getToggleSortingHandler()}>
-          Date Added
-          <SortIcon direction={column.getIsSorted()} />
-        </SortableHeader>
-      ),
-      cell: (info) => <span>{displayDate(info.getValue())}</span>,
-      sortingFn: sortDateFn,
-    }),
-    columnHelper.display({
-      id: "external_link",
-      header: "Actions",
-      cell: (info) => (
-        <Group>
-          {userData?.listen_later_playlist && (
-            <Button
-              onClick={() => saveForLater(info.row.original.track)}
-              variant="link"
-              icon={renderListenLaterIcon(info.row.original.track.id)}
-              disabled={disableListenLater(info.row.original.track.id)}
-              styles={plusStyles}
-            />
-          )}
-          <Anchor
-            link={info.row.original.track.external_urls.spotify}
-            text="Open"
-            variant="link"
-            icon={<SpotifyIcon />}
-            isExternal
-          />
-        </Group>
-      ),
-    }),
-  ];
-
-  const table = useReactTable({
-    data: tracks,
-    columns,
-    getCoreRowModel: getCoreRowModel<ShowItem>(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-  });
-
   return (
-    <TableContainer>
-      <TableWrapper>
-        <table>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </TableWrapper>
-    </TableContainer>
+    <GridContainer>
+      {tracks.map((item) => {
+        const { track, added_at } = item;
+        const albumArt = track.album?.images?.[0]?.url;
+        const artists = track.artists.map((a) => a.name).join(", ");
+
+        return (
+          <Card key={track.id}>
+            <CardHeader>
+              {albumArt && (
+                <AlbumArt src={albumArt} alt={`${track.album.name} cover`} />
+              )}
+              <TrackInfo
+                href={track.external_urls.spotify}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <TrackName title={track.name}>{track.name}</TrackName>
+                <ArtistName title={artists}>{artists}</ArtistName>
+              </TrackInfo>
+            </CardHeader>
+
+            <CardFooter>
+              <DateAdded>Date added:{displayDate(added_at)}</DateAdded>
+              <Group>
+                {userData?.listen_later_playlist && (
+                  <Button
+                    onClick={() => saveForLater(track)}
+                    text="Listen later"
+                    variant="link"
+                    icon={renderListenLaterIcon(track.id)}
+                    disabled={disableListenLater(track.id)}
+                    styles={plusStyles}
+                  />
+                )}
+                <Anchor
+                  link={track.external_urls.spotify}
+                  text="Open"
+                  variant="link"
+                  icon={<SpotifyIcon />}
+                  isExternal
+                />
+              </Group>
+            </CardFooter>
+          </Card>
+        );
+      })}
+    </GridContainer>
   );
 };

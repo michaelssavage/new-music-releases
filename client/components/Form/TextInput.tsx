@@ -19,10 +19,10 @@ const TextInputStyled = styled.input`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  max-height: 38px;
+  max-height: 32px;
   outline: 0;
   background-color: #ffffff;
-  padding: 0.5rem;
+  padding: 0.25rem;
   border-radius: 4px;
   border: 1px solid #cccccc;
 

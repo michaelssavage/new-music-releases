@@ -18,7 +18,7 @@ const envPath = resolvePath(".env");
 dotenv.config({ path: envPath });
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5003;
+const PORT = Number(process.env.PORT) || 5000;
 
 const { spotifyService, schedulerService, api, env } = createServiceContainer();
 

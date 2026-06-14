@@ -8,7 +8,8 @@ import { Panel } from "@client/components/Panel";
 import { LikedSongsTable } from "@client/components/Table/LikedSongs";
 import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
 import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
-import { type Tab, Tabs } from "@client/components/Tabs";
+import { type Tab, TabPanel } from "@client/components/Tabs";
+import { useTabs } from "@client/context/tabs.context";
 import {
   getSpotifyPlaylist,
   getUser,
@@ -16,21 +17,21 @@ import {
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
-import {} from "@client/utils/defaults";
 import styled from "@emotion/styled";
 import type { SpotifyDataProps } from "@model/spotify";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {} from "date-fns";
+import { useEffect, useMemo } from "react";
 import { toast } from "react-hot-toast";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => await requireAuth(),
-  component: Releases,
+  component: MainComponent,
 });
 
 const Content = styled.div`
   padding: 0 0 1rem;
+  background-color: #c4cff1;
 `;
 
 const LoadingStyled = styled.div`
@@ -40,12 +41,15 @@ const LoadingStyled = styled.div`
   justify-content: center;
 `;
 
-function Releases() {
+function MainComponent() {
   const { savedArtists, userId } = useAppStore();
+  const { activeTab, setTabs } = useTabs();
+  const isPlaylistTabActive = activeTab === "playlist";
 
   const { data: userData } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => getUser(userId),
+    enabled: isPlaylistTabActive,
   });
 
   const {
@@ -56,6 +60,7 @@ function Releases() {
     queryKey: ["playlist"],
     queryFn: () => getSpotifyPlaylist(userId),
     refetchOnWindowFocus: false,
+    enabled: isPlaylistTabActive,
   });
 
   const { isPending, mutate } = useMutation({
@@ -76,65 +81,71 @@ function Releases() {
     },
   });
 
-  const tabs: Array<Tab> = [
-    {
-      key: "playlist",
-      tab: "Playlist Updates",
-      panel: (
-        <Panel direction="column">
-          <Group justify="center" width="100%">
-            {userData?.roles?.includes("admin") && (
-              <Button
-                onClick={() => mutate(userId)}
-                text="Fetch new releases"
-                variant="secondary"
-                loading={isPending}
+  const tabs = useMemo<Array<Tab>>(
+    () => [
+      {
+        key: "playlist",
+        tab: "Playlist Updates",
+        panel: (
+          <Panel direction="column">
+            <Group justify="center" width="100%">
+              {userData?.roles?.includes("admin") && (
+                <Button
+                  onClick={() => mutate(userId)}
+                  text="Fetch new releases"
+                  variant="secondary"
+                  loading={isPending}
+                />
+              )}
+              {data?.playlist && (
+                <Anchor
+                  link={data?.playlist.external_urls.spotify}
+                  text="Open playlist"
+                  variant="secondary"
+                  icon={<SpotifyIcon size={20} />}
+                  isExternal
+                />
+              )}
+            </Group>
+            {data ? (
+              <PlaylistUpdatesTable
+                tracks={data?.playlistItems?.items}
+                userData={userData}
               />
+            ) : (
+              <p>No tracks found</p>
             )}
+          </Panel>
+        ),
+      },
+      {
+        key: "artists",
+        tab: `Saved Artists (${savedArtists.length})`,
+        panel: (
+          <Panel>
+            <SavedArtistsTable />
+          </Panel>
+        ),
+      },
+      {
+        key: "liked",
+        tab: "Liked Songs",
+        panel: (
+          <Panel>
+            <LikedSongsTable />
+          </Panel>
+        ),
+      },
+    ],
+    [data, userData, savedArtists.length, isPending, mutate, userId],
+  );
 
-            {data?.playlist && (
-              <Anchor
-                link={data?.playlist.external_urls.spotify}
-                text="Open playlist"
-                variant="secondary"
-                icon={<SpotifyIcon />}
-                isExternal
-              />
-            )}
-          </Group>
+  useEffect(() => {
+    setTabs(tabs);
+    return () => setTabs([]);
+  }, [tabs, setTabs]);
 
-          {data ? (
-            <PlaylistUpdatesTable
-              tracks={data?.playlistItems?.items}
-              userData={userData}
-            />
-          ) : (
-            <p>No tracks found</p>
-          )}
-        </Panel>
-      ),
-    },
-    {
-      key: "artists",
-      tab: `Saved Artists (${savedArtists.length})`,
-      panel: (
-        <Panel>
-          <SavedArtistsTable />
-        </Panel>
-      ),
-    },
-    {
-      key: "liked",
-      tab: "Liked Songs",
-      panel: (
-        <Panel>
-          <LikedSongsTable />
-        </Panel>
-      ),
-    },
-  ];
-
-  if (isLoading) {
+  if (isPlaylistTabActive && isLoading) {
     return (
       <LoadingStyled>
         <Loader />
@@ -144,7 +155,7 @@ function Releases() {
 
   return (
     <Content>
-      <Tabs data={tabs} defaultTab="playlist" />
+      <TabPanel data={tabs} />
     </Content>
   );
 }

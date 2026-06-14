@@ -18,7 +18,7 @@ export const globalStyles = () => css`
     transition:
       color 0.5s,
       background-color 0.5s;
-    font-size: 16px;
+    font-size: 14px;
     text-rendering: optimizeLegibility;
     -moz-osx-font-smoothing: grayscale;
   }
