@@ -83,14 +83,16 @@ const ArtistDetail = styled.div`
   position: sticky;
   top: 5rem;
   border-radius: 4px;
-  gap: 0.25rem;
+  overflow: hidden;
 
   display: flex;
   flex-direction: column;
+  background-color: #f5f5f5;
 
   img {
     width: 100%;
-    border-radius: inherit;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
   }
 
   div[id="image"] {
@@ -113,7 +115,8 @@ const ArtistDetail = styled.div`
 const cardBodyStyling = css`
   max-width: 500px;
   border: 1px solid black;
-  border-radius: inherit;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
   padding: 1rem;
 `;
 
@@ -388,7 +391,7 @@ export const SavedArtistsTable = () => {
                     <th key={header.id}>
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                     </th>
                   ))}
@@ -405,7 +408,7 @@ export const SavedArtistsTable = () => {
                     <td key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   ))}

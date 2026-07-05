@@ -34,12 +34,10 @@ export const ButtonStyled = styled.button<StyledI>`
 
     if (variant === "secondary") {
       return css`
-        color: #ebedf5;
-        background-color: #1a6e63;
+        background-color: #ebedf5;
 
         &:hover:not(:disabled) {
-          color: #d2d4db;
-          background-color: #08433b;
+          background-color: #a1b7b3;
         }
       `;
     }
@@ -96,8 +94,7 @@ export const ButtonStyled = styled.button<StyledI>`
       background-color: #1ed4b6;
 
       &:hover:not(:disabled) {
-        color: #f5faf7;
-        background-color: #055a3e;
+        background-color: #1abda2;
       }
     `;
   }};

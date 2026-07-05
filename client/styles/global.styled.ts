@@ -31,6 +31,10 @@ export const globalStyles = () => css`
   h6 {
     text-wrap: balance;
   }
+
+  button:active {
+    transform: scale(1.05);
+  }
 `;
 
 export const Wrapper = styled.div<{ color?: string }>`

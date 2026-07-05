@@ -1,3 +1,4 @@
+import { Group } from "@client/components/Group";
 import { TabList } from "@client/components/Tabs";
 import { useTabs } from "@client/context/tabs.context";
 import { useAppStore } from "@client/store/appStore";
@@ -10,7 +11,7 @@ interface NavLinkProps {
 }
 
 const NavbarContainer = styled.nav`
-  padding: 2rem 2rem 1rem;
+  padding: 2rem 2rem 0rem;
   background-color: #eaecf1;
   display: flex;
   flex-direction: column;
@@ -59,6 +60,11 @@ const LogoutButton = styled.button`
   cursor: pointer;
   font-weight: bold;
   font-size: 1.3rem;
+  order: 3;
+
+  @media screen and (max-width: 600px) {
+    order: 2;
+  }
 
   &:hover {
     color: #2f2f2f;
@@ -82,14 +88,18 @@ export const Navbar = () => {
         <NavLink to="/" isActive={matchRoute({ to: "/" })}>
           HOME
         </NavLink>
+        <SearchBox />
 
         {isAuthenticated && (
           <LogoutButton onClick={handleLogout}>LOGOUT</LogoutButton>
         )}
-        <SearchBox />
       </NavItems>
 
-      {tabs && <TabList data={tabs} defaultTab={tabs[0]?.key} />}
+      {tabs && (
+        <Group justify="center" wrap="wrap">
+          <TabList data={tabs} defaultTab={tabs[0]?.key} />
+        </Group>
+      )}
     </NavbarContainer>
   );
 };

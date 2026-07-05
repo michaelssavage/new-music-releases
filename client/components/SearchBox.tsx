@@ -43,10 +43,12 @@ const TabContent = styled.div`
 `;
 
 const searchBoxStyling = css`
-  margin-left: auto;
+  margin: 0 auto;
+  order: 2;
 
   @media screen and (max-width: 600px) {
-    margin-left: unset;
+    margin: unset;
+    order: 3;
   }
 `;
 
@@ -160,7 +162,7 @@ export const SearchBox = () => {
   ];
 
   return (
-    <Group justify="flex-end" align="center" styling={searchBoxStyling}>
+    <Group align="center" styling={searchBoxStyling}>
       <Button
         icon={<SearchIcon />}
         variant="input"

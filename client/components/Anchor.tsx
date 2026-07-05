@@ -18,6 +18,7 @@ const LinkStyle = styled.a<IStyle>`
   flex-direction: row;
   gap: 4px;
   max-height: 40px;
+  transition: all 0.2s ease-in-out;
 
   > span {
     white-space: nowrap;
@@ -36,12 +37,14 @@ const LinkStyle = styled.a<IStyle>`
           border-radius: 4px;
           cursor: pointer;
           gap: 0.5rem;
-          color: #ebedf5;
-          background-color: #1a6e63;
+          color: #000000;
+          background-color: #ebedf5;
           transition: background-color 0.25s;
           &:hover {
-            color: #d2d4db;
-            background-color: #08433b;
+            background-color: #a1b7b3;
+          }
+          &:active {
+            transform: scale(1.05);
           }
         `;
       case "button":
@@ -62,6 +65,7 @@ const LinkStyle = styled.a<IStyle>`
             background-color: initial;
             background-position: 0 0;
             color: #4e6db0;
+            transform: scale(1.05);
           }
         `;
       case "link":
@@ -109,5 +113,5 @@ export const Anchor = memo(
         {isExternal && !icon ? <ExternalLinkIcon /> : icon}
       </LinkStyle>
     );
-  }
+  },
 );

@@ -22,20 +22,18 @@ interface TabPanelProps {
 }
 
 export const List = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 0.1rem;
-  flex-wrap: wrap;
+  border: 1px solid #4e6db0;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  overflow: hidden;
 
   [role="tab"] {
     border: none;
-    border-radius: 4px;
     padding: 0.25rem 1rem;
     cursor: pointer;
     background-color: #1ed4b6;
     &:hover {
-      color: #eff3f2;
-      background-color: #0d6153;
+      background-color: #1abda2;
     }
 
     &[aria-selected="true"] {
