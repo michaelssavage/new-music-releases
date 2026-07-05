@@ -1,25 +1,14 @@
 # New Music Releases
 
-Automatically collecting my saved artist's new releases and adding them to a Spotify playlist by checking daily for updates.
+Automatically collecting my saved artist's new releases and adding them to a Spotify playlist by checking daily for updates. Search for artists in-app, save selections to the database.
 
 [New Music Releases write-up](https://michaelsavage.ie/projects/new-music-releases)
-
-### Frontend
-
-- UI for searching for artists, tracks, or albums, then save the selections to a database.
-- Edit and delete options
-
-### Backend 
-
-- Get and create a playlist on Spotify
-- Get users saved artists from Spotify
-- Get new releases if released that day
-- CRON Job to get new releases at the same time each day
+[Early demo in YouTube](https://www.youtube.com/watch?v=ZRKtVVj2P0s)
 
 Vite / React / Typescript / Express/ MongoDB
 
+### 3 UI Tabs
 
-## Video Demo
-[![YouTube](http://i.ytimg.com/vi/ZRKtVVj2P0s/hqdefault.jpg)](https://www.youtube.com/watch?v=ZRKtVVj2P0s)
-
-[Open in YouTube](https://www.youtube.com/watch?v=ZRKtVVj2P0s)
+![Playlist update view](client/public/playlist-updates.png)
+![Saved artists view](client/public/saved-artists.png)
+![Liked songs view](client/public/liked-songs.png)
