@@ -1,33 +1,32 @@
 {
-	"compilerOptions": {
-		"baseUrl": "./", // Base directory to resolve non-relative module names
-		"paths": {
-			"@client/*": ["client/*"],
-			"@server/*": ["server/*"],
-			"@scripts/*": ["scripts/*"],
-			"@model/*": ["model/*"]
-		},
-		"target": "ES2022", // Target latest version of ECMAScript
-		"module": "ES2022", // Use Node's module resolution strategy
-		"moduleResolution": "bundler", // Search under node_modules for non-relative imports
-		"esModuleInterop": true, // Import non-ES modules as default imports
-		"strict": true, // Enable strict type checking
-		"noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements
-		"resolveJsonModule": true, // Allow JSON imports
-		"isolatedModules": true, // Ensure each file can be safely transpiled without relying on other imports
-		"sourceMap": true, // Include sourcemap files for debugging
-		"outDir": "./dist", // Specify output directory
-		"rootDir": "./", // Specify root directory of input files
-		"removeComments": true, // Remove comments from output
-		"skipLibCheck": true, // Skip type checking of declaration files
-		"jsx": "react-jsx", // Add JSX support
-		"lib": ["DOM", "DOM.Iterable", "ESNext"], // Add DOM typings for browser environment
-		"noEmit": false // Emit output files
-	},
-	"tsc-alias": {
-		"resolveFullPaths": true,
-		"verbose": false
-	},
-	"include": ["server", "client", "scripts", "model"],
-	"exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
+  "compilerOptions": {
+    "paths": {
+      "@client/*": ["./client/*"],
+      "@server/*": ["./server/*"],
+      "@scripts/*": ["./scripts/*"],
+      "@model/*": ["./model/*"]
+    },
+    "target": "ES2022", // Target latest version of ECMAScript
+    "module": "ES2022", // Use Node's module resolution strategy
+    "moduleResolution": "bundler", // Search under node_modules for non-relative imports
+    "esModuleInterop": true, // Import non-ES modules as default imports
+    "strict": true, // Enable strict type checking
+    "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements
+    "resolveJsonModule": true, // Allow JSON imports
+    "isolatedModules": true, // Ensure each file can be safely transpiled without relying on other imports
+    "sourceMap": true, // Include sourcemap files for debugging
+    "outDir": "./dist", // Specify output directory
+    "rootDir": "./", // Specify root directory of input files
+    "removeComments": true, // Remove comments from output
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "jsx": "react-jsx", // Add JSX support
+    "lib": ["DOM", "DOM.Iterable", "ESNext"], // Add DOM typings for browser environment
+    "noEmit": false // Emit output files
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
+  },
+  "include": ["server", "client", "scripts", "model"],
+  "exclude": ["node_modules", "dist", "build", "**/*.spec.ts", "**/*.test.ts"]
 }

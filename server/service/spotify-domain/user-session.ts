@@ -29,15 +29,13 @@ export function createUserSession(deps: {
     const userProfile = await api.fetchCurrentUser(tokens.access_token);
 
     const existing = await getUser(userProfile.id);
-    if (!existing) {
-      await saveUser({
-        userId: userProfile.id,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        profile: userProfile,
-        saved_artists: [],
-      });
-    }
+    await saveUser({
+      userId: userProfile.id,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      profile: userProfile,
+      saved_artists: existing?.saved_artists ?? [],
+    });
 
     return {
       userProfile,
