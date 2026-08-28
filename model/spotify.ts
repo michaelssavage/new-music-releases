@@ -27,6 +27,7 @@ export interface AlbumI {
 export interface ArtistAlbumsI {
   total: number;
   items: Array<AlbumI>;
+  next: string | null;
 }
 
 export interface NewReleasesI {

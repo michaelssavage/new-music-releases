@@ -24,7 +24,7 @@ export function SchedulerService({
 
     try {
       const lastExecution = await repository.findOne(
-        {},
+        { status: "SUCCESS" },
         { sort: { executionTime: -1 } },
       );
 
@@ -67,6 +67,7 @@ export function SchedulerService({
         error: error instanceof Error ? error.message : "Unknown error",
         createdAt: new Date(),
       });
+      throw error;
     } finally {
       isJobRunning = false;
     }

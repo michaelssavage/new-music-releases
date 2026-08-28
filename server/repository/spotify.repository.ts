@@ -38,7 +38,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     return await userDb.updateOne(
       { userId: String(userData.userId) },
       { $set: userData },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
@@ -50,9 +50,16 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     return await userDb.find<User>({}).toArray();
   }
 
+  async function setLastReleaseSyncAt(userId: string, syncedAt: Date) {
+    return await userDb.updateOne(
+      { userId: String(userId) },
+      { $set: { lastReleaseSyncAt: syncedAt } },
+    );
+  }
+
   async function saveArtists(userId: string, artists: Array<SavedArtistI>) {
     logger.info(
-      `${userId} is saving artists: ${artists.map(({ name }) => name)}`
+      `${userId} is saving artists: ${artists.map(({ name }) => name)}`,
     );
 
     const bulkOperations = artists.map((artist) => ({
@@ -68,19 +75,19 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     return await userDb.updateOne(
       { userId },
       { $addToSet: { saved_artists: { $each: artistIds } } },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
   async function removeSavedArtist(userId: string, artistId: string) {
     const result = await userDb.updateOne(
       { userId },
-      { $pull: { saved_artists: artistId } }
+      { $pull: { saved_artists: artistId } },
     );
 
     if (result.modifiedCount === 0) {
       throw new Error(
-        `Artist ID ${artistId} not found in user ${userId}'s saved artists.`
+        `Artist ID ${artistId} not found in user ${userId}'s saved artists.`,
       );
     }
 
@@ -114,6 +121,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     saveUser,
     getUser,
     getAllUsers,
+    setLastReleaseSyncAt,
     saveArtists,
     removeSavedArtist,
     getAllArtists,

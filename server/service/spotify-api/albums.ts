@@ -9,15 +9,20 @@ export function filterAlbumsByReleaseWindow(
   options: { fromDate?: string; today: string },
 ): Array<NewReleasesI> {
   const { fromDate, today } = options;
+  const fromTimestamp = fromDate ? new Date(fromDate).getTime() : undefined;
+  const todayTimestamp = new Date(today).getTime();
 
   return items
     .filter(({ release_date }) => {
       if (!fromDate) return release_date === today;
 
       const releaseTimestamp = new Date(release_date).getTime();
-      const fromTimestamp = new Date(fromDate).getTime();
 
-      return releaseTimestamp >= fromTimestamp;
+      return (
+        fromTimestamp !== undefined &&
+        releaseTimestamp >= fromTimestamp &&
+        releaseTimestamp <= todayTimestamp
+      );
     })
     .map((props) => ({
       id: props.id,
@@ -44,26 +49,43 @@ export function createAlbumsApi() {
     fromDate?: string,
   ): Promise<Array<NewReleasesI>> {
     const today = new Date().toISOString().split("T")[0];
+    let nextUrl: string | null =
+      `${SPOTIFY_API_URL}/artists/${artistId}/albums`;
+    let params: Record<string, unknown> | undefined = {
+      include_groups: "single,album,appears_on",
+      limit: 50,
+    };
+    const albums: Array<AlbumI> = [];
 
-    return withSpotifyRetries(async () => {
-      const { data } = await getRequest<ArtistAlbumsI>(
-        `${SPOTIFY_API_URL}/artists/${artistId}/albums`,
-        token,
-        { include_groups: "single,album,appears_on", limit: 4 },
+    while (nextUrl) {
+      const { data } = await withSpotifyRetries(() =>
+        getRequest<ArtistAlbumsI>(nextUrl as string, token, params),
       );
+      albums.push(...data.items);
+      const fromTimestamp = fromDate
+        ? new Date(fromDate).getTime()
+        : new Date(today).getTime();
+      const pageIsBeforeWindow =
+        data.items.length > 0 &&
+        data.items.every(
+          ({ release_date }) =>
+            new Date(release_date).getTime() < fromTimestamp,
+        );
+      nextUrl = pageIsBeforeWindow ? null : data.next;
+      params = undefined;
+    }
 
-      const filteredAlbums = filterAlbumsByReleaseWindow(data.items, {
-        fromDate,
-        today,
-      });
-
-      logger.debug(`fetchArtistAlbums:Releases fetched for ${artistId}:`, {
-        total: data.total,
-        filteredAlbumsToToday: filteredAlbums.length,
-      });
-
-      return filteredAlbums;
+    const filteredAlbums = filterAlbumsByReleaseWindow(albums, {
+      fromDate,
+      today,
     });
+
+    logger.debug(`fetchArtistAlbums:Releases fetched for ${artistId}:`, {
+      total: albums.length,
+      filteredAlbumsToToday: filteredAlbums.length,
+    });
+
+    return filteredAlbums;
   }
 
   async function fetchAlbumTrackUris(token: string, albumId: string) {

@@ -11,6 +11,18 @@ import pLimit from "p-limit";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
 
+export function getLatestPlaylistAdditionDate(
+  items: PlaylistTracksI["items"],
+): string | undefined {
+  const latestTimestamp = items.reduce((latest, item) => {
+    const timestamp = new Date(item.added_at).getTime();
+    return Number.isNaN(timestamp) ? latest : Math.max(latest, timestamp);
+  }, Number.NEGATIVE_INFINITY);
+
+  if (!Number.isFinite(latestTimestamp)) return undefined;
+  return new Date(latestTimestamp).toISOString().split("T")[0];
+}
+
 export function createReleasesPlaylistService(deps: {
   repository: Repository;
   api: SpotifyWebApi;
@@ -63,7 +75,7 @@ export function createReleasesPlaylistService(deps: {
               `collectNewReleasesForUser:Failed to fetch albums for artist ${artist.id}:`,
               error,
             );
-            return [];
+            throw error;
           }
         }),
       ),
@@ -78,16 +90,22 @@ export function createReleasesPlaylistService(deps: {
     playlist,
     fromDate,
   }: UpdateUserPlaylistI) {
+    const playlistItems = await api.fetchPlaylistTracks(token, playlist.id);
+    const playlistFromDate = getLatestPlaylistAdditionDate(playlistItems.items);
+    const effectiveFromDate =
+      fromDate ?? playlistFromDate ?? new Date().toISOString().split("T")[0];
+
     const newReleases: Array<NewReleasesI> = await collectNewReleasesForUser(
       userId,
       token,
-      fromDate,
+      effectiveFromDate,
     );
 
     logger.info(
       "appendNewReleasesToPlaylist:All new releases collected from Spotify.",
       {
         newReleases: newReleases.length,
+        fromDate: effectiveFromDate,
         userId,
       },
     );
@@ -100,10 +118,13 @@ export function createReleasesPlaylistService(deps: {
     }
 
     const limit = pLimit(5);
+    const uniqueReleases = [
+      ...new Map(newReleases.map((release) => [release.uri, release])).values(),
+    ];
 
     const trackUris = (
       await Promise.all(
-        newReleases.map(({ uri, id }) =>
+        uniqueReleases.map(({ uri, id }) =>
           limit(async () => {
             if (uri.includes("album")) {
               return await api.fetchAlbumTrackUris(token, id);
@@ -113,13 +134,27 @@ export function createReleasesPlaylistService(deps: {
         ),
       )
     ).flat();
+    const existingTrackUris = new Set(
+      playlistItems.items.map(({ track }) => track.uri),
+    );
+    const newTrackUris = [
+      ...new Set(trackUris.filter((uri) => !existingTrackUris.has(uri))),
+    ];
 
     logger.info("appendNewReleasesToPlaylist:Flattened track Uris", {
-      trackUris,
+      discovered: trackUris.length,
+      new: newTrackUris.length,
       userId,
     });
 
-    return api.appendTracksToPlaylist(token, playlist.id, trackUris);
+    if (newTrackUris.length === 0) {
+      logger.info(
+        `appendNewReleasesToPlaylist:All releases already exist in playlist for ${userId}`,
+      );
+      return [];
+    }
+
+    return api.appendTracksToPlaylist(token, playlist.id, newTrackUris);
   }
 
   async function ensureReleasesPlaylistForUser(userId: string, token: string) {
@@ -158,19 +193,21 @@ export function createReleasesPlaylistService(deps: {
     const playlist = await ensureReleasesPlaylistForUser(userId, token);
 
     if (!playlist) {
-      logger.warn(
-        "syncNewReleasesToUserPlaylist:No playlist found for user:",
-        userId,
+      throw new Error(
+        `syncNewReleasesToUserPlaylist:Unable to find or create playlist for user ${userId}`,
       );
-      return;
     }
 
-    return appendNewReleasesToPlaylist({
+    const user = fromDate ? undefined : await repository.getUser(userId);
+    const checkpointDate = user?.lastReleaseSyncAt?.toISOString().split("T")[0];
+    const result = await appendNewReleasesToPlaylist({
       userId,
       token,
       playlist,
-      fromDate,
+      fromDate: fromDate ?? checkpointDate,
     });
+    await repository.setLastReleaseSyncAt(userId, new Date());
+    return result;
   }
 
   async function syncNewReleasesForAllUsers(fromDate?: string) {
@@ -216,7 +253,7 @@ export function createReleasesPlaylistService(deps: {
                 error,
               );
             }
-            return null;
+            throw error;
           }
         }),
       );
@@ -234,6 +271,10 @@ export function createReleasesPlaylistService(deps: {
         logger.error(
           `syncNewReleasesForAllUsers:Failed updates: ${errors.length}`,
         );
+        throw new AggregateError(
+          errors.map((result) => result.reason),
+          `Failed to update playlists for ${errors.length} user${errors.length === 1 ? "" : "s"}`,
+        );
       }
 
       return results;
@@ -242,6 +283,7 @@ export function createReleasesPlaylistService(deps: {
         "syncNewReleasesForAllUsers:Error in updating playlists:",
         error,
       );
+      throw error;
     }
   }
 

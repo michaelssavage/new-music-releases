@@ -16,31 +16,39 @@ export function createPlaylistsApi() {
     playlistId: string,
     trackUris: Array<string>,
   ) {
-    const res = await postRequest<SavedTrackToPlaylistI>(
-      `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-      token,
+    const snapshots: Array<SavedTrackToPlaylistI> = [];
+
+    for (let index = 0; index < trackUris.length; index += 100) {
+      const batch = trackUris.slice(index, index + 100);
+      const res = await postRequest<SavedTrackToPlaylistI>(
+        `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+        token,
+        {
+          uris: batch,
+        },
+      );
+
+      if (!res.data.snapshot_id) {
+        throw new Error(
+          `Spotify did not return a snapshot after adding tracks to playlist ${playlistId}`,
+        );
+      }
+
+      snapshots.push(res.data);
+    }
+
+    logger.info(
+      `appendTracksToPlaylist:Added ${trackUris.length} new track${trackUris.length === 1 ? "" : "s"} to playlist.`,
       {
-        uris: trackUris,
+        playlistId,
+        trackUris,
       },
     );
 
-    if (res.data.snapshot_id) {
-      logger.info(
-        `appendTracksToPlaylist:Added ${trackUris.length} new track${trackUris.length !== 1 && "s"} to playlist.`,
-        {
-          playlistId,
-          trackUris,
-        },
-      );
-      const data = { tracks: trackUris };
-      return { data, status: res.status };
-    }
-
-    logger.error("appendTracksToPlaylist:Failed to add tracks to playlist.", {
-      playlistId,
-      trackUris,
-    });
-    return res;
+    return {
+      data: { tracks: trackUris, snapshots },
+      status: 201,
+    };
   }
 
   async function addTrackToPlaylistById({

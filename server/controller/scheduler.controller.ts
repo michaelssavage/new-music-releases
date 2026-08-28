@@ -8,13 +8,21 @@ interface JWTPayload {
   purpose: string;
 }
 
+export function isValidDateOnly(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  return new Date(`${value}T00:00:00.000Z`).toISOString().startsWith(value);
+}
+
 export function SchedulerController({
   schedulerService,
   env,
 }: SchedulerControllerI) {
   async function triggerManualUpdate(
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<void> {
     const { fromDate } = req.body;
 
@@ -42,6 +50,13 @@ export function SchedulerController({
         return;
       }
 
+      if (fromDate !== undefined && !isValidDateOnly(fromDate)) {
+        res
+          .status(400)
+          .json({ error: "fromDate must be a valid YYYY-MM-DD date" });
+        return;
+      }
+
       logger.info("Triggering manual update", {
         fromDate: fromDate ? new Date(fromDate) : undefined,
       });
@@ -56,7 +71,10 @@ export function SchedulerController({
 
       if (error instanceof jwt.JsonWebTokenError) {
         res.status(401).json({ error: "Invalid token" });
+        return;
       }
+
+      res.status(500).json({ error: "Failed to update playlists" });
     }
   }
 
