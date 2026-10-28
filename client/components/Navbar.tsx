@@ -86,6 +86,7 @@ export const Navbar = () => {
     <NavbarContainer>
       <NavItems>
         <NavLink to="/" isActive={matchRoute({ to: "/" })}>
+          <img src="/cookie-jar.png" alt="Cookie jar" width="60px" />
           HOME
         </NavLink>
         <SearchBox />

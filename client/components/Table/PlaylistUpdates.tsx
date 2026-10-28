@@ -20,7 +20,7 @@ import { Info } from "../InfoToast";
 
 interface PlaylistTableProps {
   tracks: Array<ShowItem>;
-  userData: User;
+  userData?: User | null;
 }
 
 const GridContainer = styled.div`
@@ -123,7 +123,7 @@ export const PlaylistUpdatesTable = ({
   userData,
 }: PlaylistTableProps) => {
   const { isTrackInListenLater, refetchListenLater } = useListenLater(
-    userData.listen_later_playlist,
+    userData?.listen_later_playlist,
   );
 
   const saveSongMutation = useMutation({
@@ -139,6 +139,9 @@ export const PlaylistUpdatesTable = ({
   });
 
   const saveForLater = (track: Track) => {
+    const playlistId = userData?.listen_later_playlist;
+    if (!userData || !playlistId) return;
+
     if (isTrackInListenLater(track.id)) {
       logger.info("Track already exists in Listen Later playlist");
       toast.custom(
@@ -150,7 +153,7 @@ export const PlaylistUpdatesTable = ({
     saveSongMutation.mutate({
       userId: userData.userId,
       trackId: track.id,
-      playlistId: userData.listen_later_playlist,
+      playlistId,
     });
   };
 
@@ -162,7 +165,7 @@ export const PlaylistUpdatesTable = ({
   };
 
   const disableListenLater = (trackId: string): boolean => {
-    if (!userData.listen_later_playlist) return true;
+    if (!userData?.listen_later_playlist) return true;
     return isTrackInListenLater(trackId) || saveSongMutation.isPending;
   };
 

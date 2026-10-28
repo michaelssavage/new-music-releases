@@ -8,7 +8,12 @@ import { setupAuthRefresh } from "@client/utils/auth";
 import { Global } from "@emotion/react";
 import type { SavedArtistI } from "@model/spotify";
 import { useQuery } from "@tanstack/react-query";
-import { Outlet, createRootRoute, useMatch } from "@tanstack/react-router";
+import {
+  Outlet,
+  createRootRoute,
+  useMatch,
+  useRouterState,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
@@ -40,13 +45,14 @@ function RootComponent() {
   }, [data, setSavedArtists, setRefetchArtists, refetch]);
 
   const isLoginRoute = useMatch({ from: "/login", shouldThrow: false });
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <TabsContextProvider>
       <Global styles={globalStyles()} />
       <Toaster position="top-right" reverseOrder />
       {!isLoginRoute && <Navbar />}
-      <ErrorBoundary>
+      <ErrorBoundary key={pathname}>
         <Outlet />
       </ErrorBoundary>
       <TanStackRouterDevtools position="bottom-right" />

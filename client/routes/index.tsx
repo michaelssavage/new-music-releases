@@ -49,7 +49,7 @@ function MainComponent() {
   const { data: userData } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => getUser(userId),
-    enabled: isPlaylistTabActive,
+    enabled: isPlaylistTabActive && !!userId,
   });
 
   const {
@@ -60,7 +60,7 @@ function MainComponent() {
     queryKey: ["playlist"],
     queryFn: () => getSpotifyPlaylist(userId),
     refetchOnWindowFocus: false,
-    enabled: isPlaylistTabActive,
+    enabled: isPlaylistTabActive && !!userId,
   });
 
   const { isPending, mutate } = useMutation({
