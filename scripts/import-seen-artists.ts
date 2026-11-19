@@ -1,5 +1,4 @@
 import {
-  GENRES,
   type Genre,
   OTHER_GENRE,
   type SeenArtistI,
@@ -14,7 +13,6 @@ import {
 import { logger } from "@server/utils/logger";
 import { validateEnv } from "@server/utils/validateEnv";
 import dotenv from "dotenv";
-import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,10 +45,6 @@ async function main() {
 
   const artists = await Promise.all(
     entries.map(({ name, lastfmName, genre, sightings }) => {
-      assert(
-        genre === undefined || GENRES.includes(genre),
-        `${name}: unknown genre "${genre}". Use one of: ${GENRES.join(", ")}`,
-      );
       return limit(
         async (): Promise<SeenArtistI> => ({
           name,

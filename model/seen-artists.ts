@@ -8,7 +8,9 @@ export const GENRES = [
   "Other",
 ] as const;
 
-export type Genre = (typeof GENRES)[number];
+// The built-in buckets (GENRES) are what tags map to automatically;
+// a genre override can be any name.
+export type Genre = string;
 
 export const OTHER_GENRE: Genre = "Other";
 

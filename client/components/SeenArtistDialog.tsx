@@ -1,25 +1,26 @@
 import {
   addSeenArtist,
   deleteSeenArtist,
+  getSeenArtists,
   updateSeenArtist,
 } from "@client/lib/spotify";
 import styled from "@emotion/styled";
 import {
   GENRES,
-  type Genre,
   type SeenArtistInputI,
   type SeenArtistWithGenreI,
 } from "@model/seen-artists";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useId, useState } from "react";
 import { toast } from "react-hot-toast";
+import type { StylesConfig } from "react-select";
+import CreatableSelect from "react-select/creatable";
 import { Button } from "./Button";
 import { TextInput } from "./Form/TextInput";
 import { Group } from "./Group";
 import { CloseIcon } from "./Icons/Close";
 import { Modal } from "./Modal";
 
-const AUTOMATIC_GENRE = "automatic";
 const MIN_YEAR = 1950;
 
 interface FormSighting {
@@ -47,10 +48,6 @@ const Form = styled.form`
 `;
 
 const SectionTitle = styled.span`
-  font-size: 1.2rem;
-`;
-
-const FieldLabel = styled.label`
   font-size: 1.2rem;
 `;
 
@@ -90,19 +87,32 @@ const RemoveSighting = styled.button`
   }
 `;
 
-const GenreSelect = styled.select`
-  height: 32px;
-  padding: 0 0.25rem;
-  border-radius: 4px;
-  border: 1px solid #cccccc;
-  background-color: #ffffff;
+const FieldLabel = styled.label`
+  font-size: 1.2rem;
 `;
+
+const genreSelectStyles: StylesConfig<GenreOption, false> = {
+  container: (base) => ({ ...base, width: "100%" }),
+  control: (base) => ({ ...base, minHeight: 32, height: 32 }),
+  valueContainer: (base) => ({ ...base, padding: "1px 8px" }),
+  dropdownIndicator: (base) => ({ ...base, padding: 5 }),
+  clearIndicator: (base) => ({ ...base, padding: 5 }),
+};
 
 const Hint = styled.p`
   margin: 0;
   color: #6b7280;
   font-size: 0.875rem;
 `;
+
+interface GenreOption {
+  value: string;
+  label: string;
+}
+
+function toOption(genre: string): GenreOption {
+  return { value: genre, label: genre };
+}
 
 function saveSeenArtist({ id, ...input }: SeenArtistInputI & { id?: string }) {
   return id ? updateSeenArtist({ id, ...input }) : addSeenArtist(input);
@@ -140,10 +150,17 @@ const SeenArtistForm = ({
 
   const [name, setName] = useState(artist?.name ?? initialName);
   const [sightings, setSightings] = useState(() => toFormSightings(artist));
-  const [genre, setGenre] = useState<Genre | typeof AUTOMATIC_GENRE>(
-    artist?.genreOverride ?? AUTOMATIC_GENRE,
-  );
+  const [genre, setGenre] = useState(artist?.genreOverride ?? "");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ["seen-artists"],
+    queryFn: getSeenArtists,
+    refetchOnWindowFocus: false,
+  });
+  const genreOptions = [
+    ...new Set([...GENRES, ...(data?.genres.map(({ genre }) => genre) ?? [])]),
+  ].map(toOption);
 
   const onSuccess = (message: string) => {
     toast.success(message);
@@ -187,7 +204,7 @@ const SeenArtistForm = ({
         event: event.trim(),
         year: Number(year),
       })),
-      ...(genre !== AUTOMATIC_GENRE && { genreOverride: genre }),
+      ...(genre && { genreOverride: genre }),
     });
   };
 
@@ -253,33 +270,24 @@ const SeenArtistForm = ({
 
       <Group direction="column" align="flex-start" gap="0.2rem">
         <FieldLabel htmlFor={`${formId}-genre`}>Genre</FieldLabel>
-        <GenreSelect
-          id={`${formId}-genre`}
-          value={genre}
-          onChange={(e) => setGenre(e.target.value as Genre)}
-        >
-          <option value={AUTOMATIC_GENRE}>
-            {artist
-              ? `Automatic: ${artist.automaticGenre}`
-              : "Automatic (from Last.fm tags)"}
-          </option>
-          {GENRES.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </GenreSelect>
-        <Hint>Pick a genre only if the automatic one is wrong or missing.</Hint>
+        <CreatableSelect<GenreOption, false>
+          inputId={`${formId}-genre`}
+          options={genreOptions}
+          value={genre ? toOption(genre) : null}
+          onChange={(option) => setGenre(option?.value.trim() ?? "")}
+          placeholder="Automatic"
+          formatCreateLabel={(typed) => `Add genre "${typed}"`}
+          isClearable
+          styles={genreSelectStyles}
+        />
+        <Hint>
+          {artist
+            ? `Automatic genre: ${artist.automaticGenre}. Leave blank to use it, or pick or type a genre to override it.`
+            : "Leave blank to pick the genre from Last.fm tags, or pick or type a genre."}
+        </Hint>
       </Group>
 
       <Group justify="space-between">
-        <Button
-          type="submit"
-          text={artist ? "Save changes" : "Add artist"}
-          onClick={() => undefined}
-          disabled={!canSave}
-          loading={isSaving}
-        />
         {artist && (
           <Button
             variant="remove"
@@ -288,6 +296,14 @@ const SeenArtistForm = ({
             loading={isDeleting}
           />
         )}
+
+        <Button
+          type="submit"
+          text={artist ? "Save changes" : "Add artist"}
+          onClick={() => undefined}
+          disabled={!canSave}
+          loading={isSaving}
+        />
       </Group>
     </Form>
   );

@@ -1,4 +1,4 @@
-import { GENRES, type Genre, type SeenArtistInputI } from "@model/seen-artists";
+import type { SeenArtistInputI } from "@model/seen-artists";
 import type { SpotifyControllerI } from "@server/container/types";
 import { HttpException } from "@server/utils/exceptions";
 import type { Request, Response } from "express";
@@ -7,6 +7,7 @@ import { withBearerJson } from "./http-helpers";
 
 const FIRST_GIG_YEAR = 1950;
 const MAX_NAME_LENGTH = 200;
+const MAX_GENRE_LENGTH = 50;
 
 function parseSeenArtistInput(body: unknown): SeenArtistInputI {
   const { name, sightings, genreOverride } = (body ?? {}) as Record<
@@ -40,15 +41,20 @@ function parseSeenArtistInput(body: unknown): SeenArtistInputI {
     return { event: event.trim(), year: year as number };
   });
 
-  if (genreOverride !== undefined && !GENRES.includes(genreOverride as Genre)) {
-    throw new HttpException(400, "Unknown genre.");
+  if (
+    genreOverride !== undefined &&
+    (typeof genreOverride !== "string" ||
+      !genreOverride.trim() ||
+      genreOverride.length > MAX_GENRE_LENGTH)
+  ) {
+    throw new HttpException(400, "Invalid genre.");
   }
 
   return {
     name: name.trim(),
     sightings: parsedSightings,
     ...(genreOverride !== undefined && {
-      genreOverride: genreOverride as Genre,
+      genreOverride: genreOverride.trim(),
     }),
   };
 }
