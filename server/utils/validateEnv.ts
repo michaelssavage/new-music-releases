@@ -6,6 +6,7 @@ const requiredEnvVars = [
   "FRONTEND_URL",
   "JWT_SECRET",
   "JWT_KEY",
+  "LASTFM_API_KEY",
 ] as const;
 
 export type EnvVars = Record<(typeof requiredEnvVars)[number], string>;

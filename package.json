@@ -19,6 +19,7 @@
     "start": "npm run start --workspace=server",
     "start:client": "npm run start --workspace=client",
     "start:server": "npm run start --workspace=server",
+    "import:seen-artists": "tsx scripts/import-seen-artists.ts",
     "lint": "eslint ./client ./server",
     "lint:fix": "eslint ./client ./server --fix"
   },

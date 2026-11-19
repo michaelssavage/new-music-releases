@@ -6,6 +6,7 @@ import { Info } from "@client/components/InfoToast";
 import { Loader } from "@client/components/Loader";
 import { LoadMore } from "@client/components/LoadMore";
 import { Panel } from "@client/components/Panel";
+import { SeenArtists } from "@client/components/SeenArtists";
 import { LikedSongsTable } from "@client/components/Table/LikedSongs";
 import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
 import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
@@ -139,6 +140,15 @@ function MainComponent() {
         panel: (
           <Panel>
             <LikedSongsTable />
+          </Panel>
+        ),
+      },
+      {
+        key: "seen",
+        tab: "Seen Live",
+        panel: (
+          <Panel>
+            <SeenArtists />
           </Panel>
         ),
       },

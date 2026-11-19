@@ -1,4 +1,5 @@
 import { logger } from "@client/utils/logger";
+import type { SeenArtistsResponse } from "@model/seen-artists";
 import type { SavedArtistI, SpotifyDataProps } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { SaveSongRequestI } from "@model/spotify/playlist";
@@ -160,6 +161,27 @@ export const getSavedArtists = async (userId: UserID) => {
       logger.error("getSavedArtists:An unexpected error occurred:", error);
     }
     return [];
+  }
+};
+
+export const getSeenArtists = async () => {
+  const spotify_access_token = Cookies.get("spotify_access_token");
+
+  try {
+    const res = await axios.get<SeenArtistsResponse>("/api/seen-artists", {
+      headers: { spotify_access_token },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      logger.error(
+        "getSeenArtists:Failed to get seen artists:",
+        error.response?.data || error.message
+      );
+    } else {
+      logger.error("getSeenArtists:An unexpected error occurred:", error);
+    }
+    throw error;
   }
 };
 

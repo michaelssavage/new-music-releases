@@ -1,3 +1,4 @@
+import type { SeenArtistI } from "@model/seen-artists";
 import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
@@ -15,6 +16,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
   let userDb: Collection<User>;
   let artistDb: Collection<Artist & { userId: string }>;
   let playlistDb: Collection<SpotifyPlaylistI & { userId: string }>;
+  let seenArtistDb: Collection<SeenArtistI>;
 
   async function connect(): Promise<void> {
     client = new MongoClient(mongoUri);
@@ -24,6 +26,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     userDb = db.collection("users");
     artistDb = db.collection("saved_artists");
     playlistDb = db.collection("playlist");
+    seenArtistDb = db.collection("seen_artists");
     logger.info("Connected to MongoDB.");
   }
 
@@ -107,6 +110,24 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
       .toArray();
   }
 
+  async function getSeenArtists() {
+    return await seenArtistDb
+      .find({}, { projection: { _id: 0 } })
+      .sort({ name: 1 })
+      .toArray();
+  }
+
+  async function upsertSeenArtists(artists: Array<SeenArtistI>) {
+    const bulkOperations = artists.map((artist) => ({
+      replaceOne: {
+        filter: { name: artist.name },
+        replacement: artist,
+        upsert: true,
+      },
+    }));
+    return await seenArtistDb.bulkWrite(bulkOperations);
+  }
+
   async function getPlaylist(userId: string) {
     return await playlistDb.findOne<SpotifyPlaylistI>({ userId });
   }
@@ -125,6 +146,8 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     saveArtists,
     removeSavedArtist,
     getAllArtists,
+    getSeenArtists,
+    upsertSeenArtists,
     getPlaylist,
     createPlaylist,
   };

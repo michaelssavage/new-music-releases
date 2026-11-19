@@ -151,6 +151,19 @@ export function createLibraryHandlers({
     }
   }
 
+  async function handleGetSeenArtists(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    await withBearerJson(
+      req,
+      res,
+      "Error retrieving seen artists:",
+      "Failed to retrieve seen artists",
+      () => spotifyService.getSeenArtists(),
+    );
+  }
+
   async function handleRemoveTrackedArtist(
     req: Request,
     res: Response,
@@ -237,6 +250,7 @@ export function createLibraryHandlers({
     handlePersistTrackedArtists,
     handleGetArtistById,
     handleListSavedArtists,
+    handleGetSeenArtists,
     handleRemoveTrackedArtist,
     handleSyncArtistsFromTrackerPlaylist,
     handleGetRecommendations,
