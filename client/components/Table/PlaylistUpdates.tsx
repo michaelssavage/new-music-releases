@@ -9,6 +9,7 @@ import type { SaveSongRequestI } from "@model/spotify/playlist";
 import type { ShowItem } from "@model/spotify/tracks";
 import type { User } from "@model/spotify/user";
 import { useMutation } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import toast from "react-hot-toast";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
@@ -21,6 +22,7 @@ import { Info } from "../InfoToast";
 interface PlaylistTableProps {
   tracks: Array<ShowItem>;
   userData?: User | null;
+  loadMore: ReactNode;
 }
 
 const GridContainer = styled.div`
@@ -121,6 +123,7 @@ const plusStyles = css`
 export const PlaylistUpdatesTable = ({
   tracks,
   userData,
+  loadMore,
 }: PlaylistTableProps) => {
   const { isTrackInListenLater, refetchListenLater } = useListenLater(
     userData?.listen_later_playlist,
@@ -170,53 +173,56 @@ export const PlaylistUpdatesTable = ({
   };
 
   return (
-    <GridContainer>
-      {tracks.map((item) => {
-        const { track, added_at } = item;
-        const albumArt = track.album?.images?.[0]?.url;
-        const artists = track.artists.map((a) => a.name).join(", ");
+    <>
+      <GridContainer>
+        {tracks.map((item) => {
+          const { track, added_at } = item;
+          const albumArt = track.album?.images?.[0]?.url;
+          const artists = track.artists.map((a) => a.name).join(", ");
 
-        return (
-          <Card key={track.id}>
-            <CardHeader>
-              {albumArt && (
-                <AlbumArt src={albumArt} alt={`${track.album.name} cover`} />
-              )}
-              <TrackInfo
-                href={track.external_urls.spotify}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                <TrackName title={track.name}>{track.name}</TrackName>
-                <ArtistName title={artists}>{artists}</ArtistName>
-              </TrackInfo>
-            </CardHeader>
-
-            <CardFooter>
-              <DateAdded>Date added:{displayDate(added_at)}</DateAdded>
-              <Group>
-                {userData?.listen_later_playlist && (
-                  <Button
-                    onClick={() => saveForLater(track)}
-                    text="Listen later"
-                    variant="link"
-                    icon={renderListenLaterIcon(track.id)}
-                    disabled={disableListenLater(track.id)}
-                    styles={plusStyles}
-                  />
+          return (
+            <Card key={track.id}>
+              <CardHeader>
+                {albumArt && (
+                  <AlbumArt src={albumArt} alt={`${track.album.name} cover`} />
                 )}
-                <Anchor
-                  link={track.external_urls.spotify}
-                  text="Open"
-                  variant="link"
-                  icon={<SpotifyIcon />}
-                  isExternal
-                />
-              </Group>
-            </CardFooter>
-          </Card>
-        );
-      })}
-    </GridContainer>
+                <TrackInfo
+                  href={track.external_urls.spotify}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <TrackName title={track.name}>{track.name}</TrackName>
+                  <ArtistName title={artists}>{artists}</ArtistName>
+                </TrackInfo>
+              </CardHeader>
+
+              <CardFooter>
+                <DateAdded>Date added:{displayDate(added_at)}</DateAdded>
+                <Group>
+                  {userData?.listen_later_playlist && (
+                    <Button
+                      onClick={() => saveForLater(track)}
+                      text="Listen later"
+                      variant="link"
+                      icon={renderListenLaterIcon(track.id)}
+                      disabled={disableListenLater(track.id)}
+                      styles={plusStyles}
+                    />
+                  )}
+                  <Anchor
+                    link={track.external_urls.spotify}
+                    text="Open"
+                    variant="link"
+                    icon={<SpotifyIcon />}
+                    isExternal
+                  />
+                </Group>
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </GridContainer>
+      {loadMore}
+    </>
   );
 };

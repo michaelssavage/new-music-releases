@@ -3,7 +3,7 @@ import type { SpotifyPlaylistI } from "./spotify/playlist";
 import type { PlaylistTracksI } from "./spotify/tracks";
 
 export interface SpotifyDataProps {
-  playlistItems: PlaylistTracksI;
+  playlistItems: Pick<PlaylistTracksI, "items" | "total">;
   playlist: SpotifyPlaylistI;
 }
 

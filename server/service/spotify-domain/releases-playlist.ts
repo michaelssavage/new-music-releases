@@ -1,9 +1,9 @@
-import type { NewReleasesI } from "@model/spotify";
-import type { SpotifyPlaylistI } from "@model/spotify/playlist";
+import type { NewReleasesI, SpotifyDataProps } from "@model/spotify";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { User } from "@model/spotify/user";
 import type { SpotifyRepository } from "@server/repository/spotify.repository";
 import type { SpotifyWebApi } from "@server/service/spotify-api";
+import type { PlaylistPageParams } from "@server/service/spotify-api/playlists";
 import type { UpdateUserPlaylistI } from "@server/service/types";
 import { logger } from "@server/utils/logger";
 import axios from "axios";
@@ -290,22 +290,20 @@ export function createReleasesPlaylistService(deps: {
   async function getUserReleasesPlaylistWithTracks(
     userId: string,
     token: string,
-  ): Promise<{
-    playlist: SpotifyPlaylistI;
-    playlistItems: { items: PlaylistTracksI["items"] };
-  } | null> {
+    page: PlaylistPageParams,
+  ): Promise<SpotifyDataProps | null> {
     const playlist = await ensureReleasesPlaylistForUser(userId, token);
     if (!playlist) {
       return null;
     }
 
-    const playlistItems = await api.fetchPlaylistTracks(token, playlist.id);
-
-    const sortedItems = [...playlistItems.items].sort(
-      (a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime(),
+    const playlistItems = await api.fetchPlaylistTracksNewestFirst(
+      token,
+      playlist.id,
+      page,
     );
 
-    return { playlist, playlistItems: { items: sortedItems } };
+    return { playlist, playlistItems };
   }
 
   return {

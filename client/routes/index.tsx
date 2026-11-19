@@ -4,21 +4,18 @@ import { Group } from "@client/components/Group";
 import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { Info } from "@client/components/InfoToast";
 import { Loader } from "@client/components/Loader";
+import { LoadMore } from "@client/components/LoadMore";
 import { Panel } from "@client/components/Panel";
 import { LikedSongsTable } from "@client/components/Table/LikedSongs";
 import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
 import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
 import { type Tab, TabPanel } from "@client/components/Tabs";
 import { useTabs } from "@client/context/tabs.context";
-import {
-  getSpotifyPlaylist,
-  getUser,
-  updateSpotifyPlaylistReleases,
-} from "@client/lib/spotify";
+import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
+import { getUser, updateSpotifyPlaylistReleases } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
 import styled from "@emotion/styled";
-import type { SpotifyDataProps } from "@model/spotify";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
@@ -56,12 +53,11 @@ function MainComponent() {
     data,
     refetch: refetchPlaylist,
     isLoading,
-  } = useQuery<SpotifyDataProps | null>({
-    queryKey: ["playlist"],
-    queryFn: () => getSpotifyPlaylist(userId),
-    refetchOnWindowFocus: false,
-    enabled: isPlaylistTabActive && !!userId,
-  });
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = usePlaylistUpdates(userId, isPlaylistTabActive && !!userId);
 
   const { isPending, mutate } = useMutation({
     mutationFn: updateSpotifyPlaylistReleases,
@@ -99,7 +95,7 @@ function MainComponent() {
               )}
               {data?.playlist && (
                 <Anchor
-                  link={data?.playlist.external_urls.spotify}
+                  link={data.playlist.external_urls.spotify}
                   text="Open playlist"
                   variant="secondary"
                   icon={<SpotifyIcon size={20} />}
@@ -109,8 +105,18 @@ function MainComponent() {
             </Group>
             {data ? (
               <PlaylistUpdatesTable
-                tracks={data?.playlistItems?.items}
+                tracks={data.tracks}
                 userData={userData}
+                loadMore={
+                  <LoadMore
+                    loadedCount={data.tracks.length}
+                    totalCount={data.total}
+                    hasNextPage={hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    isFetchNextPageError={isFetchNextPageError}
+                    onLoadMore={fetchNextPage}
+                  />
+                }
               />
             ) : (
               <p>No tracks found</p>
@@ -137,7 +143,18 @@ function MainComponent() {
         ),
       },
     ],
-    [data, userData, savedArtists.length, isPending, mutate, userId],
+    [
+      data,
+      userData,
+      savedArtists.length,
+      isPending,
+      mutate,
+      userId,
+      hasNextPage,
+      isFetchingNextPage,
+      isFetchNextPageError,
+      fetchNextPage,
+    ],
   );
 
   useEffect(() => {

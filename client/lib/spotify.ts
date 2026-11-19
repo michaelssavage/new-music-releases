@@ -226,16 +226,17 @@ export const fetchSearchResults = async ({
   return res.data;
 };
 
-export const getSpotifyPlaylist = async (userId: UserID) => {
+export const getSpotifyPlaylist = async (
+  userId: UserID,
+  page: { offset: number; limit: number }
+) => {
   const spotify_access_token = Cookies.get("spotify_access_token");
 
   try {
-    const res = await axios.get<SpotifyDataProps>(
-      `/api/get-playlist?userId=${userId}`,
-      {
-        headers: { spotify_access_token },
-      }
-    );
+    const res = await axios.get<SpotifyDataProps>("/api/get-playlist", {
+      headers: { spotify_access_token },
+      params: { userId, ...page },
+    });
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -246,7 +247,7 @@ export const getSpotifyPlaylist = async (userId: UserID) => {
     } else {
       logger.error("getSpotifyPlaylist:An unexpected error occurred:", error);
     }
-    return null;
+    throw error;
   }
 };
 

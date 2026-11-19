@@ -3,6 +3,8 @@ import { logger } from "@server/utils/logger";
 import type { Request, Response } from "express";
 import { bearerTokenOr401, withBearerJson } from "./http-helpers";
 
+const MAX_PLAYLIST_PAGE_SIZE = 100;
+
 export function createPlaylistHandlers({
   spotifyService,
   api,
@@ -42,10 +44,24 @@ export function createPlaylistHandlers({
       return;
     }
 
+    const offset = Number(req.query.offset ?? 0);
+    const limit = Number(req.query.limit ?? MAX_PLAYLIST_PAGE_SIZE);
+    if (
+      !Number.isInteger(offset) ||
+      offset < 0 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > MAX_PLAYLIST_PAGE_SIZE
+    ) {
+      res.status(400).json({ error: "Invalid offset or limit" });
+      return;
+    }
+
     try {
       const result = await spotifyService.getUserReleasesPlaylistWithTracks(
         userId,
         token,
+        { offset, limit },
       );
 
       if (!result) {

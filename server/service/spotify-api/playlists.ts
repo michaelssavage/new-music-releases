@@ -10,6 +10,21 @@ import { getRequest, postRequest } from "@server/utils/fetch";
 import { logger } from "@server/utils/logger";
 import axios from "axios";
 
+export interface PlaylistPageParams {
+  offset: number;
+  limit: number;
+}
+
+/** Spotify appends new tracks to the end, so newest-first paging reads from the tail. */
+export function newestFirstWindow(
+  total: number,
+  { offset, limit }: PlaylistPageParams,
+) {
+  const end = Math.max(0, total - offset);
+  const start = Math.max(0, end - limit);
+  return { start, count: end - start };
+}
+
 export function createPlaylistsApi() {
   async function appendTracksToPlaylist(
     token: string,
@@ -117,10 +132,33 @@ export function createPlaylistsApi() {
     return { items: allItems };
   }
 
+  async function fetchPlaylistTracksNewestFirst(
+    token: string,
+    playlistId: string,
+    page: PlaylistPageParams,
+  ) {
+    const tracksUrl = `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`;
+
+    const { data: summary } = await getRequest<Pick<PlaylistTracksI, "total">>(
+      tracksUrl,
+      token,
+      { fields: "total", limit: 1 },
+    );
+    const { start, count } = newestFirstWindow(summary.total, page);
+    if (count === 0) return { items: [], total: summary.total };
+
+    const { data } = await getRequest<PlaylistTracksI>(tracksUrl, token, {
+      offset: start,
+      limit: count,
+    });
+    return { items: data.items.reverse(), total: summary.total };
+  }
+
   return {
     appendTracksToPlaylist,
     addTrackToPlaylistById,
     createReleasesPlaylist,
     fetchPlaylistTracks,
+    fetchPlaylistTracksNewestFirst,
   };
 }
