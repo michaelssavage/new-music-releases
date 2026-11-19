@@ -91,7 +91,7 @@ const FieldLabel = styled.label`
   font-size: 1.2rem;
 `;
 
-const genreSelectStyles: StylesConfig<GenreOption, false> = {
+const genreSelectStyles: StylesConfig<GenreOption, true> = {
   container: (base) => ({ ...base, width: "100%" }),
   control: (base) => ({ ...base, minHeight: 32, height: 32 }),
   valueContainer: (base) => ({ ...base, padding: "1px 8px" }),
@@ -150,7 +150,7 @@ const SeenArtistForm = ({
 
   const [name, setName] = useState(artist?.name ?? initialName);
   const [sightings, setSightings] = useState(() => toFormSightings(artist));
-  const [genre, setGenre] = useState(artist?.genreOverride ?? "");
+  const [genres, setGenres] = useState(artist?.genreOverrides ?? []);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const { data } = useQuery({
@@ -204,7 +204,7 @@ const SeenArtistForm = ({
         event: event.trim(),
         year: Number(year),
       })),
-      ...(genre && { genreOverride: genre }),
+      ...(genres.length > 0 && { genreOverrides: genres }),
     });
   };
 
@@ -269,21 +269,24 @@ const SeenArtistForm = ({
       </Sightings>
 
       <Group direction="column" align="flex-start" gap="0.2rem">
-        <FieldLabel htmlFor={`${formId}-genre`}>Genre</FieldLabel>
-        <CreatableSelect<GenreOption, false>
+        <FieldLabel htmlFor={`${formId}-genre`}>Genres</FieldLabel>
+        <CreatableSelect<GenreOption, true>
           inputId={`${formId}-genre`}
           options={genreOptions}
-          value={genre ? toOption(genre) : null}
-          onChange={(option) => setGenre(option?.value.trim() ?? "")}
+          value={genres.map(toOption)}
+          onChange={(options) =>
+            setGenres(options.map(({ value }) => value.trim()))
+          }
           placeholder="Automatic"
           formatCreateLabel={(typed) => `Add genre "${typed}"`}
+          isMulti
           isClearable
           styles={genreSelectStyles}
         />
         <Hint>
           {artist
-            ? `Automatic genre: ${artist.automaticGenre}. Leave blank to use it, or pick or type a genre to override it.`
-            : "Leave blank to pick the genre from Last.fm tags, or pick or type a genre."}
+            ? `Automatic genre: ${artist.automaticGenre}. Leave empty to use it, or pick or type genres to replace it.`
+            : "Leave empty to pick the genre from Last.fm tags, or pick or type genres."}
         </Hint>
       </Group>
 

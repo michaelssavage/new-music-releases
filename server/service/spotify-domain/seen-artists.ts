@@ -7,7 +7,7 @@ import type { SpotifyRepository } from "@server/repository/spotify.repository";
 import type { LastFmApi } from "@server/service/lastfm-api";
 import { HttpException } from "@server/utils/exceptions";
 import { logger } from "@server/utils/logger";
-import { countByGenre, withPrimaryGenre } from "./genre-buckets";
+import { countByGenre, withGenres } from "./genre-buckets";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
 
@@ -34,7 +34,7 @@ export function createSeenArtistsService(deps: {
 
   async function getSeenArtists(): Promise<SeenArtistsResponse> {
     const seenArtists = await repository.getSeenArtists();
-    const artists = withPrimaryGenre(seenArtists);
+    const artists = withGenres(seenArtists);
 
     return { artists, genres: countByGenre(artists) };
   }
@@ -45,11 +45,11 @@ export function createSeenArtistsService(deps: {
 
     if (existing) {
       const { id, ...stored } = existing;
-      const genreOverride = input.genreOverride ?? stored.genreOverride;
+      const genreOverrides = input.genreOverrides ?? stored.genreOverrides;
       await repository.replaceSeenArtist(id, {
         ...stored,
         sightings: mergeSightings(stored.sightings, input.sightings),
-        ...(genreOverride && { genreOverride }),
+        ...(genreOverrides && { genreOverrides }),
       });
       logger.info(`addSeenArtist:Added sightings to ${stored.name}.`);
       return;

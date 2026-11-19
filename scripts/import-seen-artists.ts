@@ -8,7 +8,7 @@ import { SpotifyRepository } from "@server/repository/spotify.repository";
 import { createLastFmApi } from "@server/service/lastfm-api";
 import {
   countByGenre,
-  genreOf,
+  genresOf,
 } from "@server/service/spotify-domain/genre-buckets";
 import { logger } from "@server/utils/logger";
 import { validateEnv } from "@server/utils/validateEnv";
@@ -50,7 +50,7 @@ async function main() {
           name,
           sightings: sightings.map(({ event, year }) => ({ event, year })),
           tags: await lastFm.fetchTopTags(lastfmName ?? name),
-          ...(genre && { genreOverride: genre }),
+          ...(genre && { genreOverrides: [genre] }),
         }),
       );
     }),
@@ -71,7 +71,7 @@ async function main() {
 
   const withGenre = artists.map((artist) => ({
     ...artist,
-    genre: genreOf(artist),
+    genres: genresOf(artist),
   }));
   logger.info(
     countByGenre(withGenre)
@@ -79,8 +79,8 @@ async function main() {
       .join(", "),
   );
 
-  for (const { name, genre, tags } of withGenre) {
-    if (genre !== OTHER_GENRE) continue;
+  for (const { name, genres, tags } of withGenre) {
+    if (!genres.includes(OTHER_GENRE)) continue;
     logger.warn(
       `No genre for ${name}. Tags: ${tags.map((tag) => tag.name).join(", ") || "none"}`,
     );

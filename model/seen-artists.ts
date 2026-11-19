@@ -28,7 +28,7 @@ export interface SeenArtistI {
   name: string;
   sightings: Array<SightingI>;
   tags: Array<ArtistTagI>;
-  genreOverride?: Genre;
+  genreOverrides?: Array<Genre>;
 }
 
 export interface StoredSeenArtistI extends SeenArtistI {
@@ -38,16 +38,16 @@ export interface StoredSeenArtistI extends SeenArtistI {
 export interface SeenArtistInputI {
   name: string;
   sightings: Array<SightingI>;
-  genreOverride?: Genre;
+  genreOverrides?: Array<Genre>;
 }
 
 export interface SeenArtistWithGenreI {
   id: string;
   name: string;
   sightings: Array<SightingI>;
-  genre: Genre;
+  genres: Array<Genre>;
   automaticGenre: Genre;
-  genreOverride?: Genre;
+  genreOverrides?: Array<Genre>;
 }
 
 export interface GenreCountI {

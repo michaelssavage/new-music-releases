@@ -8,9 +8,18 @@ import { withBearerJson } from "./http-helpers";
 const FIRST_GIG_YEAR = 1950;
 const MAX_NAME_LENGTH = 200;
 const MAX_GENRE_LENGTH = 50;
+const MAX_GENRES = 10;
+
+function isValidGenre(genre: unknown): genre is string {
+  return (
+    typeof genre === "string" &&
+    genre.trim() !== "" &&
+    genre.length <= MAX_GENRE_LENGTH
+  );
+}
 
 function parseSeenArtistInput(body: unknown): SeenArtistInputI {
-  const { name, sightings, genreOverride } = (body ?? {}) as Record<
+  const { name, sightings, genreOverrides } = (body ?? {}) as Record<
     string,
     unknown
   >;
@@ -42,19 +51,19 @@ function parseSeenArtistInput(body: unknown): SeenArtistInputI {
   });
 
   if (
-    genreOverride !== undefined &&
-    (typeof genreOverride !== "string" ||
-      !genreOverride.trim() ||
-      genreOverride.length > MAX_GENRE_LENGTH)
+    genreOverrides !== undefined &&
+    (!Array.isArray(genreOverrides) ||
+      genreOverrides.length > MAX_GENRES ||
+      !genreOverrides.every(isValidGenre))
   ) {
-    throw new HttpException(400, "Invalid genre.");
+    throw new HttpException(400, "Invalid genres.");
   }
 
   return {
     name: name.trim(),
     sightings: parsedSightings,
-    ...(genreOverride !== undefined && {
-      genreOverride: genreOverride.trim(),
+    ...(genreOverrides?.length && {
+      genreOverrides: [...new Set(genreOverrides.map((g) => g.trim()))],
     }),
   };
 }

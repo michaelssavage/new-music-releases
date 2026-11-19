@@ -96,32 +96,34 @@ export function primaryGenre(tags: Array<ArtistTagI>): Genre {
   return best?.genre ?? OTHER_GENRE;
 }
 
-export function genreOf({
+export function genresOf({
   tags,
-  genreOverride,
-}: Pick<SeenArtistI, "tags" | "genreOverride">): Genre {
-  return genreOverride ?? primaryGenre(tags);
+  genreOverrides,
+}: Pick<SeenArtistI, "tags" | "genreOverrides">): Array<Genre> {
+  return genreOverrides?.length ? genreOverrides : [primaryGenre(tags)];
 }
 
-export function withPrimaryGenre(
+export function withGenres(
   artists: Array<StoredSeenArtistI>,
 ): Array<SeenArtistWithGenreI> {
   return artists.map((artist) => ({
     id: artist.id,
     name: artist.name,
     sightings: artist.sightings,
-    genre: genreOf(artist),
+    genres: genresOf(artist),
     automaticGenre: primaryGenre(artist.tags),
-    genreOverride: artist.genreOverride,
+    genreOverrides: artist.genreOverrides,
   }));
 }
 
 export function countByGenre(
-  artists: Array<Pick<SeenArtistWithGenreI, "genre">>,
+  artists: Array<Pick<SeenArtistWithGenreI, "genres">>,
 ): Array<GenreCountI> {
   const counts = new Map<Genre, number>();
-  for (const { genre } of artists) {
-    counts.set(genre, (counts.get(genre) ?? 0) + 1);
+  for (const { genres } of artists) {
+    for (const genre of genres) {
+      counts.set(genre, (counts.get(genre) ?? 0) + 1);
+    }
   }
 
   return Array.from(counts, ([genre, count]) => ({

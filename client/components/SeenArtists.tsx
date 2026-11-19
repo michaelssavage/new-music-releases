@@ -89,8 +89,8 @@ const LoaderStyled = styled.div`
   justify-content: center;
 `;
 
-function hasNoGenre({ genre, genreOverride }: SeenArtistWithGenreI) {
-  return genre === OTHER_GENRE && !genreOverride;
+function hasNoGenre({ automaticGenre, genreOverrides }: SeenArtistWithGenreI) {
+  return automaticGenre === OTHER_GENRE && !genreOverrides?.length;
 }
 
 function matchesSearch({ name }: SeenArtistWithGenreI, search: string) {
@@ -130,7 +130,7 @@ export const SeenArtists = () => {
   );
   const visibleArtists = artists.filter(
     (artist) =>
-      (!selectedGenre || artist.genre === selectedGenre) &&
+      (!selectedGenre || artist.genres.includes(selectedGenre)) &&
       matchesSearch(artist, search),
   );
   const hasVisibleArtistWithoutGenre = visibleArtists.some(hasNoGenre);
