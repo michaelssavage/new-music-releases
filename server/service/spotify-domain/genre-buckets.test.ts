@@ -1,6 +1,7 @@
+import { type Genre, OTHER_GENRE } from "@model/seen-artists";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { OTHER_GENRE, countByGenre, primaryGenre } from "./genre-buckets";
+import { countByGenre, primaryGenre } from "./genre-buckets";
 
 test("an artist's genre is the bucket with the highest tag weight", () => {
   const cases: Array<[tags: Array<[string, number]>, genre: string]> = [
@@ -63,13 +64,19 @@ test("an artist with no recognised tags is Other", () => {
 });
 
 test("genre counts are sorted by size, then name", () => {
-  const artists = [
+  const genres: Array<Genre> = [
     "Rock / Punk",
     "Electronic",
     "Electronic",
     "Pop",
     "Electronic",
-  ].map((genre, index) => ({ name: `artist ${index}`, sightings: [], genre }));
+  ];
+  const artists = genres.map((genre, index) => ({
+    id: `${index}`,
+    name: `artist ${index}`,
+    sightings: [],
+    genre,
+  }));
 
   assert.deepEqual(countByGenre(artists), [
     { genre: "Electronic", artists: 3 },

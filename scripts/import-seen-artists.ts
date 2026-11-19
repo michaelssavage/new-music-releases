@@ -1,11 +1,15 @@
-import type { SeenArtistI, SightingI } from "@model/seen-artists";
+import {
+  GENRES,
+  type Genre,
+  OTHER_GENRE,
+  type SeenArtistI,
+  type SightingI,
+} from "@model/seen-artists";
 import { SpotifyRepository } from "@server/repository/spotify.repository";
 import { createLastFmApi } from "@server/service/lastfm-api";
 import {
-  GENRES,
-  OTHER_GENRE,
   countByGenre,
-  withPrimaryGenre,
+  genreOf,
 } from "@server/service/spotify-domain/genre-buckets";
 import { logger } from "@server/utils/logger";
 import { validateEnv } from "@server/utils/validateEnv";
@@ -19,13 +23,13 @@ import pLimit from "p-limit";
 const LASTFM_CONCURRENCY = 3;
 const isDryRun = process.argv.includes("--dry-run");
 
-// `lastfmName` overrides the Last.fm lookup when `name` doesn't match it
-// (e.g. a b2b set). `genre` overrides the tag-derived genre for artists
-// Last.fm has no usable tags for.
+// Only artists missing from MongoDB are inserted, so edits made in the app
+// survive a re-run. `lastfmName` overrides the Last.fm lookup when `name`
+// doesn't match it (e.g. a b2b set); `genre` overrides the tag-derived genre.
 interface SightingsFileEntry {
   name: string;
   lastfmName?: string;
-  genre?: string;
+  genre?: Genre;
   sightings: Array<SightingI>;
 }
 
@@ -52,7 +56,7 @@ async function main() {
           name,
           sightings: sightings.map(({ event, year }) => ({ event, year })),
           tags: await lastFm.fetchTopTags(lastfmName ?? name),
-          ...(genre && { genre }),
+          ...(genre && { genreOverride: genre }),
         }),
       );
     }),
@@ -64,23 +68,25 @@ async function main() {
     const repository = SpotifyRepository({ mongoUri: env.MONGO_URI });
     await repository.connect();
     try {
-      await repository.upsertSeenArtists(artists);
+      await repository.insertMissingSeenArtists(artists);
     } finally {
       await repository.disconnect();
     }
     logger.info(`Imported ${artists.length} seen artists.`);
   }
 
-  const withGenre = withPrimaryGenre(artists);
+  const withGenre = artists.map((artist) => ({
+    ...artist,
+    genre: genreOf(artist),
+  }));
   logger.info(
     countByGenre(withGenre)
       .map(({ genre, artists }) => `${genre}: ${artists}`)
       .join(", "),
   );
 
-  for (const { name, genre } of withGenre) {
+  for (const { name, genre, tags } of withGenre) {
     if (genre !== OTHER_GENRE) continue;
-    const tags = artists.find((artist) => artist.name === name)?.tags ?? [];
     logger.warn(
       `No genre for ${name}. Tags: ${tags.map((tag) => tag.name).join(", ") || "none"}`,
     );

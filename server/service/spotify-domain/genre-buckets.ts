@@ -1,15 +1,16 @@
-import type {
-  ArtistTagI,
-  GenreCountI,
-  SeenArtistI,
-  SeenArtistWithGenreI,
+import {
+  type ArtistTagI,
+  type Genre,
+  type GenreCountI,
+  OTHER_GENRE,
+  type SeenArtistI,
+  type SeenArtistWithGenreI,
+  type StoredSeenArtistI,
 } from "@model/seen-artists";
-
-export const OTHER_GENRE = "Other";
 
 // Order matters: a tag counts toward the first bucket that matches it,
 // so "indie rock" is Indie rather than Rock.
-const GENRE_KEYWORDS: Array<[genre: string, keywords: Array<string>]> = [
+const GENRE_KEYWORDS: Array<[genre: Genre, keywords: Array<string>]> = [
   [
     "Electronic",
     [
@@ -66,8 +67,6 @@ const GENRE_KEYWORDS: Array<[genre: string, keywords: Array<string>]> = [
   ["Pop", ["pop", "synthpop", "soul", "funk", "disco"]],
 ];
 
-export const GENRES = [...GENRE_KEYWORDS.map(([genre]) => genre), OTHER_GENRE];
-
 function normalise(text: string) {
   return ` ${text
     .toLowerCase()
@@ -82,14 +81,14 @@ function genreOfTag(tagName: string) {
   )?.[0];
 }
 
-export function primaryGenre(tags: Array<ArtistTagI>): string {
-  const scores = new Map<string, number>();
+export function primaryGenre(tags: Array<ArtistTagI>): Genre {
+  const scores = new Map<Genre, number>();
   for (const { name, count } of tags) {
     const genre = genreOfTag(name);
     if (genre) scores.set(genre, (scores.get(genre) ?? 0) + count);
   }
 
-  let best: { genre: string; score: number } | undefined;
+  let best: { genre: Genre; score: number } | undefined;
   for (const [genre] of GENRE_KEYWORDS) {
     const score = scores.get(genre) ?? 0;
     if (score > (best?.score ?? 0)) best = { genre, score };
@@ -97,20 +96,30 @@ export function primaryGenre(tags: Array<ArtistTagI>): string {
   return best?.genre ?? OTHER_GENRE;
 }
 
+export function genreOf({
+  tags,
+  genreOverride,
+}: Pick<SeenArtistI, "tags" | "genreOverride">): Genre {
+  return genreOverride ?? primaryGenre(tags);
+}
+
 export function withPrimaryGenre(
-  artists: Array<SeenArtistI>,
+  artists: Array<StoredSeenArtistI>,
 ): Array<SeenArtistWithGenreI> {
-  return artists.map(({ name, sightings, tags, genre }) => ({
-    name,
-    sightings,
-    genre: genre ?? primaryGenre(tags),
+  return artists.map((artist) => ({
+    id: artist.id,
+    name: artist.name,
+    sightings: artist.sightings,
+    genre: genreOf(artist),
+    automaticGenre: primaryGenre(artist.tags),
+    genreOverride: artist.genreOverride,
   }));
 }
 
 export function countByGenre(
-  artists: Array<SeenArtistWithGenreI>,
+  artists: Array<Pick<SeenArtistWithGenreI, "genre">>,
 ): Array<GenreCountI> {
-  const counts = new Map<string, number>();
+  const counts = new Map<Genre, number>();
   for (const { genre } of artists) {
     counts.set(genre, (counts.get(genre) ?? 0) + 1);
   }

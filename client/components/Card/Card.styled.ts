@@ -1,21 +1,20 @@
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 
+export const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 200px));
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+`;
+
 export const CardWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 0 0 calc(25% - 1rem);
-  flex-wrap: wrap;
   border: 1px solid #a4b4c7;
   border-radius: 4px;
-
-  @media screen and (max-width: 768px) {
-    flex: 0 0 calc(33% - 1rem);
-  }
-
-  @media screen and (max-width: 420px) {
-    flex: 0 0 calc(50% - 1rem);
-  }
+  position: relative;
 
   img {
     width: 100%;
@@ -24,18 +23,50 @@ export const CardWrapper = styled.div`
 
   h2 {
     margin: 0.5rem 0 0 0;
-    padding: 0 0.25rem;
-    text-align: center;
+    padding: 0 4px;
   }
 `;
 
 export const Content = styled.div`
-  padding: 0.5rem;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0 4px 8px;
+`;
+
+export const ImageLink = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #ffffff;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  a {
+    color: #000000;
+  }
+`;
+
+export const Actions = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+
+  button {
+    width: 100%;
+  }
 `;
 
 export const Fact = styled.p`
   font-size: 1rem;
-  padding: 0 0.5rem;
   margin: 0.25rem 0;
 `;
 
@@ -47,7 +78,7 @@ export const Genres = styled.p`
 
 export const Artists = styled.p`
   font-size: 0.8rem;
-  padding: 0 0.25rem;
+  padding: 0 4px;
   display: flex;
   flex-wrap: wrap;
 `;

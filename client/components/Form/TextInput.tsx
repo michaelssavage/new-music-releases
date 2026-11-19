@@ -1,3 +1,4 @@
+import type { SerializedStyles } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { Group } from "../Group";
@@ -5,9 +6,13 @@ import { Group } from "../Group";
 interface Props {
   id: string;
   label?: string;
+  ariaLabel?: string;
+  type?: "text" | "number";
+  value?: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
-  onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
+  styles?: SerializedStyles;
 }
 
 const Label = styled.label`
@@ -19,7 +24,7 @@ const TextInputStyled = styled.input`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  max-height: 32px;
+  height: 32px;
   outline: 0;
   background-color: #ffffff;
   padding: 0.25rem;
@@ -34,16 +39,22 @@ const TextInputStyled = styled.input`
 export const TextInput = ({
   id,
   label,
+  ariaLabel,
+  type = "text",
+  value,
   placeholder,
   onChange,
   onKeyDown,
+  styles,
 }: Props) => {
   return (
-    <Group direction="column" gap="0.2rem" align="flex-start">
-      <Label htmlFor={id}>{label}</Label>
+    <Group direction="column" gap="0.2rem" align="flex-start" styling={styles}>
+      {label && <Label htmlFor={id}>{label}</Label>}
       <TextInputStyled
         id={id}
-        type="text"
+        type={type}
+        aria-label={ariaLabel}
+        value={value}
         placeholder={placeholder}
         onChange={onChange}
         onKeyDown={onKeyDown}

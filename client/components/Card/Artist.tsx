@@ -4,10 +4,17 @@ import { useAppStore } from "@client/store/appStore";
 import type { Artist } from "@model/spotify/liked-tracks";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { AddSeenArtistButton } from "../AddSeenArtistButton";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
-import { Group } from "../Group";
-import { CardWrapper, Content, Fact, Genres } from "./Card.styled";
+import {
+  Actions,
+  CardWrapper,
+  Content,
+  Fact,
+  Genres,
+  ImageLink,
+} from "./Card.styled";
 
 interface CardI {
   image: string;
@@ -57,6 +64,11 @@ export const ArtistCard = ({ image, artist }: CardI) => {
 
   return (
     <CardWrapper>
+      {link && (
+        <ImageLink>
+          <Anchor link={link} text="Open" variant="link" isExternal />
+        </ImageLink>
+      )}
       <img src={image ? image : noPhoto} alt={name} />
 
       <h2>{name}</h2>
@@ -66,15 +78,15 @@ export const ArtistCard = ({ image, artist }: CardI) => {
           <Fact>{`${followers.total.toLocaleString()} Followers`}</Fact>
         )}
         {genres?.length ? <Genres>Genres: {genres.join(", ")}</Genres> : null}
-        <Group>
+        <Actions>
           <Button
             onClick={handleAction}
             variant={isSaved ? "remove" : undefined}
             text={`${isSaved ? "Remove" : "Save"} Artist`}
             loading={loadingSave || loadingRemove}
           />
-          {link && <Anchor link={link} text="Open Artist" isExternal />}
-        </Group>
+          <AddSeenArtistButton artistName={name} />
+        </Actions>
       </Content>
     </CardWrapper>
   );

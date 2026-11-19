@@ -1,11 +1,36 @@
-import type { SeenArtistsResponse } from "@model/seen-artists";
+import type {
+  SeenArtistInputI,
+  SeenArtistsResponse,
+  SightingI,
+} from "@model/seen-artists";
 import type { SpotifyRepository } from "@server/repository/spotify.repository";
+import type { LastFmApi } from "@server/service/lastfm-api";
+import { HttpException } from "@server/utils/exceptions";
+import { logger } from "@server/utils/logger";
 import { countByGenre, withPrimaryGenre } from "./genre-buckets";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
 
-export function createSeenArtistsService(deps: { repository: Repository }) {
-  const { repository } = deps;
+function sameName(a: string, b: string) {
+  return a.localeCompare(b, "en", { sensitivity: "accent" }) === 0;
+}
+
+function mergeSightings(
+  existing: Array<SightingI>,
+  added: Array<SightingI>,
+): Array<SightingI> {
+  const isNew = ({ event, year }: SightingI) =>
+    !existing.some(
+      (sighting) => sighting.event === event && sighting.year === year,
+    );
+  return [...existing, ...added.filter(isNew)];
+}
+
+export function createSeenArtistsService(deps: {
+  repository: Repository;
+  lastFm: LastFmApi;
+}) {
+  const { repository, lastFm } = deps;
 
   async function getSeenArtists(): Promise<SeenArtistsResponse> {
     const seenArtists = await repository.getSeenArtists();
@@ -14,5 +39,52 @@ export function createSeenArtistsService(deps: { repository: Repository }) {
     return { artists, genres: countByGenre(artists) };
   }
 
-  return { getSeenArtists };
+  // An artist seen again gains sightings instead of a duplicate entry.
+  async function addSeenArtist(input: SeenArtistInputI) {
+    const existing = await repository.findSeenArtistByName(input.name);
+
+    if (existing) {
+      const { id, ...stored } = existing;
+      const genreOverride = input.genreOverride ?? stored.genreOverride;
+      await repository.replaceSeenArtist(id, {
+        ...stored,
+        sightings: mergeSightings(stored.sightings, input.sightings),
+        ...(genreOverride && { genreOverride }),
+      });
+      logger.info(`addSeenArtist:Added sightings to ${stored.name}.`);
+      return;
+    }
+
+    await repository.insertSeenArtist({
+      ...input,
+      tags: await lastFm.fetchTopTags(input.name),
+    });
+    logger.info(`addSeenArtist:Added ${input.name}.`);
+  }
+
+  async function updateSeenArtist(id: string, input: SeenArtistInputI) {
+    const existing = await repository.findSeenArtistById(id);
+    if (!existing) throw new HttpException(404, "Seen artist not found.");
+
+    const renamed = !sameName(existing.name, input.name);
+    if (renamed) {
+      const nameTaken = await repository.findSeenArtistByName(input.name);
+      if (nameTaken) {
+        throw new HttpException(409, `${input.name} is already in the list.`);
+      }
+    }
+
+    await repository.replaceSeenArtist(id, {
+      ...input,
+      tags: renamed ? await lastFm.fetchTopTags(input.name) : existing.tags,
+    });
+    logger.info(`updateSeenArtist:Updated ${input.name}.`);
+  }
+
+  async function deleteSeenArtist(id: string) {
+    await repository.deleteSeenArtist(id);
+    logger.info(`deleteSeenArtist:Deleted seen artist ${id}.`);
+  }
+
+  return { getSeenArtists, addSeenArtist, updateSeenArtist, deleteSeenArtist };
 }

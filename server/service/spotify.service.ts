@@ -1,5 +1,6 @@
 import type { SpotifyServiceI } from "@server/container/types";
 import { logger } from "@server/utils/logger";
+import { createLastFmApi } from "./lastfm-api";
 import { createSpotifyOAuth } from "./spotify-domain/oauth";
 import { createReleasesPlaylistService } from "./spotify-domain/releases-playlist";
 import { createSeenArtistsService } from "./spotify-domain/seen-artists";
@@ -10,7 +11,10 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
   const oauth = createSpotifyOAuth(env);
   const userSession = createUserSession({ repository, api, oauth });
   const trackedArtists = createTrackedArtistsService({ repository, api });
-  const seenArtists = createSeenArtistsService({ repository });
+  const seenArtists = createSeenArtistsService({
+    repository,
+    lastFm: createLastFmApi({ apiKey: env.LASTFM_API_KEY }),
+  });
   const releasesPlaylist = createReleasesPlaylistService({
     repository,
     api,
@@ -94,6 +98,9 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     syncArtistsFromPlaylistForAllUsers,
 
     getSeenArtists: seenArtists.getSeenArtists,
+    addSeenArtist: seenArtists.addSeenArtist,
+    updateSeenArtist: seenArtists.updateSeenArtist,
+    deleteSeenArtist: seenArtists.deleteSeenArtist,
 
     collectNewReleasesForUser: releasesPlaylist.collectNewReleasesForUser,
     appendNewReleasesToPlaylist: releasesPlaylist.appendNewReleasesToPlaylist,

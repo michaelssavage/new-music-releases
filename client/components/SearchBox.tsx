@@ -1,4 +1,3 @@
-import { useTabs } from "@client/context/tabs.context";
 import { fetchSearchResults } from "@client/lib/spotify";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
@@ -7,39 +6,32 @@ import {
   defaultResults,
 } from "@client/utils/defaults";
 import { css } from "@emotion/react";
-import styled from "@emotion/styled";
 import type { SearchResponse } from "@model/spotify/search";
 import { useMutation } from "@tanstack/react-query";
 import {
   type ChangeEvent,
   type KeyboardEvent,
+  type ReactNode,
   useCallback,
   useState,
 } from "react";
 import type { MultiValue } from "react-select";
-import { Button, Content } from "./Button";
+import { Button } from "./Button";
 import { AlbumCard } from "./Card/Album";
 import { ArtistCard } from "./Card/Artist";
+import { CardGrid } from "./Card/Card.styled";
 import { TrackCard } from "./Card/Track";
 import { Select } from "./Form/Select";
 import { TextInput } from "./Form/TextInput";
 import { Group } from "./Group";
 import { SearchIcon } from "./Icons/Search";
 import { Modal } from "./Modal";
-import { Panel } from "./Panel";
 import { type Tab, TabList, TabPanel } from "./Tabs";
 
 const customButtonStyles = css`
   padding: 0.25rem;
-  ${Content} {
-    width: 300px;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-  }
-`;
-
-const TabContent = styled.div`
-  padding: 2rem;
+  height: 40px;
+  width: 300px;
 `;
 
 const searchBoxStyling = css`
@@ -52,14 +44,30 @@ const searchBoxStyling = css`
   }
 `;
 
+interface ResultsProps {
+  title: string;
+  show: boolean;
+  children: ReactNode;
+}
+
+const Results = ({ title, show, children }: ResultsProps) => {
+  if (!show) return `No ${title} found`;
+
+  return (
+    <Group direction="column" align="center" width="100%">
+      <h1>{title}</h1>
+      <CardGrid>{children}</CardGrid>
+    </Group>
+  );
+};
+
 export const SearchBox = () => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<SearchResponse>(defaultResults);
   const [type, setType] = useState(defaultOptions);
   const [loading, setLoading] = useState(false);
-
-  const { setActiveTab } = useTabs();
+  const [activeTab, setActiveTab] = useState("artists");
 
   const handleSearch = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -80,7 +88,8 @@ export const SearchBox = () => {
       } = data;
 
       setResults({ artists, albums, tracks });
-      setActiveTab(getActiveTabKey({ artists, albums, tracks }));
+      const firstTabWithResults = getActiveTabKey({ artists, albums, tracks });
+      if (firstTabWithResults) setActiveTab(firstTabWithResults);
       setLoading(false);
     },
     onError: (error) => {
@@ -106,7 +115,7 @@ export const SearchBox = () => {
       tab: "Artists",
       visible: type.some(({ value }) => value === "artist"),
       panel: (
-        <Panel title="Artists" show={results.artists?.length > 0}>
+        <Results title="Artists" show={results.artists?.length > 0}>
           {results.artists
             .filter((artist) => artist.images.length)
             .map((artist) => (
@@ -116,7 +125,7 @@ export const SearchBox = () => {
                 artist={artist}
               />
             ))}
-        </Panel>
+        </Results>
       ),
     },
     {
@@ -124,7 +133,7 @@ export const SearchBox = () => {
       tab: "Albums",
       visible: type.some(({ value }) => value === "album"),
       panel: (
-        <Panel title="Albums" show={results.albums?.length > 0}>
+        <Results title="Albums" show={results.albums?.length > 0}>
           {results.albums
             .filter((album) => album.images.length)
             .map((album) => (
@@ -136,7 +145,7 @@ export const SearchBox = () => {
                 artists={album.artists}
               />
             ))}
-        </Panel>
+        </Results>
       ),
     },
     {
@@ -144,7 +153,7 @@ export const SearchBox = () => {
       tab: "Tracks",
       visible: type.some(({ value }) => value === "track"),
       panel: (
-        <Panel title="Tracks" show={results.tracks?.length > 0}>
+        <Results title="Tracks" show={results.tracks?.length > 0}>
           {results.tracks
             .filter((track) => track.album.images.length)
             .map((track) => (
@@ -156,7 +165,7 @@ export const SearchBox = () => {
                 track={track}
               />
             ))}
-        </Panel>
+        </Results>
       ),
     },
   ];
@@ -172,18 +181,30 @@ export const SearchBox = () => {
       />
 
       <Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
-        <Group justify="flex-start" align="flex-end" width="100%" gap="1rem">
+        <Group
+          justify="space-between"
+          align="flex-end"
+          width="100%"
+          gap="1rem"
+          styling={css`
+            margin: 0 0 1rem 0;
+          `}
+        >
           <TextInput
             id="search"
-            label="Search for an artist"
             placeholder="type here..."
             onChange={handleSearch}
             onKeyDown={handleEnter}
+            styles={css`
+              flex: 1;
+              input {
+                width: 100%;
+              }
+            `}
           />
 
           <Select
             id="type"
-            label="Search type"
             options={defaultOptions}
             value={type}
             onChange={handleType}
@@ -196,16 +217,16 @@ export const SearchBox = () => {
           />
         </Group>
 
-        <TabContent>
-          <TabList
-            data={data.filter(({ visible }) => visible)}
-            defaultTab={getActiveTabKey(results)}
-          />
-          <TabPanel
-            data={data.filter(({ visible }) => visible)}
-            loading={loading}
-          />
-        </TabContent>
+        <TabList
+          data={data.filter(({ visible }) => visible)}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
+        <TabPanel
+          data={data.filter(({ visible }) => visible)}
+          activeTab={activeTab}
+          loading={loading}
+        />
       </Modal>
     </Group>
   );

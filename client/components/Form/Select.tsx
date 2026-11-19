@@ -1,8 +1,28 @@
 import styled from "@emotion/styled";
 import type { TypeI } from "client/utils/defaults";
-import ReactSelect, { type MultiValue } from "react-select";
+import ReactSelect, { type MultiValue, type StylesConfig } from "react-select";
 import makeAnimated from "react-select/animated";
 import { Group } from "../Group";
+
+const selectStyles: StylesConfig<TypeI, true> = {
+  control: (base) => ({
+    ...base,
+    minHeight: 32,
+    height: 32,
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: "1px 8px",
+  }),
+  dropdownIndicator: (base) => ({
+    ...base,
+    padding: 5,
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    padding: 5,
+  }),
+};
 
 interface Props {
   id: string;
@@ -29,7 +49,7 @@ export const Select = ({
   const animatedComponents = makeAnimated();
 
   return (
-    <Group direction="column" gap="0.2rem" align="flex-start">
+    <Group direction="column" gap="0.1rem" align="flex-start">
       <Label htmlFor={id}>{label}</Label>
       <ReactSelect
         id={id}
@@ -39,6 +59,7 @@ export const Select = ({
         onChange={onChange}
         closeMenuOnSelect={closeMenuOnSelect}
         isMulti={true}
+        styles={selectStyles}
       />
     </Group>
   );

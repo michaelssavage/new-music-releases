@@ -1,4 +1,3 @@
-import { useTabs } from "@client/context/tabs.context";
 import styled from "@emotion/styled";
 import { type KeyboardEvent, type ReactNode, useEffect, useRef } from "react";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
@@ -13,11 +12,14 @@ export interface Tab {
 
 interface TabListProps {
   data: Array<Tab>;
+  activeTab: string;
+  onChange: (key: string) => void;
   defaultTab?: string;
 }
 
 interface TabPanelProps {
   data: Array<Tab>;
+  activeTab: string;
   loading?: boolean;
 }
 
@@ -63,13 +65,17 @@ const Panel = styled.div`
   padding: 1.5rem 0rem;
 `;
 
-export const TabList = ({ data, defaultTab }: TabListProps) => {
+export const TabList = ({
+  data,
+  activeTab,
+  onChange,
+  defaultTab,
+}: TabListProps) => {
   const tabsRef = useRef<Array<null | HTMLButtonElement>>([]);
-  const { activeTab, setActiveTab } = useTabs();
 
   useEffect(() => {
-    if (defaultTab) setActiveTab(defaultTab);
-  }, [defaultTab, setActiveTab]);
+    if (defaultTab) onChange(defaultTab);
+  }, [defaultTab, onChange]);
 
   const onKeyDown = ({ code }: KeyboardEvent) => {
     let index = data.findIndex(({ key }) => key === activeTab);
@@ -81,7 +87,7 @@ export const TabList = ({ data, defaultTab }: TabListProps) => {
     }
 
     tabsRef.current[index]?.focus();
-    setActiveTab(data[index].key);
+    onChange(data[index].key);
   };
 
   return (
@@ -98,7 +104,7 @@ export const TabList = ({ data, defaultTab }: TabListProps) => {
               tabsRef.current[index] = el;
             }}
             aria-selected={isActive}
-            onClick={() => setActiveTab(key)}
+            onClick={() => onChange(key)}
             onKeyDown={onKeyDown}
           >
             {tab}
@@ -109,9 +115,12 @@ export const TabList = ({ data, defaultTab }: TabListProps) => {
   );
 };
 
-export const TabPanel = ({ data, loading = false }: TabPanelProps) => {
+export const TabPanel = ({
+  data,
+  activeTab,
+  loading = false,
+}: TabPanelProps) => {
   const nodeRef = useRef(null);
-  const { activeTab } = useTabs();
   const activePanel = data.find(({ key }) => key === activeTab);
 
   if (loading) return <Loader />;

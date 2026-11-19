@@ -1,5 +1,8 @@
 import { logger } from "@client/utils/logger";
-import type { SeenArtistsResponse } from "@model/seen-artists";
+import type {
+  SeenArtistInputI,
+  SeenArtistsResponse,
+} from "@model/seen-artists";
 import type { SavedArtistI, SpotifyDataProps } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { SaveSongRequestI } from "@model/spotify/playlist";
@@ -227,6 +230,54 @@ export const getNextTracks = async (nextUrl: string) => {
       logger.error("getNextTracks:An unexpected error occurred:", error);
     }
     return null;
+  }
+};
+
+function seenArtistErrorMessage(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    logger.error(fallback, error.response?.data || error.message);
+    return error.response?.data?.error ?? fallback;
+  }
+  logger.error(fallback, error);
+  return fallback;
+}
+
+export const addSeenArtist = async (input: SeenArtistInputI) => {
+  const spotify_access_token = Cookies.get("spotify_access_token");
+
+  try {
+    await axios.post("/api/seen-artists", input, {
+      headers: { spotify_access_token },
+    });
+  } catch (error) {
+    throw new Error(seenArtistErrorMessage(error, "Couldn't add artist"));
+  }
+};
+
+export const updateSeenArtist = async ({
+  id,
+  ...input
+}: SeenArtistInputI & { id: string }) => {
+  const spotify_access_token = Cookies.get("spotify_access_token");
+
+  try {
+    await axios.put(`/api/seen-artists/${id}`, input, {
+      headers: { spotify_access_token },
+    });
+  } catch (error) {
+    throw new Error(seenArtistErrorMessage(error, "Couldn't update artist"));
+  }
+};
+
+export const deleteSeenArtist = async (id: string) => {
+  const spotify_access_token = Cookies.get("spotify_access_token");
+
+  try {
+    await axios.delete(`/api/seen-artists/${id}`, {
+      headers: { spotify_access_token },
+    });
+  } catch (error) {
+    throw new Error(seenArtistErrorMessage(error, "Couldn't delete artist"));
   }
 };
 

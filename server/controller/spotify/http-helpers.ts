@@ -1,4 +1,5 @@
 import { requireSpotifyToken } from "@server/utils/auth";
+import { HttpException } from "@server/utils/exceptions";
 import { logger } from "@server/utils/logger";
 import type { Request, Response } from "express";
 
@@ -24,6 +25,10 @@ export async function withBearerJson<T>(
     res.json(data);
   } catch (error) {
     logger.error(logLabel, error);
+    if (error instanceof HttpException) {
+      res.status(error.status).json({ error: error.message });
+      return;
+    }
     res.status(500).json({ error: clientError });
   }
 }

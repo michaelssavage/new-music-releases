@@ -24,6 +24,7 @@ import {
 } from "@tanstack/react-table";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { AddSeenArtistButton } from "../AddSeenArtistButton";
 import { Anchor } from "../Anchor";
 import { Button } from "../Button";
 import { Group } from "../Group";
@@ -352,6 +353,8 @@ export const SavedArtistsTable = () => {
                 icon={<SpotifyIcon />}
                 isExternal
               />
+
+              <AddSeenArtistButton artistName={artistData.name} />
 
               <Button
                 onClick={() => handleAction({ isSaved, data: artistData })}

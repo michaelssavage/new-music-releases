@@ -75,7 +75,7 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const { isAuthenticated, logout } = useAppStore();
-  const { tabs } = useTabs();
+  const { tabs, activeTab, setActiveTab } = useTabs();
 
   const handleLogout = () => {
     logout();
@@ -98,7 +98,12 @@ export const Navbar = () => {
 
       {tabs && (
         <Group justify="center" wrap="wrap">
-          <TabList data={tabs} defaultTab={tabs[0]?.key} />
+          <TabList
+            data={tabs}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            defaultTab={tabs[0]?.key}
+          />
         </Group>
       )}
     </NavbarContainer>

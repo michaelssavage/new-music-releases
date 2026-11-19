@@ -9,12 +9,9 @@ interface StyledI {
   styles?: SerializedStyles;
 }
 
-export const Content = styled.div``;
-
-const Text = styled.span``;
-
 export const ButtonStyled = styled.button<StyledI>`
-  padding: 0.5rem 0.75rem;
+  height: 32px;
+  padding: 0 0.75rem;
   border-radius: 4px;
   transition: all 0.2s ease-in-out;
   box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
@@ -78,14 +75,8 @@ export const ButtonStyled = styled.button<StyledI>`
         margin: 0;
         box-shadow: none;
 
-        ${Text} {
-          display: none;
-        }
-
         &:hover:not(:disabled) {
-          ${Text} {
-            display: block;
-          }
+          text-decoration: underline;
         }
       `;
     }
@@ -97,7 +88,7 @@ export const ButtonStyled = styled.button<StyledI>`
         background-color: #1abda2;
       }
     `;
-  }};
+  }}
 
   &:disabled {
     background-color: #93c5fd;
@@ -107,22 +98,22 @@ export const ButtonStyled = styled.button<StyledI>`
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
+  place-items: center;
 
-  ${Content} {
+  > * {
     grid-column: 1;
     grid-row: 1;
-    opacity: ${({ isLoading }) => (isLoading ? 0 : 1)};
-    transition: opacity 0.2s;
+  }
 
+  > span {
     display: flex;
-    flex-direction: row;
     align-items: center;
     gap: 0.5rem;
+    opacity: ${({ isLoading }) => (isLoading ? 0 : 1)};
+    transition: opacity 0.2s;
   }
 
   ${SpinnerStyled} {
-    grid-column: 1;
-    grid-row: 1;
     transition: opacity 0.2s;
     height: 24px;
     width: 24px;
@@ -164,10 +155,10 @@ export const Button = ({
       disabled={disabled}
       styles={styles}
     >
-      <Content>
-        {text && <Text>{text}</Text>}
-        {icon ? icon : null}
-      </Content>
+      <span>
+        {text}
+        {icon}
+      </span>
       {loading && <Spinner />}
     </ButtonStyled>
   );

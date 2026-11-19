@@ -1,10 +1,10 @@
-import type { SeenArtistI } from "@model/seen-artists";
+import type { SeenArtistI, StoredSeenArtistI } from "@model/seen-artists";
 import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
 import type { SpotifyPlaylistI } from "@model/spotify/playlist";
 import type { User } from "@model/spotify/user";
 import { logger } from "@server/utils/logger";
-import { type Collection, type Db, MongoClient } from "mongodb";
+import { type Collection, type Db, MongoClient, ObjectId } from "mongodb";
 
 interface SpotifyRepositoryI {
   mongoUri: string;
@@ -110,22 +110,54 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
       .toArray();
   }
 
-  async function getSeenArtists() {
-    return await seenArtistDb
-      .find({}, { projection: { _id: 0 } })
-      .sort({ name: 1 })
-      .toArray();
+  function toStoredSeenArtist({
+    _id,
+    ...artist
+  }: SeenArtistI & { _id: ObjectId }): StoredSeenArtistI {
+    return { id: _id.toString(), ...artist };
   }
 
-  async function upsertSeenArtists(artists: Array<SeenArtistI>) {
+  async function getSeenArtists() {
+    const artists = await seenArtistDb.find().sort({ name: 1 }).toArray();
+    return artists.map(toStoredSeenArtist);
+  }
+
+  async function findSeenArtistById(id: string) {
+    const artist = await seenArtistDb.findOne({ _id: new ObjectId(id) });
+    return artist ? toStoredSeenArtist(artist) : null;
+  }
+
+  async function findSeenArtistByName(name: string) {
+    const artist = await seenArtistDb.findOne(
+      { name },
+      { collation: { locale: "en", strength: 2 } },
+    );
+    return artist ? toStoredSeenArtist(artist) : null;
+  }
+
+  async function insertSeenArtist(artist: SeenArtistI) {
+    await seenArtistDb.insertOne({ ...artist });
+  }
+
+  async function replaceSeenArtist(id: string, artist: SeenArtistI) {
+    await seenArtistDb.replaceOne({ _id: new ObjectId(id) }, artist);
+  }
+
+  async function deleteSeenArtist(id: string) {
+    return await seenArtistDb.deleteOne({ _id: new ObjectId(id) });
+  }
+
+  async function insertMissingSeenArtists(artists: Array<SeenArtistI>) {
     const bulkOperations = artists.map((artist) => ({
-      replaceOne: {
+      updateOne: {
         filter: { name: artist.name },
-        replacement: artist,
+        update: { $setOnInsert: artist },
         upsert: true,
       },
     }));
-    return await seenArtistDb.bulkWrite(bulkOperations);
+    return await seenArtistDb.bulkWrite(bulkOperations, {
+      collation: { locale: "en", strength: 2 },
+    });
   }
 
   async function getPlaylist(userId: string) {
@@ -147,7 +179,12 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     removeSavedArtist,
     getAllArtists,
     getSeenArtists,
-    upsertSeenArtists,
+    findSeenArtistById,
+    findSeenArtistByName,
+    insertSeenArtist,
+    replaceSeenArtist,
+    deleteSeenArtist,
+    insertMissingSeenArtists,
     getPlaylist,
     createPlaylist,
   };

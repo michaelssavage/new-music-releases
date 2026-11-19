@@ -1,3 +1,17 @@
+export const GENRES = [
+  "Electronic",
+  "Hip-hop",
+  "Folk / Trad",
+  "Indie / Alternative",
+  "Rock / Punk",
+  "Pop",
+  "Other",
+] as const;
+
+export type Genre = (typeof GENRES)[number];
+
+export const OTHER_GENRE: Genre = "Other";
+
 export interface SightingI {
   event: string;
   year: number;
@@ -12,17 +26,30 @@ export interface SeenArtistI {
   name: string;
   sightings: Array<SightingI>;
   tags: Array<ArtistTagI>;
-  genre?: string;
+  genreOverride?: Genre;
+}
+
+export interface StoredSeenArtistI extends SeenArtistI {
+  id: string;
+}
+
+export interface SeenArtistInputI {
+  name: string;
+  sightings: Array<SightingI>;
+  genreOverride?: Genre;
 }
 
 export interface SeenArtistWithGenreI {
+  id: string;
   name: string;
   sightings: Array<SightingI>;
-  genre: string;
+  genre: Genre;
+  automaticGenre: Genre;
+  genreOverride?: Genre;
 }
 
 export interface GenreCountI {
-  genre: string;
+  genre: Genre;
   artists: number;
 }
 

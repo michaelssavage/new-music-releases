@@ -182,7 +182,7 @@ function MainComponent() {
 
   return (
     <Content>
-      <TabPanel data={tabs} />
+      <TabPanel data={tabs} activeTab={activeTab} />
     </Content>
   );
 }
