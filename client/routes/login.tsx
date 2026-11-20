@@ -1,6 +1,7 @@
 import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
 import { Group } from "@client/components/Group";
+import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { requireUnauth } from "@client/utils/auth";
 import styled from "@emotion/styled";
 import { createFileRoute } from "@tanstack/react-router";
@@ -25,17 +26,18 @@ const Page = styled.div`
   align-items: flex-start;
   gap: 1rem;
 
-  button,
-  a {
-    font-size: 1rem;
-  }
-
-  p {
-    font-size: 1.2rem;
-  }
-
   button {
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    color: #ffffff;
+    height: auto;
     white-space: nowrap;
+  }
+
+  button,
+  p,
+  a {
+    font-size: 1.2rem;
   }
 `;
 
@@ -43,9 +45,7 @@ const LoginPage = styled.div`
   margin-bottom: 2rem;
 `;
 
-const Header = styled.h2`
-  margin-top: 2rem;
-`;
+const Header = styled.h2``;
 
 const Demo = styled.video`
   width: 100%;
@@ -71,18 +71,22 @@ function Login() {
 
       <Page>
         <Group align="center" width="100%">
-          <Button onClick={handleSignIn} text="Log in with Spotify" />
-          <Anchor
-            link="https://github.com/michaelssavage/new-music-releases"
-            text="Github"
-            variant="button"
-            isExternal
+          <Button
+            onClick={handleSignIn}
+            text="Log in with Spotify"
+            icon={<SpotifyIcon size={24} />}
           />
 
           <p>
             New music releases from Spotify updated daily into a playlist.
-            Artists can be added to favourites for tracking. View the project on
-            Github below.
+            Artists can be added to favourites for tracking. View the project on{" "}
+            <Anchor
+              link="https://github.com/michaelssavage/new-music-releases"
+              text="Github"
+              variant="link"
+              isExternal
+            />
+            .
           </p>
         </Group>
 

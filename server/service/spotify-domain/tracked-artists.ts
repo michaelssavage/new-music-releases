@@ -1,7 +1,9 @@
 import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
+import type { User } from "@model/spotify/user";
 import type { SpotifyRepository } from "@server/repository/spotify.repository";
 import type { SpotifyWebApi } from "@server/service/spotify-api";
+import { HttpException } from "@server/utils/exceptions";
 import { logger } from "@server/utils/logger";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
@@ -9,8 +11,10 @@ type Repository = ReturnType<typeof SpotifyRepository>;
 export function createTrackedArtistsService(deps: {
   repository: Repository;
   api: SpotifyWebApi;
+  ensureValidAccessToken: (user: User) => Promise<string>;
+  listVerifiedUsers: () => Promise<Array<User>>;
 }) {
-  const { repository, api } = deps;
+  const { repository, api, ensureValidAccessToken, listVerifiedUsers } = deps;
 
   async function listUniqueArtistsFromLikedTracks(token: string) {
     const tracks = await api.fetchLikedTracks(token);
@@ -110,11 +114,56 @@ export function createTrackedArtistsService(deps: {
     return { saved: newArtists.length };
   }
 
+  async function syncArtistsFromTrackerPlaylist(user: User, token: string) {
+    if (!user.trackerPlaylistId) {
+      throw new HttpException(409, "No tracker playlist selected yet");
+    }
+    return syncArtistsFromPlaylist(user.userId, token, user.trackerPlaylistId);
+  }
+
+  async function syncTrackerPlaylistsForAllUsers() {
+    const users = (await listVerifiedUsers()).filter(
+      ({ trackerPlaylistId }) => trackerPlaylistId,
+    );
+
+    if (users.length === 0) {
+      logger.warn(
+        "syncTrackerPlaylistsForAllUsers:No verified users with a tracker playlist.",
+      );
+      return;
+    }
+
+    logger.info(
+      `syncTrackerPlaylistsForAllUsers:Syncing tracker playlists for ${users.length} users.`,
+    );
+
+    const results = await Promise.all(
+      users.map(async (user) => {
+        try {
+          const token = await ensureValidAccessToken(user);
+          return await syncArtistsFromTrackerPlaylist(user, token);
+        } catch (error) {
+          logger.error(
+            `syncTrackerPlaylistsForAllUsers:Failed for user ${user.userId}:`,
+            error,
+          );
+          return { saved: 0 };
+        }
+      }),
+    );
+
+    const saved = results.reduce((sum, result) => sum + result.saved, 0);
+    logger.info(
+      `syncTrackerPlaylistsForAllUsers:Done. ${saved} new artists saved across all users.`,
+    );
+  }
+
   return {
     listUniqueArtistsFromLikedTracks,
     persistTrackedArtists,
     removeTrackedArtist,
     listSavedArtistsForUser,
-    syncArtistsFromPlaylist,
+    syncArtistsFromTrackerPlaylist,
+    syncTrackerPlaylistsForAllUsers,
   };
 }

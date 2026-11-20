@@ -1,4 +1,5 @@
 import type { PlaylistTracksI } from "@model/spotify/tracks";
+import type { User } from "@model/spotify/user";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -20,11 +21,15 @@ test("an empty playlist has no addition-date checkpoint", () => {
   assert.equal(getLatestPlaylistAdditionDate([]), undefined);
 });
 
+const user = { userId: "user", releasesPlaylistId: "playlist" } as User;
+
 function setupSync(
   failingArtistIds: Array<string>,
   tracksAlreadyInPlaylist: Array<string> = [],
 ) {
   const appendedTrackUris: Array<string> = [];
+  const appendedToPlaylists: Array<string> = [];
+  const savedPlaylistIds: Array<string> = [];
   const checkpoints: Array<string> = [];
 
   const repository = {
@@ -33,13 +38,15 @@ function setupSync(
       { id: "ok-2" },
       ...failingArtistIds.map((id) => ({ id })),
     ],
-    getPlaylist: async () => ({ id: "playlist", name: "Releases" }),
-    getUser: async () => ({ userId: "user" }),
+    setPlaylistId: async (_userId: string, _role: string, id: string) => {
+      savedPlaylistIds.push(id);
+    },
     setLastReleaseSyncAt: async (userId: string) => {
       checkpoints.push(userId);
     },
   };
   const api = {
+    createPlaylist: async () => ({ id: "new-playlist", name: "Cookie Jar" }),
     fetchPlaylistTracksAddedSince: async () => ({
       items: tracksAlreadyInPlaylist.map((uri) => ({ track: { uri } })),
     }),
@@ -54,9 +61,10 @@ function setupSync(
     ],
     appendTracksToPlaylist: async (
       _token: string,
-      _playlistId: string,
+      playlistId: string,
       uris: Array<string>,
     ) => {
+      appendedToPlaylists.push(playlistId);
       appendedTrackUris.push(...uris);
       return { data: { tracks: uris, snapshots: [] }, status: 201 };
     },
@@ -66,16 +74,23 @@ function setupSync(
     repository: repository as never,
     api: api as never,
     ensureValidAccessToken: async () => "token",
+    listVerifiedUsers: async () => [user],
   });
 
-  return { service, appendedTrackUris, checkpoints };
+  return {
+    service,
+    appendedTrackUris,
+    appendedToPlaylists,
+    savedPlaylistIds,
+    checkpoints,
+  };
 }
 
 test("artists that fail to fetch don't block the rest and hold the sync checkpoint back", async () => {
   const { service, appendedTrackUris, checkpoints } = setupSync(["broken"]);
 
   await assert.rejects(
-    service.syncNewReleasesToUserPlaylist("user", "token", "2026-11-01"),
+    service.syncNewReleasesToUserPlaylist(user, "token", "2026-11-01"),
     /1 artists could not be fetched/,
   );
 
@@ -89,7 +104,7 @@ test("artists that fail to fetch don't block the rest and hold the sync checkpoi
 test("releases whose tracks are already in the playlist aren't added again", async () => {
   const { service, appendedTrackUris } = setupSync([], ["spotify:track:ok-1"]);
 
-  await service.syncNewReleasesToUserPlaylist("user", "token", "2026-11-01");
+  await service.syncNewReleasesToUserPlaylist(user, "token", "2026-11-01");
 
   assert.deepEqual(appendedTrackUris, ["spotify:track:ok-2"]);
 });
@@ -97,7 +112,29 @@ test("releases whose tracks are already in the playlist aren't added again", asy
 test("a fully successful sync advances the checkpoint", async () => {
   const { service, checkpoints } = setupSync([]);
 
-  await service.syncNewReleasesToUserPlaylist("user", "token", "2026-11-01");
+  await service.syncNewReleasesToUserPlaylist(user, "token", "2026-11-01");
 
   assert.deepEqual(checkpoints, ["user"]);
+});
+
+test("a user without a releases playlist gets one created and remembered", async () => {
+  const { service, appendedToPlaylists, savedPlaylistIds } = setupSync([]);
+
+  await service.syncNewReleasesToUserPlaylist(
+    { userId: "user" } as User,
+    "token",
+    "2026-11-01",
+  );
+
+  assert.deepEqual(savedPlaylistIds, ["new-playlist"]);
+  assert.deepEqual(appendedToPlaylists, ["new-playlist"]);
+});
+
+test("releases go into the playlist the user configured", async () => {
+  const { service, appendedToPlaylists, savedPlaylistIds } = setupSync([]);
+
+  await service.syncNewReleasesToUserPlaylist(user, "token", "2026-11-01");
+
+  assert.deepEqual(savedPlaylistIds, []);
+  assert.deepEqual(appendedToPlaylists, ["playlist"]);
 });

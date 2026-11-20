@@ -1,7 +1,13 @@
+import type { User } from "@model/spotify/user";
 import { requireSpotifyToken } from "@server/utils/auth";
 import { HttpException } from "@server/utils/exceptions";
 import { logger } from "@server/utils/logger";
 import type { Request, Response } from "express";
+
+/** The account the access middleware authenticated for this request. */
+export function currentUser(res: Response): User {
+  return res.locals.user as User;
+}
 
 export function bearerTokenOr401(
   req: Request,

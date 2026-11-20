@@ -1,5 +1,8 @@
+import { AwaitingVerification } from "@client/components/AwaitingVerification";
+import { Loader } from "@client/components/Loader";
 import { Navbar } from "@client/components/Navbar";
 import { Sidebar } from "@client/components/Sidebar";
+import { useSession } from "@client/hooks/use-session.hook";
 import styled from "@emotion/styled";
 import type { ReactNode } from "react";
 
@@ -21,12 +24,31 @@ const Content = styled.main`
   padding: 1.5rem 1rem 1rem;
 `;
 
-export const Layout = ({ children }: { children?: ReactNode }) => (
-  <Container>
-    <Sidebar />
-    <Main>
-      <Navbar />
-      <Content>{children}</Content>
-    </Main>
-  </Container>
-);
+const LoadingStyled = styled(Container)`
+  align-items: center;
+  justify-content: center;
+`;
+
+export const Layout = ({ children }: { children?: ReactNode }) => {
+  const { data: session, isLoading } = useSession();
+
+  if (isLoading) {
+    return (
+      <LoadingStyled>
+        <Loader />
+      </LoadingStyled>
+    );
+  }
+
+  if (session && !session.verified) return <AwaitingVerification />;
+
+  return (
+    <Container>
+      <Sidebar />
+      <Main>
+        <Navbar />
+        <Content>{children}</Content>
+      </Main>
+    </Container>
+  );
+};

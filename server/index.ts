@@ -23,7 +23,11 @@ const PORT = Number(process.env.PORT) || 5000;
 const { spotifyService, schedulerService, api, env } = createServiceContainer();
 
 const spotifyRouter = SpotifyRouter({ spotifyService, api, env });
-const schedulerRouter = SchedulerRouter({ schedulerService, env });
+const schedulerRouter = SchedulerRouter({
+  schedulerService,
+  spotifyService,
+  env,
+});
 
 // === MIDDLEWARE ===
 app.use(cors());

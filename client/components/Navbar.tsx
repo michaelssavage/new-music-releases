@@ -8,7 +8,6 @@ import { SearchBox } from "./SearchBox";
 
 const NavbarContainer = styled.header`
   padding: 1rem 2rem;
-  background-color: #eaecf1;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -31,13 +30,10 @@ const Brand = styled.div`
 
 const PlaylistLink = styled.div`
   a {
-    background-color: #1ed760;
-    color: #191414;
-
-    &:hover {
-      background-color: #1db954;
-      color: #ffffff;
-    }
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    color: #ffffff;
+    height: auto;
   }
   @media screen and (min-width: 601px) {
     justify-self: end;
@@ -65,7 +61,6 @@ export const Navbar = () => {
           <Anchor
             link={playlist.playlist.external_urls.spotify}
             text="Open"
-            variant="secondary"
             icon={<SpotifyIcon size={24} strokeWidth={1.5} />}
             isExternal
           />

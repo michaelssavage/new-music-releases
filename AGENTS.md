@@ -47,3 +47,10 @@ Layering: `router` → `controller` (handlers in `controller/spotify/`) → `ser
 - This is a small personal app. Don't add backwards-compatibility layers, fallbacks, or mitigations for hypothetical scale. When changing a type or function, change it everywhere directly.
 - Don't store state that can be derived from other state. Compute it.
 - Let names carry the meaning. Rename or extract functions instead of writing comments. Comments are only for non-obvious reasoning, business rules, or constraints. No multi-line comments narrating what code does.
+
+## MongoDB commands for the user
+
+- When the user needs a manual database change (data migrations, fixes, lookups), give them as MongoDB Compass commands: statements to paste into Compass's embedded `>_MONGOSH` shell, one statement per line, starting with `use spotify`. Don't give `mongo` legacy-shell syntax, scripts, or Node/driver code.
+- The database is `spotify` (collections: `users`, `saved_artists`, `seen_artists`); scheduler logs are in the separate `scheduler` database (`logs`).
+- Put a read-only check (`find`/`countDocuments`) before every write, and another after it, so the result can be confirmed in Compass.
+- Use the `userId` field to target a user, never `_id`.

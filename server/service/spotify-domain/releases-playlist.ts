@@ -12,6 +12,10 @@ import pLimit from "p-limit";
 type Repository = ReturnType<typeof SpotifyRepository>;
 
 const RELEASE_FETCH_CONCURRENCY = 3;
+const DEFAULT_RELEASES_PLAYLIST = {
+  name: "Cookie Jar",
+  description: "A playlist of today's new releases.",
+};
 
 export function getLatestPlaylistAdditionDate(
   items: PlaylistTracksI["items"],
@@ -29,8 +33,9 @@ export function createReleasesPlaylistService(deps: {
   repository: Repository;
   api: SpotifyWebApi;
   ensureValidAccessToken: (user: User) => Promise<string>;
+  listVerifiedUsers: () => Promise<Array<User>>;
 }) {
-  const { repository, api, ensureValidAccessToken } = deps;
+  const { repository, api, ensureValidAccessToken, listVerifiedUsers } = deps;
 
   async function collectNewReleasesForUser(
     userId: string,
@@ -147,12 +152,12 @@ export function createReleasesPlaylistService(deps: {
   async function appendNewReleasesToPlaylist({
     userId,
     token,
-    playlist,
+    playlistId,
     fromDate,
   }: UpdateUserPlaylistI) {
     const playlistItems = await api.fetchPlaylistTracksAddedSince(
       token,
-      playlist.id,
+      playlistId,
       fromDate,
     );
     const playlistFromDate = getLatestPlaylistAdditionDate(playlistItems.items);
@@ -177,7 +182,7 @@ export function createReleasesPlaylistService(deps: {
 
     const addedTracks = await addReleasesToPlaylist({
       token,
-      playlistId: playlist.id,
+      playlistId,
       existingTrackUris: new Set(
         playlistItems.items.map(({ track }) => track.uri),
       ),
@@ -188,74 +193,51 @@ export function createReleasesPlaylistService(deps: {
     return { addedTracks, failedArtistIds };
   }
 
-  async function ensureReleasesPlaylistForUser(userId: string, token: string) {
-    const existingPlaylist = await repository.getPlaylist(userId);
-    if (existingPlaylist) {
-      logger.debug(
-        "ensureReleasesPlaylistForUser:Playlist found in MongoDB:",
-        existingPlaylist.name,
-      );
-      return existingPlaylist;
-    }
+  async function ensureReleasesPlaylistId(user: User, token: string) {
+    if (user.releasesPlaylistId) return user.releasesPlaylistId;
 
-    logger.warn(
-      `ensureReleasesPlaylistForUser:No playlist found in MongoDB for ${userId}`,
+    const playlist = await api.createPlaylist(token, DEFAULT_RELEASES_PLAYLIST);
+    await repository.setPlaylistId(user.userId, "releases", playlist.id);
+    logger.info(
+      `ensureReleasesPlaylistId:Created playlist for ${user.userId}:`,
+      playlist.name,
     );
-    const newPlaylist = await api.createReleasesPlaylist(token);
-
-    if (newPlaylist) {
-      const res = await repository.createPlaylist(userId, newPlaylist);
-      if (res.acknowledged) {
-        logger.info(
-          "ensureReleasesPlaylistForUser:Playlist created in MongoDB:",
-          newPlaylist.name,
-        );
-        return newPlaylist;
-      }
-    }
-    return null;
+    return playlist.id;
   }
 
   async function syncNewReleasesToUserPlaylist(
-    userId: string,
+    user: User,
     token: string,
     fromDate?: string,
   ) {
-    const playlist = await ensureReleasesPlaylistForUser(userId, token);
+    const playlistId = await ensureReleasesPlaylistId(user, token);
 
-    if (!playlist) {
-      throw new Error(
-        `syncNewReleasesToUserPlaylist:Unable to find or create playlist for user ${userId}`,
-      );
-    }
-
-    const user = fromDate ? undefined : await repository.getUser(userId);
-    const checkpointDate = user?.lastReleaseSyncAt?.toISOString().split("T")[0];
+    const checkpointDate = user.lastReleaseSyncAt?.toISOString().split("T")[0];
     const { addedTracks, failedArtistIds } = await appendNewReleasesToPlaylist({
-      userId,
+      userId: user.userId,
       token,
-      playlist,
+      playlistId,
       fromDate: fromDate ?? checkpointDate,
     });
 
     // Keep the checkpoint where it was so the next run retries the failed artists.
     if (failedArtistIds.length > 0) {
       throw new Error(
-        `syncNewReleasesToUserPlaylist:Releases for ${failedArtistIds.length} artists could not be fetched for user ${userId}; checkpoint not advanced`,
+        `syncNewReleasesToUserPlaylist:Releases for ${failedArtistIds.length} artists could not be fetched for user ${user.userId}; checkpoint not advanced`,
       );
     }
 
-    await repository.setLastReleaseSyncAt(userId, new Date());
+    await repository.setLastReleaseSyncAt(user.userId, new Date());
     return addedTracks;
   }
 
   async function syncNewReleasesForAllUsers(fromDate?: string) {
     try {
-      const users = await repository.getAllUsers();
+      const users = await listVerifiedUsers();
 
-      if (!users || users.length === 0) {
+      if (users.length === 0) {
         logger.warn(
-          "syncNewReleasesForAllUsers:No users found for updating playlists.",
+          "syncNewReleasesForAllUsers:No verified users found for updating playlists.",
         );
         return;
       }
@@ -272,11 +254,7 @@ export function createReleasesPlaylistService(deps: {
               `syncNewReleasesForAllUsers:token received for user ${user.userId}`,
             );
 
-            return await syncNewReleasesToUserPlaylist(
-              user.userId,
-              token,
-              fromDate,
-            );
+            return await syncNewReleasesToUserPlaylist(user, token, fromDate);
           } catch (error) {
             if (axios.isAxiosError(error)) {
               logger.error(
@@ -327,20 +305,16 @@ export function createReleasesPlaylistService(deps: {
   }
 
   async function getUserReleasesPlaylistWithTracks(
-    userId: string,
+    user: User,
     token: string,
     page: PlaylistPageParams,
-  ): Promise<SpotifyDataProps | null> {
-    const playlist = await ensureReleasesPlaylistForUser(userId, token);
-    if (!playlist) {
-      return null;
-    }
+  ): Promise<SpotifyDataProps> {
+    const playlistId = await ensureReleasesPlaylistId(user, token);
 
-    const playlistItems = await api.fetchPlaylistTracksNewestFirst(
-      token,
-      playlist.id,
-      page,
-    );
+    const [playlist, playlistItems] = await Promise.all([
+      api.fetchPlaylist(token, playlistId),
+      api.fetchPlaylistTracksNewestFirst(token, playlistId, page),
+    ]);
 
     return { playlist, playlistItems };
   }
@@ -348,7 +322,6 @@ export function createReleasesPlaylistService(deps: {
   return {
     collectNewReleasesForUser,
     appendNewReleasesToPlaylist,
-    ensureReleasesPlaylistForUser,
     syncNewReleasesToUserPlaylist,
     syncNewReleasesForAllUsers,
     getUserReleasesPlaylistWithTracks,

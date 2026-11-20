@@ -1,10 +1,10 @@
 import type { Artist, Track } from "./spotify/liked-tracks";
-import type { SpotifyPlaylistI } from "./spotify/playlist";
+import type { PlaylistSummaryI } from "./playlist-settings";
 import type { PlaylistTracksI } from "./spotify/tracks";
 
 export interface SpotifyDataProps {
   playlistItems: Pick<PlaylistTracksI, "items" | "total">;
-  playlist: SpotifyPlaylistI;
+  playlist: PlaylistSummaryI;
 }
 
 export interface FollowedArtistsI {

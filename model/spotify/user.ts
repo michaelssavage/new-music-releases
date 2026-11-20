@@ -33,6 +33,10 @@ export interface User {
   saved_artists: Array<string>;
   listen_later_playlist?: string;
   lastReleaseSyncAt?: Date;
+  roles?: Array<"admin">;
+  verified?: boolean;
+  releasesPlaylistId?: string;
+  trackerPlaylistId?: string;
 }
 
 export type UserID = string | null;

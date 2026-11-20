@@ -37,3 +37,20 @@ export async function postRequest<T>(
 
   return { data: response.data, status: response.status };
 }
+
+export async function putRequest<T>(
+  url: string,
+  token: string,
+  data?: Record<string, unknown>
+): Promise<ApiResponse<T>> {
+  const response = await withSpotifyRetries(() =>
+    axios.put<T>(url, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+  );
+
+  return { data: response.data, status: response.status };
+}

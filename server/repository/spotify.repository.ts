@@ -1,7 +1,7 @@
 import type { SeenArtistI, StoredSeenArtistI } from "@model/seen-artists";
 import type { SavedArtistI } from "@model/spotify";
 import type { Artist } from "@model/spotify/liked-tracks";
-import type { SpotifyPlaylistI } from "@model/spotify/playlist";
+import type { PlaylistRole } from "@model/playlist-settings";
 import type { User } from "@model/spotify/user";
 import { logger } from "@server/utils/logger";
 import { type Collection, type Db, MongoClient, ObjectId } from "mongodb";
@@ -15,7 +15,6 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
   let db: Db;
   let userDb: Collection<User>;
   let artistDb: Collection<Artist & { userId: string }>;
-  let playlistDb: Collection<SpotifyPlaylistI & { userId: string }>;
   let seenArtistDb: Collection<SeenArtistI>;
 
   async function connect(): Promise<void> {
@@ -25,7 +24,6 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     db = client.db("spotify");
     userDb = db.collection("users");
     artistDb = db.collection("saved_artists");
-    playlistDb = db.collection("playlist");
     seenArtistDb = db.collection("seen_artists");
     logger.info("Connected to MongoDB.");
   }
@@ -160,12 +158,20 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     });
   }
 
-  async function getPlaylist(userId: string) {
-    return await playlistDb.findOne<SpotifyPlaylistI>({ userId });
+  async function setPlaylistId(
+    userId: string,
+    role: PlaylistRole,
+    playlistId: string,
+  ) {
+    const field = `${role}PlaylistId` as const;
+    return await userDb.updateOne(
+      { userId },
+      { $set: { [field]: playlistId } },
+    );
   }
 
-  async function createPlaylist(userId: string, playlist: SpotifyPlaylistI) {
-    return await playlistDb.insertOne({ ...playlist, userId });
+  async function setVerified(userId: string, verified: boolean) {
+    return await userDb.updateOne({ userId }, { $set: { verified } });
   }
 
   return {
@@ -185,7 +191,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     replaceSeenArtist,
     deleteSeenArtist,
     insertMissingSeenArtists,
-    getPlaylist,
-    createPlaylist,
+    setPlaylistId,
+    setVerified,
   };
 }

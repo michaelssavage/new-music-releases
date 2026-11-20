@@ -1,4 +1,18 @@
 import { logger } from "@client/utils/logger";
+import type {
+  AccountI,
+  AccountsResponse,
+  SessionI,
+  VerificationInputI,
+} from "@model/accounts";
+import type {
+  PlaylistNameInputI,
+  PlaylistRole,
+  PlaylistSelectionInputI,
+  PlaylistSettingsResponse,
+  PlaylistSummaryI,
+  UserPlaylistsResponse,
+} from "@model/playlist-settings";
 import type { SchedulerRunsResponse } from "@model/scheduler";
 import type {
   SeenArtistInputI,
@@ -227,7 +241,7 @@ export const getNextTracks = async (nextUrl: string) => {
   }
 };
 
-function seenArtistErrorMessage(error: unknown, fallback: string) {
+function apiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
     logger.error(fallback, error.response?.data || error.message);
     return error.response?.data?.error ?? fallback;
@@ -244,7 +258,7 @@ export const addSeenArtist = async (input: SeenArtistInputI) => {
       headers: { spotify_access_token },
     });
   } catch (error) {
-    throw new Error(seenArtistErrorMessage(error, "Couldn't add artist"));
+    throw new Error(apiErrorMessage(error, "Couldn't add artist"));
   }
 };
 
@@ -259,7 +273,7 @@ export const updateSeenArtist = async ({
       headers: { spotify_access_token },
     });
   } catch (error) {
-    throw new Error(seenArtistErrorMessage(error, "Couldn't update artist"));
+    throw new Error(apiErrorMessage(error, "Couldn't update artist"));
   }
 };
 
@@ -271,7 +285,7 @@ export const deleteSeenArtist = async (id: string) => {
       headers: { spotify_access_token },
     });
   } catch (error) {
-    throw new Error(seenArtistErrorMessage(error, "Couldn't delete artist"));
+    throw new Error(apiErrorMessage(error, "Couldn't delete artist"));
   }
 };
 
@@ -418,5 +432,100 @@ export const getSchedulerRuns = async () => {
   } catch (error) {
     logger.error("getSchedulerRuns:Failed to get scheduler runs:", error);
     throw error;
+  }
+};
+
+const spotifyHeaders = () => ({
+  spotify_access_token: Cookies.get("spotify_access_token"),
+});
+
+export const getSession = async () => {
+  const res = await axios.get<SessionI>("/api/session", {
+    headers: spotifyHeaders(),
+  });
+  return res.data;
+};
+
+export const getAccounts = async (): Promise<Array<AccountI>> => {
+  const res = await axios.get<AccountsResponse>("/api/accounts", {
+    headers: spotifyHeaders(),
+  });
+  return res.data.accounts;
+};
+
+export const setAccountVerified = async ({
+  userId,
+  verified,
+}: { userId: string } & VerificationInputI) => {
+  try {
+    await axios.put(
+      `/api/accounts/${encodeURIComponent(userId)}/verification`,
+      { verified } satisfies VerificationInputI,
+      { headers: spotifyHeaders() },
+    );
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Couldn't update account"));
+  }
+};
+
+export const getPlaylistSettings = async () => {
+  const res = await axios.get<PlaylistSettingsResponse>(
+    "/api/playlist-settings",
+    { headers: spotifyHeaders() },
+  );
+  return res.data;
+};
+
+export const getUserPlaylists = async (): Promise<
+  Array<PlaylistSummaryI>
+> => {
+  const res = await axios.get<UserPlaylistsResponse>("/api/user-playlists", {
+    headers: spotifyHeaders(),
+  });
+  return res.data.playlists;
+};
+
+export const selectPlaylist = async ({
+  role,
+  playlistId,
+}: { role: PlaylistRole } & PlaylistSelectionInputI) => {
+  try {
+    await axios.put(
+      `/api/playlist-settings/${role}`,
+      { playlistId } satisfies PlaylistSelectionInputI,
+      { headers: spotifyHeaders() },
+    );
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Couldn't change playlist"));
+  }
+};
+
+export const createPlaylist = async ({
+  role,
+  name,
+}: { role: PlaylistRole } & PlaylistNameInputI) => {
+  try {
+    await axios.post(
+      `/api/playlist-settings/${role}`,
+      { name } satisfies PlaylistNameInputI,
+      { headers: spotifyHeaders() },
+    );
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Couldn't create playlist"));
+  }
+};
+
+export const renamePlaylist = async ({
+  role,
+  name,
+}: { role: PlaylistRole } & PlaylistNameInputI) => {
+  try {
+    await axios.patch(
+      `/api/playlist-settings/${role}`,
+      { name } satisfies PlaylistNameInputI,
+      { headers: spotifyHeaders() },
+    );
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Couldn't rename playlist"));
   }
 };

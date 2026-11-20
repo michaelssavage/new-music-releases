@@ -4,8 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Anchor } from "./Anchor";
 import { Loader } from "./Loader";
 
-const RENDER_DASHBOARD_URL = "https://dashboard.render.com";
-
 const Card = styled.div`
   background: white;
   border-radius: 8px;
@@ -82,7 +80,7 @@ export const SchedulerRuns = () => {
       <Header>
         <h2>Recent runs</h2>
         <Anchor
-          link={RENDER_DASHBOARD_URL}
+          link="https://dashboard.render.com"
           text="Render dashboard"
           variant="secondary"
           isExternal

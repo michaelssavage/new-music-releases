@@ -1,7 +1,7 @@
 import type { SpotifyControllerI } from "@server/container/types";
 import { logger } from "@server/utils/logger";
 import type { Request, Response } from "express";
-import { bearerTokenOr401, withBearerJson } from "./http-helpers";
+import { bearerTokenOr401, currentUser, withBearerJson } from "./http-helpers";
 
 const MAX_PLAYLIST_PAGE_SIZE = 100;
 
@@ -37,13 +37,6 @@ export function createPlaylistHandlers({
     const token = bearerTokenOr401(req, res);
     if (!token) return;
 
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      res.status(400).json({ error: "No user id provided to get playlist" });
-      return;
-    }
-
     const offset = Number(req.query.offset ?? 0);
     const limit = Number(req.query.limit ?? MAX_PLAYLIST_PAGE_SIZE);
     if (
@@ -58,18 +51,13 @@ export function createPlaylistHandlers({
     }
 
     try {
-      const result = await spotifyService.getUserReleasesPlaylistWithTracks(
-        userId,
-        token,
-        { offset, limit },
+      res.json(
+        await spotifyService.getUserReleasesPlaylistWithTracks(
+          currentUser(res),
+          token,
+          { offset, limit },
+        ),
       );
-
-      if (!result) {
-        res.status(404).json({ error: "No playlist found" });
-        return;
-      }
-
-      res.json(result);
     } catch (error) {
       logger.error("Error retrieving playlist:", error);
       res.status(500).json({ error: "Failed to retrieve playlist" });
@@ -80,19 +68,13 @@ export function createPlaylistHandlers({
     req: Request,
     res: Response,
   ): Promise<void> {
-    const userId = req.query.userId as string;
-
-    if (!userId) {
-      res.status(400).json({ error: "No user id provided to get playlist" });
-      return;
-    }
-
     await withBearerJson(
       req,
       res,
       "Error updating playlist releases:",
       "Failed to update playlist releases",
-      (token) => spotifyService.syncNewReleasesToUserPlaylist(userId, token),
+      (token) =>
+        spotifyService.syncNewReleasesToUserPlaylist(currentUser(res), token),
     );
   }
 
