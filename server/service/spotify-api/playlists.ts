@@ -94,7 +94,7 @@ export function createPlaylistsApi() {
       `${SPOTIFY_API_URL}/users/${userId}/playlists`,
       token,
       {
-        name: "New Music Releases",
+        name: "Cookie Jar",
         description: "A playlist of today's new releases.",
         public: true,
       },

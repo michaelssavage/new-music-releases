@@ -11,15 +11,50 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root"
+import { Route as UpdatesImport } from "./routes/updates"
+import { Route as SeenLiveImport } from "./routes/seen-live"
+import { Route as SavedArtistsImport } from "./routes/saved-artists"
 import { Route as LoginImport } from "./routes/login"
+import { Route as LikedSongsImport } from "./routes/liked-songs"
+import { Route as ConfigurationImport } from "./routes/configuration"
 import { Route as CallbackImport } from "./routes/callback"
 import { Route as IndexImport } from "./routes/index"
 
 // Create/Update Routes
 
+const UpdatesRoute = UpdatesImport.update({
+  id: "/updates",
+  path: "/updates",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SeenLiveRoute = SeenLiveImport.update({
+  id: "/seen-live",
+  path: "/seen-live",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SavedArtistsRoute = SavedArtistsImport.update({
+  id: "/saved-artists",
+  path: "/saved-artists",
+  getParentRoute: () => rootRoute,
+} as any)
+
 const LoginRoute = LoginImport.update({
   id: "/login",
   path: "/login",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LikedSongsRoute = LikedSongsImport.update({
+  id: "/liked-songs",
+  path: "/liked-songs",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ConfigurationRoute = ConfigurationImport.update({
+  id: "/configuration",
+  path: "/configuration",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,11 +88,46 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof CallbackImport
       parentRoute: typeof rootRoute
     }
+    "/configuration": {
+      id: "/configuration"
+      path: "/configuration"
+      fullPath: "/configuration"
+      preLoaderRoute: typeof ConfigurationImport
+      parentRoute: typeof rootRoute
+    }
+    "/liked-songs": {
+      id: "/liked-songs"
+      path: "/liked-songs"
+      fullPath: "/liked-songs"
+      preLoaderRoute: typeof LikedSongsImport
+      parentRoute: typeof rootRoute
+    }
     "/login": {
       id: "/login"
       path: "/login"
       fullPath: "/login"
       preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
+    "/saved-artists": {
+      id: "/saved-artists"
+      path: "/saved-artists"
+      fullPath: "/saved-artists"
+      preLoaderRoute: typeof SavedArtistsImport
+      parentRoute: typeof rootRoute
+    }
+    "/seen-live": {
+      id: "/seen-live"
+      path: "/seen-live"
+      fullPath: "/seen-live"
+      preLoaderRoute: typeof SeenLiveImport
+      parentRoute: typeof rootRoute
+    }
+    "/updates": {
+      id: "/updates"
+      path: "/updates"
+      fullPath: "/updates"
+      preLoaderRoute: typeof UpdatesImport
       parentRoute: typeof rootRoute
     }
   }
@@ -68,41 +138,91 @@ declare module "@tanstack/react-router" {
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
+  "/configuration": typeof ConfigurationRoute
+  "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
+  "/saved-artists": typeof SavedArtistsRoute
+  "/seen-live": typeof SeenLiveRoute
+  "/updates": typeof UpdatesRoute
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
+  "/configuration": typeof ConfigurationRoute
+  "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
+  "/saved-artists": typeof SavedArtistsRoute
+  "/seen-live": typeof SeenLiveRoute
+  "/updates": typeof UpdatesRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
+  "/configuration": typeof ConfigurationRoute
+  "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
+  "/saved-artists": typeof SavedArtistsRoute
+  "/seen-live": typeof SeenLiveRoute
+  "/updates": typeof UpdatesRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/callback" | "/login"
+  fullPaths:
+    | "/"
+    | "/callback"
+    | "/configuration"
+    | "/liked-songs"
+    | "/login"
+    | "/saved-artists"
+    | "/seen-live"
+    | "/updates"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/callback" | "/login"
-  id: "__root__" | "/" | "/callback" | "/login"
+  to:
+    | "/"
+    | "/callback"
+    | "/configuration"
+    | "/liked-songs"
+    | "/login"
+    | "/saved-artists"
+    | "/seen-live"
+    | "/updates"
+  id:
+    | "__root__"
+    | "/"
+    | "/callback"
+    | "/configuration"
+    | "/liked-songs"
+    | "/login"
+    | "/saved-artists"
+    | "/seen-live"
+    | "/updates"
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CallbackRoute: typeof CallbackRoute
+  ConfigurationRoute: typeof ConfigurationRoute
+  LikedSongsRoute: typeof LikedSongsRoute
   LoginRoute: typeof LoginRoute
+  SavedArtistsRoute: typeof SavedArtistsRoute
+  SeenLiveRoute: typeof SeenLiveRoute
+  UpdatesRoute: typeof UpdatesRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CallbackRoute: CallbackRoute,
+  ConfigurationRoute: ConfigurationRoute,
+  LikedSongsRoute: LikedSongsRoute,
   LoginRoute: LoginRoute,
+  SavedArtistsRoute: SavedArtistsRoute,
+  SeenLiveRoute: SeenLiveRoute,
+  UpdatesRoute: UpdatesRoute,
 }
 
 export const routeTree = rootRoute
@@ -117,7 +237,12 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/callback",
-        "/login"
+        "/configuration",
+        "/liked-songs",
+        "/login",
+        "/saved-artists",
+        "/seen-live",
+        "/updates"
       ]
     },
     "/": {
@@ -126,8 +251,23 @@ export const routeTree = rootRoute
     "/callback": {
       "filePath": "callback.tsx"
     },
+    "/configuration": {
+      "filePath": "configuration.tsx"
+    },
+    "/liked-songs": {
+      "filePath": "liked-songs.tsx"
+    },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/saved-artists": {
+      "filePath": "saved-artists.tsx"
+    },
+    "/seen-live": {
+      "filePath": "seen-live.tsx"
+    },
+    "/updates": {
+      "filePath": "updates.tsx"
     }
   }
 }

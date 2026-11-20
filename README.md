@@ -1,4 +1,4 @@
-# New Music Releases
+# Cookie Jar
 
 Automatically collecting my saved artist's new releases and adding them to a Spotify playlist by checking daily for updates. Search for artists in-app, save selections to the database.
 

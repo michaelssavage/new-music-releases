@@ -66,7 +66,7 @@ function Login() {
     <LoginPage>
       <NavBox>
         <img src="/cookie-jar.png" alt="Cookie jar" width="100px" />
-        <h1>New Music Releases</h1>
+        <h1>Cookie Jar</h1>
       </NavBox>
 
       <Page>

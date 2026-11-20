@@ -1,6 +1,4 @@
 import ErrorBoundary from "@client/components/ErrorBoundary";
-import { Navbar } from "@client/components/Navbar";
-import { TabsContextProvider } from "@client/context/tabs.context";
 import { getSavedArtists } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { globalStyles } from "@client/styles/global.styled";
@@ -11,7 +9,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRoute,
-  useMatch,
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
@@ -44,18 +41,16 @@ function RootComponent() {
     }
   }, [data, setSavedArtists, setRefetchArtists, refetch]);
 
-  const isLoginRoute = useMatch({ from: "/login", shouldThrow: false });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <TabsContextProvider>
+    <>
       <Global styles={globalStyles()} />
       <Toaster position="top-right" reverseOrder />
-      {!isLoginRoute && <Navbar />}
       <ErrorBoundary key={pathname}>
         <Outlet />
       </ErrorBoundary>
       <TanStackRouterDevtools position="bottom-right" />
-    </TabsContextProvider>
+    </>
   );
 }

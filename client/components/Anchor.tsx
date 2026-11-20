@@ -17,7 +17,7 @@ const LinkStyle = styled.a<IStyle>`
   justify-content: center;
   flex-direction: row;
   gap: 4px;
-  max-height: 40px;
+  max-height: 32px;
   transition: all 0.2s ease-in-out;
 
   > span {

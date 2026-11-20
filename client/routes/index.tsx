@@ -1,199 +1,153 @@
-import { Anchor } from "@client/components/Anchor";
-import { Button } from "@client/components/Button";
-import { Group } from "@client/components/Group";
-import { SpotifyIcon } from "@client/components/Icons/Spotify";
-import { Info } from "@client/components/InfoToast";
-import { Loader } from "@client/components/Loader";
-import { LoadMore } from "@client/components/LoadMore";
-import { Panel } from "@client/components/Panel";
-import { SchedulerRuns } from "@client/components/SchedulerRuns";
-import { SeenArtists } from "@client/components/SeenArtists";
-import { LikedSongsTable } from "@client/components/Table/LikedSongs";
-import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
-import { SavedArtistsTable } from "@client/components/Table/SavedArtists";
-import { type Tab, TabPanel } from "@client/components/Tabs";
-import { useTabs } from "@client/context/tabs.context";
+import { HeartIcon } from "@client/components/Icons/Heart";
+import {
+  ArtistsIcon,
+  PlaylistIcon,
+  TicketIcon,
+} from "@client/components/Icons/NavIcons";
+import { Layout } from "@client/components/Layout";
 import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
-import { getUser, updateSpotifyPlaylistReleases } from "@client/lib/spotify";
+import { getSeenArtists, getUserTracks } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
 import styled from "@emotion/styled";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
-import { toast } from "react-hot-toast";
+import type { LikedTracksI } from "@model/spotify/liked-tracks";
+import { useQuery } from "@tanstack/react-query";
+import { Link, type LinkProps, createFileRoute } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => await requireAuth(),
-  component: MainComponent,
+  component: HomePage,
 });
 
-const Content = styled.div`
-  flex: 1;
-  padding: 0 0 1rem;
-  background-color: #c4cff1;
+interface StatCardProps {
+  to: LinkProps["to"];
+  label: string;
+  icon: ReactNode;
+  count: number | undefined;
+}
+
+const Header = styled.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  margin: 2rem 1rem 3rem;
 `;
 
-const LoadingStyled = styled.div`
-  margin: 4rem auto;
-  width: 100%;
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 40rem;
+  margin: 0 auto;
+`;
+
+const Card = styled(Link)`
   display: flex;
-  justify-content: center;
-`;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: #171717;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
-function MainComponent() {
-  const { savedArtists, userId } = useAppStore();
-  const { activeTab, setTabs } = useTabs();
-  const isPlaylistTabActive = activeTab === "playlist";
-
-  const { data: userData } = useQuery({
-    queryKey: ["user", userId],
-    queryFn: () => getUser(userId),
-    enabled: isPlaylistTabActive && !!userId,
-  });
-
-  const {
-    data,
-    refetch: refetchPlaylist,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isFetchNextPageError,
-  } = usePlaylistUpdates(userId, isPlaylistTabActive && !!userId);
-
-  const { isPending, mutate } = useMutation({
-    mutationFn: updateSpotifyPlaylistReleases,
-    onSuccess: (data) => {
-      if (!data) {
-        toast.custom(<Info text="No data returned" />);
-      } else if (Array.isArray(data.tracks) && data.tracks?.length > 0) {
-        toast.success("Fetched new playlist releases");
-        refetchPlaylist();
-      } else {
-        toast.custom(<Info text="No new releases found" />);
-      }
-    },
-    onError: (error) => {
-      console.error(error?.message);
-      toast.error("Failed to fetch new releases");
-    },
-  });
-
-  const tabs = useMemo<Array<Tab>>(
-    () => [
-      {
-        key: "playlist",
-        tab: "Playlist Updates",
-        panel: (
-          <Panel direction="column">
-            <Group justify="center" width="100%">
-              {userData?.roles?.includes("admin") && (
-                <Button
-                  onClick={() => mutate(userId)}
-                  text="Fetch new releases"
-                  variant="secondary"
-                  loading={isPending}
-                />
-              )}
-              {data?.playlist && (
-                <Anchor
-                  link={data.playlist.external_urls.spotify}
-                  text="Open playlist"
-                  variant="secondary"
-                  icon={<SpotifyIcon size={20} />}
-                  isExternal
-                />
-              )}
-            </Group>
-            {data ? (
-              <PlaylistUpdatesTable
-                tracks={data.tracks}
-                userData={userData}
-                loadMore={
-                  <LoadMore
-                    loadedCount={data.tracks.length}
-                    totalCount={data.total}
-                    hasNextPage={hasNextPage}
-                    isFetchingNextPage={isFetchingNextPage}
-                    isFetchNextPageError={isFetchNextPageError}
-                    onLoadMore={fetchNextPage}
-                  />
-                }
-              />
-            ) : (
-              <p>No tracks found</p>
-            )}
-          </Panel>
-        ),
-      },
-      {
-        key: "artists",
-        tab: `Saved Artists (${savedArtists.length})`,
-        panel: (
-          <Panel>
-            <SavedArtistsTable />
-          </Panel>
-        ),
-      },
-      {
-        key: "liked",
-        tab: "Liked Songs",
-        panel: (
-          <Panel>
-            <LikedSongsTable />
-          </Panel>
-        ),
-      },
-      {
-        key: "seen",
-        tab: "Seen Live",
-        panel: (
-          <Panel>
-            <SeenArtists />
-          </Panel>
-        ),
-      },
-      {
-        key: "configuration",
-        tab: "Configuration",
-        panel: (
-          <Panel>
-            <SchedulerRuns />
-          </Panel>
-        ),
-      },
-    ],
-    [
-      data,
-      userData,
-      savedArtists.length,
-      isPending,
-      mutate,
-      userId,
-      hasNextPage,
-      isFetchingNextPage,
-      isFetchNextPageError,
-      fetchNextPage,
-    ],
-  );
-
-  useEffect(() => {
-    setTabs(tabs);
-    return () => setTabs([]);
-  }, [tabs, setTabs]);
-
-  if (isPlaylistTabActive && isLoading) {
-    return (
-      <LoadingStyled>
-        <Loader />
-      </LoadingStyled>
-    );
+  &:hover {
+    background-color: #f5f7fc;
   }
 
+  &:focus-visible {
+    outline: 1px solid #1e1e1e;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+  }
+`;
+
+const IconWrapper = styled.span`
+  display: flex;
+  flex-shrink: 0;
+  color: #4e6db0;
+
+  svg {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+`;
+
+const Details = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`;
+
+const Count = styled.span`
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+`;
+
+const Label = styled.span`
+  font-size: 0.875rem;
+  color: #6b7280;
+`;
+
+const StatCard = ({ to, label, icon, count }: StatCardProps) => (
+  <Card to={to}>
+    <IconWrapper>{icon}</IconWrapper>
+    <Details>
+      <Count>{count ?? "–"}</Count>
+      <Label>{label}</Label>
+    </Details>
+  </Card>
+);
+
+function HomePage() {
+  const { userId, savedArtists } = useAppStore();
+
+  const { data: playlist } = usePlaylistUpdates(userId, !!userId);
+
+  const { data: likedTracks } = useQuery<LikedTracksI | null>({
+    queryKey: ["userTrack"],
+    queryFn: getUserTracks,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: seenArtists } = useQuery({
+    queryKey: ["seen-artists"],
+    queryFn: getSeenArtists,
+    refetchOnWindowFocus: false,
+  });
+
   return (
-    <Content>
-      <TabPanel data={tabs} activeTab={activeTab} />
-    </Content>
+    <Layout>
+      <Header>Cookie Jar - new music releases</Header>
+      <Grid>
+        <StatCard
+          to="/updates"
+          label="Updates"
+          icon={<PlaylistIcon />}
+          count={playlist?.total}
+        />
+        <StatCard
+          to="/saved-artists"
+          label="Saved Artists"
+          icon={<ArtistsIcon />}
+          count={savedArtists.length}
+        />
+        <StatCard
+          to="/liked-songs"
+          label="Liked Songs"
+          icon={<HeartIcon size="20" />}
+          count={likedTracks?.total}
+        />
+        <StatCard
+          to="/seen-live"
+          label="Seen Live"
+          icon={<TicketIcon />}
+          count={seenArtists?.artists.length}
+        />
+      </Grid>
+    </Layout>
   );
 }
