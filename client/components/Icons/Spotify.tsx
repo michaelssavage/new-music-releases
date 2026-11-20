@@ -1,4 +1,4 @@
-export const SpotifyIcon = ({ size = 24 }) => {
+export const SpotifyIcon = ({ size = 24, strokeWidth = 1 }) => {
   return (
     <svg
       role="img"
@@ -9,7 +9,7 @@ export const SpotifyIcon = ({ size = 24 }) => {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
     >

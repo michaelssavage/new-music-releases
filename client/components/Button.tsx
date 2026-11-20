@@ -143,8 +143,8 @@ export const Button = ({
       styles={styles}
     >
       <span>
-        {text}
         {icon}
+        {text}
       </span>
       {loading && <Spinner />}
     </ButtonStyled>

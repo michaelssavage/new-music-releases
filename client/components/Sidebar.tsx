@@ -12,7 +12,7 @@ import { useAppStore } from "@client/store/appStore";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link, type LinkProps, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 interface SidebarItem {
   to: LinkProps["to"];
@@ -103,6 +103,17 @@ export const Sidebar = () => {
   const { logout } = useAppStore();
   const [collapsed, setCollapsed] = useState(startsCollapsed);
 
+  useEffect(() => {
+    const toggleOnCommandB = (event: KeyboardEvent) => {
+      if (!event.metaKey || event.key !== "b") return;
+      event.preventDefault();
+      setCollapsed((isCollapsed) => !isCollapsed);
+    };
+
+    window.addEventListener("keydown", toggleOnCommandB);
+    return () => window.removeEventListener("keydown", toggleOnCommandB);
+  }, []);
+
   const items: ReadonlyArray<SidebarItem> = [
     { to: "/updates", label: "Updates", icon: <PlaylistIcon /> },
     {
@@ -133,7 +144,7 @@ export const Sidebar = () => {
         aria-label="Home"
       >
         <HomeIcon size={20} />
-        {!collapsed && "HOME"}
+        {!collapsed && "Home"}
       </NavLink>
 
       {items.map(({ to, label, icon }) => (
@@ -146,7 +157,7 @@ export const Sidebar = () => {
       <Footer>
         <Item
           type="button"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={`${collapsed ? "Expand" : "Collapse"} sidebar (⌘B)`}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!collapsed}
           onClick={() => setCollapsed(!collapsed)}

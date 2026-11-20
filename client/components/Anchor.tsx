@@ -110,8 +110,9 @@ export const Anchor = memo(
         rel={isExternal ? "noopener noreferrer" : undefined}
         target={isExternal ? "_blank" : undefined}
       >
+        {icon}
         {text ? <span>{text}</span> : link}{" "}
-        {isExternal && !icon ? <ExternalLinkIcon size={16} /> : icon}
+        {isExternal && !icon ? <ExternalLinkIcon size={16} /> : null}
       </LinkStyle>
     );
   },

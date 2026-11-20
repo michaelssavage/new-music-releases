@@ -1,7 +1,5 @@
-import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
 import { Group } from "@client/components/Group";
-import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { Info } from "@client/components/InfoToast";
 import { Layout } from "@client/components/Layout";
 import { Loader } from "@client/components/Loader";
@@ -80,21 +78,16 @@ function UpdatesPage() {
     <Layout>
       <Panel direction="column">
         <Group justify="center" width="100%">
+          {data && (
+            <p>{`${data.total.toLocaleString()} ${data.total === 1 ? "track" : "tracks"} in playlist`}</p>
+          )}
+
           {userData?.roles?.includes("admin") && (
             <Button
               onClick={() => mutate(userId)}
               text="Fetch new releases"
               variant="secondary"
               loading={isPending}
-            />
-          )}
-          {data?.playlist && (
-            <Anchor
-              link={data.playlist.external_urls.spotify}
-              text="Open playlist"
-              variant="secondary"
-              icon={<SpotifyIcon size={20} />}
-              isExternal
             />
           )}
         </Group>

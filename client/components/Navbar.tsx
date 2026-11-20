@@ -1,5 +1,9 @@
+import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
+import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import { Link } from "@tanstack/react-router";
+import { Anchor } from "./Anchor";
+import { SpotifyIcon } from "./Icons/Spotify";
 import { SearchBox } from "./SearchBox";
 
 const NavbarContainer = styled.header`
@@ -25,16 +29,48 @@ const Brand = styled.div`
   }
 `;
 
-export const Navbar = () => (
-  <NavbarContainer>
-    <Brand>
-      <Link to="/">
-        <img src="/cookie-jar.png" alt="Cookie Jar" width="36px" />
-      </Link>
+const PlaylistLink = styled.div`
+  a {
+    background-color: #1ed760;
+    color: #191414;
 
-      <h1>Cookie Jar</h1>
-    </Brand>
+    &:hover {
+      background-color: #1db954;
+      color: #ffffff;
+    }
+  }
+  @media screen and (min-width: 601px) {
+    justify-self: end;
+  }
+`;
 
-    <SearchBox />
-  </NavbarContainer>
-);
+export const Navbar = () => {
+  const { userId } = useAppStore();
+  const { data: playlist } = usePlaylistUpdates(userId, !!userId);
+
+  return (
+    <NavbarContainer>
+      <Brand>
+        <Link to="/">
+          <img src="/cookie-jar.png" alt="Cookie Jar" width="36px" />
+        </Link>
+
+        <h1>Cookie Jar</h1>
+      </Brand>
+
+      <SearchBox />
+
+      {playlist && (
+        <PlaylistLink>
+          <Anchor
+            link={playlist.playlist.external_urls.spotify}
+            text="Open"
+            variant="secondary"
+            icon={<SpotifyIcon size={24} strokeWidth={1.5} />}
+            isExternal
+          />
+        </PlaylistLink>
+      )}
+    </NavbarContainer>
+  );
+};

@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Toaster } from "react-hot-toast";
 
 export const Route = createRootRoute({
@@ -46,7 +47,10 @@ function RootComponent() {
   return (
     <>
       <Global styles={globalStyles()} />
-      <Toaster position="top-right" reverseOrder />
+      {createPortal(
+        <Toaster position="top-right" reverseOrder />,
+        document.body,
+      )}
       <ErrorBoundary key={pathname}>
         <Outlet />
       </ErrorBoundary>
