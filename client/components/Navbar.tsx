@@ -16,7 +16,7 @@ import { SearchBox } from "./SearchBox";
 const NavbarContainer = styled.header`
   padding: 1rem 2rem;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, 400px) minmax(max-content, 1fr);
   align-items: center;
 
   ${forTabletOnly(css`
@@ -51,6 +51,10 @@ const Brand = styled.div`
       overflow: hidden;
       text-overflow: ellipsis;
     `)}
+  }
+
+  a {
+    flex-shrink: 0;
   }
 
   img {

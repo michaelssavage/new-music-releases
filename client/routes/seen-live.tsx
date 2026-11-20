@@ -7,6 +7,7 @@ import { Loader } from "@client/components/Loader";
 import { Panel } from "@client/components/Panel";
 import { SeenArtistDialog } from "@client/components/SeenArtistDialog";
 import { getSeenArtists } from "@client/lib/spotify";
+import { forTabletOnly } from "@client/styles/abstracts/mixins.styled";
 import { requireAuth } from "@client/utils/auth";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -34,6 +35,8 @@ const Card = styled(ConfigCard)`
     margin: 0.25rem 0 1rem;
     color: #6b7280;
     font-size: 0.875rem;
+
+    ${forTabletOnly("margin: 0.25rem;")}
   }
 `;
 
@@ -84,6 +87,8 @@ const Header = styled.div`
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 1rem;
+
+  ${forTabletOnly("gap: 4px;")}
 `;
 
 const LoaderStyled = styled.div`

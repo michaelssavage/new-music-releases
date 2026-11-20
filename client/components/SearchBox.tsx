@@ -36,6 +36,7 @@ import { type Tab, TabList, TabPanel } from "./Tabs";
 const searchFieldStyles = css`
   height: 40px;
   width: 400px;
+  max-width: 100%;
   padding: 0.25rem 0.5rem;
   border: 1px solid transparent;
   border-radius: 4px;
