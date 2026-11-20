@@ -8,7 +8,8 @@ import type { SaveSongToPlaylistI } from "@server/service/types";
 import { SPOTIFY_API_URL } from "@server/utils/constants";
 import { getRequest, postRequest } from "@server/utils/fetch";
 import { logger } from "@server/utils/logger";
-import axios from "axios";
+
+const PLAYLIST_TRACKS_PAGE_SIZE = 100;
 
 export interface PlaylistPageParams {
   offset: number;
@@ -89,14 +90,14 @@ export function createPlaylistsApi() {
 
     const userId = userProfile.id;
 
-    const { data: playlist } = await axios.post<SpotifyPlaylistI>(
+    const { data: playlist } = await postRequest<SpotifyPlaylistI>(
       `${SPOTIFY_API_URL}/users/${userId}/playlists`,
+      token,
       {
         name: "New Music Releases",
         description: "A playlist of today's new releases.",
         public: true,
       },
-      { headers: { Authorization: `Bearer ${token}` } },
     );
 
     logger.info(
@@ -132,6 +133,41 @@ export function createPlaylistsApi() {
     return { items: allItems };
   }
 
+  /** Reads from the tail, newest first, until a page reaches a track added before `since` (default: the day of the newest track). */
+  async function fetchPlaylistTracksAddedSince(
+    token: string,
+    playlistId: string,
+    since?: string,
+  ) {
+    const tracksUrl = `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`;
+    const { data: summary } = await getRequest<Pick<PlaylistTracksI, "total">>(
+      tracksUrl,
+      token,
+      { fields: "total", limit: 1 },
+    );
+
+    const addedDay = ({ added_at }: PlaylistTracksI["items"][number]) =>
+      added_at.slice(0, 10);
+    const items: PlaylistTracksI["items"] = [];
+    let cutoffDay = since;
+
+    for (let end = summary.total; end > 0; end -= PLAYLIST_TRACKS_PAGE_SIZE) {
+      const start = Math.max(0, end - PLAYLIST_TRACKS_PAGE_SIZE);
+      const { data } = await getRequest<PlaylistTracksI>(tracksUrl, token, {
+        offset: start,
+        limit: end - start,
+      });
+
+      const page = data.items.reverse();
+      items.push(...page);
+      cutoffDay ??= addedDay(page[0]);
+      const cutoff = cutoffDay;
+      if (page.some((item) => addedDay(item) < cutoff)) break;
+    }
+
+    return { items };
+  }
+
   async function fetchPlaylistTracksNewestFirst(
     token: string,
     playlistId: string,
@@ -159,6 +195,7 @@ export function createPlaylistsApi() {
     addTrackToPlaylistById,
     createReleasesPlaylist,
     fetchPlaylistTracks,
+    fetchPlaylistTracksAddedSince,
     fetchPlaylistTracksNewestFirst,
   };
 }

@@ -2,7 +2,6 @@ import type { AlbumI, ArtistAlbumsI, NewReleasesI } from "@model/spotify";
 import { SPOTIFY_API_URL } from "@server/utils/constants";
 import { getRequest } from "@server/utils/fetch";
 import { logger } from "@server/utils/logger";
-import { withSpotifyRetries } from "./retry";
 
 export function filterAlbumsByReleaseWindow(
   items: Array<AlbumI>,
@@ -58,9 +57,12 @@ export function createAlbumsApi() {
     const albums: Array<AlbumI> = [];
 
     while (nextUrl) {
-      const { data } = await withSpotifyRetries(() =>
-        getRequest<ArtistAlbumsI>(nextUrl as string, token, params),
+      const res: { data: ArtistAlbumsI } = await getRequest<ArtistAlbumsI>(
+        nextUrl,
+        token,
+        params,
       );
+      const { data } = res;
       albums.push(...data.items);
       const fromTimestamp = fromDate
         ? new Date(fromDate).getTime()
