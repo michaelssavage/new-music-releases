@@ -1,4 +1,5 @@
 import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
+import { useSession } from "@client/hooks/use-session.hook";
 import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import { Link } from "@tanstack/react-router";
@@ -42,7 +43,11 @@ const PlaylistLink = styled.div`
 
 export const Navbar = () => {
   const { userId } = useAppStore();
-  const { data: playlist } = usePlaylistUpdates(userId, !!userId);
+  const { data: session } = useSession();
+  const { data: playlist } = usePlaylistUpdates(
+    userId,
+    !!userId && !!session?.verified,
+  );
 
   return (
     <NavbarContainer>

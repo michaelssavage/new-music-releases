@@ -1,9 +1,9 @@
-import { AwaitingVerification } from "@client/components/AwaitingVerification";
 import { Loader } from "@client/components/Loader";
 import { Navbar } from "@client/components/Navbar";
 import { Sidebar } from "@client/components/Sidebar";
 import { useSession } from "@client/hooks/use-session.hook";
 import styled from "@emotion/styled";
+import { Navigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 const Container = styled.div`
@@ -31,6 +31,7 @@ const LoadingStyled = styled(Container)`
 
 export const Layout = ({ children }: { children?: ReactNode }) => {
   const { data: session, isLoading } = useSession();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   if (isLoading) {
     return (
@@ -40,7 +41,9 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
     );
   }
 
-  if (session && !session.verified) return <AwaitingVerification />;
+  if (session && !session.verified && pathname !== "/") {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Container>
