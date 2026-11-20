@@ -1,3 +1,4 @@
+import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 
@@ -26,6 +27,8 @@ export const CardWrapper = styled.div`
   h2 {
     margin: 0.5rem 0 0 0;
     padding: 0 4px;
+
+    ${forPhoneOnly("font-size: 1rem;")}
   }
 `;
 

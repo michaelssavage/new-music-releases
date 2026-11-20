@@ -2,7 +2,9 @@ import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
 import { Group } from "@client/components/Group";
 import { SpotifyIcon } from "@client/components/Icons/Spotify";
+import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
 import { requireUnauth } from "@client/utils/auth";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -15,11 +17,24 @@ const NavBox = styled.div`
   align-items: center;
   justify-content: center;
   gap: 1rem;
+
+  ${forPhoneOnly(css`
+    padding: 2rem 1rem;
+
+    img {
+      width: 64px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+    }
+  `)}
 `;
 
 const Page = styled.div`
   margin: 2rem auto 1rem;
   max-width: 500px;
+  padding: 0 1rem;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -38,6 +53,8 @@ const Page = styled.div`
   p,
   a {
     font-size: 1.2rem;
+
+    ${forPhoneOnly("font-size: 1rem;")}
   }
 `;
 

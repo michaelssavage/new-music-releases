@@ -10,6 +10,8 @@ import {
   renamePlaylist,
   selectPlaylist,
 } from "@client/lib/spotify";
+import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import {
   PLAYLIST_ROLES,
@@ -49,6 +51,16 @@ const Row = styled.div`
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 0.75rem;
+
+  ${forPhoneOnly(css`
+    > div {
+      flex: 1 1 100%;
+    }
+
+    input {
+      width: 100%;
+    }
+  `)}
 `;
 
 const Subheading = styled.h3`
@@ -67,6 +79,11 @@ const NativeSelect = styled.select`
   border-radius: 4px;
   border: 1px solid #cccccc;
   background-color: #ffffff;
+
+  ${forPhoneOnly(css`
+    flex: 1 1 100%;
+    min-width: 0;
+  `)}
 `;
 
 const LoaderStyled = styled.div`

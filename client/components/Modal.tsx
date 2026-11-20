@@ -32,12 +32,11 @@ const Container = styled.div<{ width?: string }>`
   ${forPhoneOnly(css`
     width: 100%;
     max-width: 100%;
-    height: 100vh;
-    min-height: 100%;
+    min-height: 100dvh;
     margin: 0 auto;
     border-radius: 0;
     overflow-x: auto;
-    padding: 1rem;
+    padding: 3rem 1rem 1rem;
   `)}
 `;
 
@@ -94,7 +93,7 @@ export const Modal = ({ isOpen, setIsOpen, children, width }: ModalProps) => {
             <Button
               onClick={() => setIsOpen(false)}
               variant="ghost"
-              aria-label="Close Modal"
+              ariaLabel="Close Modal"
               text="Close"
               icon={<CloseIcon />}
             />
@@ -103,6 +102,6 @@ export const Modal = ({ isOpen, setIsOpen, children, width }: ModalProps) => {
         </Container>
       </Backdrop>
     ),
-    document.body
+    document.body,
   );
 };

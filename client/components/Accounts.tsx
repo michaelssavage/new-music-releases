@@ -16,7 +16,8 @@ const AccountList = styled.ul`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
     padding: 0.5rem 0;
     border-top: 1px solid #e5e7eb;
   }
@@ -25,6 +26,8 @@ const AccountList = styled.ul`
 const Name = styled.div`
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
 
   small {
     color: #6b7280;

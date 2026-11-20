@@ -114,6 +114,7 @@ interface Props {
   id?: string;
   variant?: "primary" | "secondary" | "remove" | "link" | "ghost";
   type?: "button" | "submit" | "reset";
+  ariaLabel?: string;
   text?: string;
   icon?: ReactNode;
   loading?: boolean;
@@ -126,6 +127,7 @@ export const Button = ({
   onClick,
   variant,
   type = "button",
+  ariaLabel,
   text,
   icon,
   loading,
@@ -138,6 +140,7 @@ export const Button = ({
       onClick={onClick}
       variant={variant}
       type={type}
+      aria-label={ariaLabel}
       isLoading={loading}
       disabled={disabled}
       styles={styles}

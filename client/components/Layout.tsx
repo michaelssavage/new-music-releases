@@ -2,6 +2,8 @@ import { Loader } from "@client/components/Loader";
 import { Navbar } from "@client/components/Navbar";
 import { Sidebar } from "@client/components/Sidebar";
 import { useSession } from "@client/hooks/use-session.hook";
+import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Navigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
@@ -22,6 +24,10 @@ const Main = styled.div`
 const Content = styled.main`
   flex: 1;
   padding: 1.5rem 1rem 1rem;
+
+  ${forPhoneOnly(css`
+    padding: 1rem 0.75rem;
+  `)}
 `;
 
 const LoadingStyled = styled(Container)`

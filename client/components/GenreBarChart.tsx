@@ -1,3 +1,5 @@
+import { PHONE_QUERY } from "@client/styles/abstracts/mixins.styled";
+import { useMediaQuery } from "@client/hooks/use-media-query.hook";
 import styled from "@emotion/styled";
 import type { GenreCountI } from "@model/seen-artists";
 import { barX, defineChart } from "@tanstack/charts";
@@ -25,6 +27,8 @@ const BAR_COLORS = [
 const ROW_HEIGHT = 44;
 const CHART_PADDING = 10;
 const INITIAL_WIDTH = 600;
+const LABEL_MARGIN = 190;
+const PHONE_LABEL_MARGIN = 110;
 
 const renderer = motion({
   initial: "always",
@@ -59,7 +63,11 @@ function percentOf(artists: number, total: number) {
   return Math.round((artists / total) * 100);
 }
 
-function createGenreChart(genres: Array<GenreCountI>, totalArtists: number) {
+function createGenreChart(
+  genres: Array<GenreCountI>,
+  totalArtists: number,
+  labelMargin: number,
+) {
   const genreNames = genres.map(({ genre }) => genre);
 
   return defineChart(
@@ -97,7 +105,7 @@ function createGenreChart(genres: Array<GenreCountI>, totalArtists: number) {
         top: CHART_PADDING,
         right: CHART_PADDING,
         bottom: 5,
-        left: 190,
+        left: labelMargin,
       },
       theme: {
         foreground: "#6b7280",
@@ -136,9 +144,11 @@ export const GenreBarChart = ({
   totalArtists,
   onSelectGenre,
 }: Props) => {
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  const labelMargin = isPhone ? PHONE_LABEL_MARGIN : LABEL_MARGIN;
   const definition = useMemo(
-    () => createGenreChart(genres, totalArtists),
-    [genres, totalArtists],
+    () => createGenreChart(genres, totalArtists, labelMargin),
+    [genres, totalArtists, labelMargin],
   );
 
   return (

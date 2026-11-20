@@ -11,7 +11,9 @@ import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
 import { useSession } from "@client/hooks/use-session.hook";
 import { getSeenArtists, getUserTracks } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
+import { forTabletOnly } from "@client/styles/abstracts/mixins.styled";
 import { requireAuth } from "@client/utils/auth";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { LikedTracksI } from "@model/spotify/liked-tracks";
 import { useQuery } from "@tanstack/react-query";
@@ -53,6 +55,10 @@ const Grid = styled.div`
   gap: 1rem;
   max-width: 40rem;
   margin: 0 auto;
+
+  ${forTabletOnly(css`
+    grid-template-columns: 1fr;
+  `)}
 `;
 
 const Card = styled(Link)`
