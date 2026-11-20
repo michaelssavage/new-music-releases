@@ -11,6 +11,8 @@ import pLimit from "p-limit";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
 
+const RELEASE_FETCH_CONCURRENCY = 3;
+
 export function getLatestPlaylistAdditionDate(
   items: PlaylistTracksI["items"],
 ): string | undefined {
@@ -41,16 +43,16 @@ export function createReleasesPlaylistService(deps: {
         "collectNewReleasesForUser:No artists found for user:",
         userId,
       );
-      return [];
+      return { releases: [], failedArtistIds: [] };
     }
 
     logger.info(
       `collectNewReleasesForUser:${artists.length} Artists retrieved from MongoDB.`,
     );
 
-    const limit = pLimit(5);
+    const limit = pLimit(RELEASE_FETCH_CONCURRENCY);
 
-    const releasesArray = await Promise.all(
+    const results = await Promise.all(
       artists.map((artist) =>
         limit(async () => {
           try {
@@ -69,57 +71,45 @@ export function createReleasesPlaylistService(deps: {
               );
             }
 
-            return release;
+            return { release };
           } catch (error) {
             logger.error(
               `collectNewReleasesForUser:Failed to fetch albums for artist ${artist.id}:`,
-              error,
+              error instanceof Error ? error.message : error,
             );
-            throw error;
+            return { failedArtistId: artist.id };
           }
         }),
       ),
     );
 
-    return releasesArray.flat();
+    return {
+      releases: results.flatMap((result) => result.release ?? []),
+      failedArtistIds: results.flatMap((result) => result.failedArtistId ?? []),
+    };
   }
 
-  async function appendNewReleasesToPlaylist({
-    userId,
+  async function addReleasesToPlaylist({
     token,
-    playlist,
-    fromDate,
-  }: UpdateUserPlaylistI) {
-    const playlistItems = await api.fetchPlaylistTracks(token, playlist.id);
-    const playlistFromDate = getLatestPlaylistAdditionDate(playlistItems.items);
-    const effectiveFromDate =
-      fromDate ?? playlistFromDate ?? new Date().toISOString().split("T")[0];
-
-    const newReleases: Array<NewReleasesI> = await collectNewReleasesForUser(
-      userId,
-      token,
-      effectiveFromDate,
-    );
-
-    logger.info(
-      "appendNewReleasesToPlaylist:All new releases collected from Spotify.",
-      {
-        newReleases: newReleases.length,
-        fromDate: effectiveFromDate,
-        userId,
-      },
-    );
-
-    if (newReleases.length === 0) {
-      logger.warn(
-        `appendNewReleasesToPlaylist:No new releases found for ${userId}`,
-      );
+    playlistId,
+    existingTrackUris,
+    releases,
+    userId,
+  }: {
+    token: string;
+    playlistId: string;
+    existingTrackUris: Set<string>;
+    releases: Array<NewReleasesI>;
+    userId: string;
+  }) {
+    if (releases.length === 0) {
+      logger.warn(`addReleasesToPlaylist:No new releases found for ${userId}`);
       return [];
     }
 
     const limit = pLimit(5);
     const uniqueReleases = [
-      ...new Map(newReleases.map((release) => [release.uri, release])).values(),
+      ...new Map(releases.map((release) => [release.uri, release])).values(),
     ];
 
     const trackUris = (
@@ -134,14 +124,11 @@ export function createReleasesPlaylistService(deps: {
         ),
       )
     ).flat();
-    const existingTrackUris = new Set(
-      playlistItems.items.map(({ track }) => track.uri),
-    );
     const newTrackUris = [
       ...new Set(trackUris.filter((uri) => !existingTrackUris.has(uri))),
     ];
 
-    logger.info("appendNewReleasesToPlaylist:Flattened track Uris", {
+    logger.info("addReleasesToPlaylist:Flattened track Uris", {
       discovered: trackUris.length,
       new: newTrackUris.length,
       userId,
@@ -149,18 +136,62 @@ export function createReleasesPlaylistService(deps: {
 
     if (newTrackUris.length === 0) {
       logger.info(
-        `appendNewReleasesToPlaylist:All releases already exist in playlist for ${userId}`,
+        `addReleasesToPlaylist:All releases already exist in playlist for ${userId}`,
       );
       return [];
     }
 
-    return api.appendTracksToPlaylist(token, playlist.id, newTrackUris);
+    return api.appendTracksToPlaylist(token, playlistId, newTrackUris);
+  }
+
+  async function appendNewReleasesToPlaylist({
+    userId,
+    token,
+    playlist,
+    fromDate,
+  }: UpdateUserPlaylistI) {
+    const playlistItems = await api.fetchPlaylistTracksAddedSince(
+      token,
+      playlist.id,
+      fromDate,
+    );
+    const playlistFromDate = getLatestPlaylistAdditionDate(playlistItems.items);
+    const effectiveFromDate =
+      fromDate ?? playlistFromDate ?? new Date().toISOString().split("T")[0];
+
+    const { releases, failedArtistIds } = await collectNewReleasesForUser(
+      userId,
+      token,
+      effectiveFromDate,
+    );
+
+    logger.info(
+      "appendNewReleasesToPlaylist:All new releases collected from Spotify.",
+      {
+        newReleases: releases.length,
+        failedArtists: failedArtistIds.length,
+        fromDate: effectiveFromDate,
+        userId,
+      },
+    );
+
+    const addedTracks = await addReleasesToPlaylist({
+      token,
+      playlistId: playlist.id,
+      existingTrackUris: new Set(
+        playlistItems.items.map(({ track }) => track.uri),
+      ),
+      releases,
+      userId,
+    });
+
+    return { addedTracks, failedArtistIds };
   }
 
   async function ensureReleasesPlaylistForUser(userId: string, token: string) {
     const existingPlaylist = await repository.getPlaylist(userId);
     if (existingPlaylist) {
-      logger.info(
+      logger.debug(
         "ensureReleasesPlaylistForUser:Playlist found in MongoDB:",
         existingPlaylist.name,
       );
@@ -200,14 +231,22 @@ export function createReleasesPlaylistService(deps: {
 
     const user = fromDate ? undefined : await repository.getUser(userId);
     const checkpointDate = user?.lastReleaseSyncAt?.toISOString().split("T")[0];
-    const result = await appendNewReleasesToPlaylist({
+    const { addedTracks, failedArtistIds } = await appendNewReleasesToPlaylist({
       userId,
       token,
       playlist,
       fromDate: fromDate ?? checkpointDate,
     });
+
+    // Keep the checkpoint where it was so the next run retries the failed artists.
+    if (failedArtistIds.length > 0) {
+      throw new Error(
+        `syncNewReleasesToUserPlaylist:Releases for ${failedArtistIds.length} artists could not be fetched for user ${userId}; checkpoint not advanced`,
+      );
+    }
+
     await repository.setLastReleaseSyncAt(userId, new Date());
-    return result;
+    return addedTracks;
   }
 
   async function syncNewReleasesForAllUsers(fromDate?: string) {
