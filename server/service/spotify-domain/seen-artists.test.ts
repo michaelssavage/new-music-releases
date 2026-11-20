@@ -7,6 +7,8 @@ import { createSeenArtistsService } from "./seen-artists";
 
 const TECHNO_TAGS = [{ name: "techno", count: 100 }];
 
+const USER_ID = "user-1";
+
 function setup(stored: Array<StoredSeenArtistI>) {
   const replaced: Array<{ id: string; artist: SeenArtistI }> = [];
   const inserted: Array<SeenArtistI> = [];
@@ -17,13 +19,17 @@ function setup(stored: Array<StoredSeenArtistI>) {
     null;
 
   const repository = {
-    findSeenArtistByName: async (name: string) => byName(name),
-    findSeenArtistById: async (id: string) =>
+    findSeenArtistByName: async (_userId: string, name: string) => byName(name),
+    findSeenArtistById: async (_userId: string, id: string) =>
       stored.find((artist) => artist.id === id) ?? null,
-    replaceSeenArtist: async (id: string, artist: SeenArtistI) => {
+    replaceSeenArtist: async (
+      _userId: string,
+      id: string,
+      artist: SeenArtistI,
+    ) => {
       replaced.push({ id, artist });
     },
-    insertSeenArtist: async (artist: SeenArtistI) => {
+    insertSeenArtist: async (_userId: string, artist: SeenArtistI) => {
       inserted.push(artist);
     },
   } as unknown as ReturnType<typeof SpotifyRepository>;
@@ -53,7 +59,7 @@ const blawan: StoredSeenArtistI = {
 test("adding an artist seen again appends only new sightings", async () => {
   const { service, replaced, inserted, lastFmLookups } = setup([blawan]);
 
-  await service.addSeenArtist({
+  await service.addSeenArtist(USER_ID, {
     name: "blawan",
     sightings: [
       { event: "SOUNDIT", year: 2026 },
@@ -81,7 +87,7 @@ test("adding an artist seen again appends only new sightings", async () => {
 test("a new artist is stored with its Last.fm tags", async () => {
   const { service, inserted } = setup([]);
 
-  await service.addSeenArtist({
+  await service.addSeenArtist(USER_ID, {
     name: "Kettama",
     sightings: [{ event: "Boxed Off", year: 2018 }],
   });
@@ -99,10 +105,13 @@ test("tags are re-fetched only when an artist is renamed", async () => {
   const { service, lastFmLookups } = setup([blawan]);
   const sightings = blawan.sightings;
 
-  await service.updateSeenArtist("1", { name: "BLAWAN", sightings });
+  await service.updateSeenArtist(USER_ID, "1", { name: "BLAWAN", sightings });
   assert.deepEqual(lastFmLookups, []);
 
-  await service.updateSeenArtist("1", { name: "Blawan (live)", sightings });
+  await service.updateSeenArtist(USER_ID, "1", {
+    name: "Blawan (live)",
+    sightings,
+  });
   assert.deepEqual(lastFmLookups, ["Blawan (live)"]);
 });
 
@@ -111,7 +120,7 @@ test("renaming onto another artist's name is rejected", async () => {
   const { service, replaced } = setup([blawan, kettama]);
 
   await assert.rejects(
-    service.updateSeenArtist("2", {
+    service.updateSeenArtist(USER_ID, "2", {
       name: "Blawan",
       sightings: kettama.sightings,
     }),

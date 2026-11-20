@@ -13,6 +13,7 @@ import {
 import { logger } from "@server/utils/logger";
 import { validateEnv } from "@server/utils/validateEnv";
 import dotenv from "dotenv";
+import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +22,16 @@ import pLimit from "p-limit";
 const LASTFM_CONCURRENCY = 3;
 const isDryRun = process.argv.includes("--dry-run");
 
-// Only artists missing from MongoDB are inserted, so edits made in the app
+function userIdFromArgs() {
+  const userId = process.argv[process.argv.indexOf("--user") + 1];
+  assert(
+    process.argv.includes("--user") && userId,
+    "Usage: --user <spotify user id> [--dry-run]",
+  );
+  return userId;
+}
+
+// Only artists missing from the user's list are inserted, so edits made in the app
 // survive a re-run. `lastfmName` overrides the Last.fm lookup when `name`
 // doesn't match it (e.g. a b2b set); `genre` overrides the tag-derived genre.
 interface SightingsFileEntry {
@@ -35,6 +45,7 @@ async function main() {
   const rootDir = path.resolve(fileURLToPath(import.meta.url), "../..");
   dotenv.config({ path: path.join(rootDir, ".env") });
   const env = validateEnv();
+  const userId = userIdFromArgs();
 
   const entries: Array<SightingsFileEntry> = JSON.parse(
     await readFile(path.join(rootDir, "concert_sightings.json"), "utf-8"),
@@ -62,7 +73,7 @@ async function main() {
     const repository = SpotifyRepository({ mongoUri: env.MONGO_URI });
     await repository.connect();
     try {
-      await repository.insertMissingSeenArtists(artists);
+      await repository.insertMissingSeenArtists(userId, artists);
     } finally {
       await repository.disconnect();
     }

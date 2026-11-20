@@ -38,10 +38,10 @@ export function SpotifyRouter({
   router.get("/get-artist/:id", c.handleGetArtistById);
   router.get("/get-artists", c.handleListSavedArtists);
 
-  router.get("/seen-artists", c.handleGetSeenArtists);
-  router.post("/seen-artists", c.handleAddSeenArtist);
-  router.put("/seen-artists/:id", c.handleUpdateSeenArtist);
-  router.delete("/seen-artists/:id", c.handleDeleteSeenArtist);
+  router.get("/seen-artists", requireVerified, c.handleGetSeenArtists);
+  router.post("/seen-artists", requireVerified, c.handleAddSeenArtist);
+  router.put("/seen-artists/:id", requireVerified, c.handleUpdateSeenArtist);
+  router.delete("/seen-artists/:id", requireVerified, c.handleDeleteSeenArtist);
 
   router.delete("/remove-artist/:id", c.handleRemoveTrackedArtist);
 

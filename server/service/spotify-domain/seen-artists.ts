@@ -32,21 +32,21 @@ export function createSeenArtistsService(deps: {
 }) {
   const { repository, lastFm } = deps;
 
-  async function getSeenArtists(): Promise<SeenArtistsResponse> {
-    const seenArtists = await repository.getSeenArtists();
+  async function getSeenArtists(userId: string): Promise<SeenArtistsResponse> {
+    const seenArtists = await repository.getSeenArtists(userId);
     const artists = withGenres(seenArtists);
 
     return { artists, genres: countByGenre(artists) };
   }
 
   // An artist seen again gains sightings instead of a duplicate entry.
-  async function addSeenArtist(input: SeenArtistInputI) {
-    const existing = await repository.findSeenArtistByName(input.name);
+  async function addSeenArtist(userId: string, input: SeenArtistInputI) {
+    const existing = await repository.findSeenArtistByName(userId, input.name);
 
     if (existing) {
       const { id, ...stored } = existing;
       const genreOverrides = input.genreOverrides ?? stored.genreOverrides;
-      await repository.replaceSeenArtist(id, {
+      await repository.replaceSeenArtist(userId, id, {
         ...stored,
         sightings: mergeSightings(stored.sightings, input.sightings),
         ...(genreOverrides && { genreOverrides }),
@@ -55,34 +55,41 @@ export function createSeenArtistsService(deps: {
       return;
     }
 
-    await repository.insertSeenArtist({
+    await repository.insertSeenArtist(userId, {
       ...input,
       tags: await lastFm.fetchTopTags(input.name),
     });
     logger.info(`addSeenArtist:Added ${input.name}.`);
   }
 
-  async function updateSeenArtist(id: string, input: SeenArtistInputI) {
-    const existing = await repository.findSeenArtistById(id);
+  async function updateSeenArtist(
+    userId: string,
+    id: string,
+    input: SeenArtistInputI,
+  ) {
+    const existing = await repository.findSeenArtistById(userId, id);
     if (!existing) throw new HttpException(404, "Seen artist not found.");
 
     const renamed = !sameName(existing.name, input.name);
     if (renamed) {
-      const nameTaken = await repository.findSeenArtistByName(input.name);
+      const nameTaken = await repository.findSeenArtistByName(
+        userId,
+        input.name,
+      );
       if (nameTaken) {
         throw new HttpException(409, `${input.name} is already in the list.`);
       }
     }
 
-    await repository.replaceSeenArtist(id, {
+    await repository.replaceSeenArtist(userId, id, {
       ...input,
       tags: renamed ? await lastFm.fetchTopTags(input.name) : existing.tags,
     });
     logger.info(`updateSeenArtist:Updated ${input.name}.`);
   }
 
-  async function deleteSeenArtist(id: string) {
-    await repository.deleteSeenArtist(id);
+  async function deleteSeenArtist(userId: string, id: string) {
+    await repository.deleteSeenArtist(userId, id);
     logger.info(`deleteSeenArtist:Deleted seen artist ${id}.`);
   }
 

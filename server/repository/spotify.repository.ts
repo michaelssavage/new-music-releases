@@ -15,7 +15,7 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
   let db: Db;
   let userDb: Collection<User>;
   let artistDb: Collection<Artist & { userId: string }>;
-  let seenArtistDb: Collection<SeenArtistI>;
+  let seenArtistDb: Collection<SeenArtistI & { userId: string }>;
 
   async function connect(): Promise<void> {
     client = new MongoClient(mongoUri);
@@ -110,46 +110,63 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
 
   function toStoredSeenArtist({
     _id,
+    userId: _userId,
     ...artist
-  }: SeenArtistI & { _id: ObjectId }): StoredSeenArtistI {
+  }: SeenArtistI & { _id: ObjectId; userId: string }): StoredSeenArtistI {
     return { id: _id.toString(), ...artist };
   }
 
-  async function getSeenArtists() {
-    const artists = await seenArtistDb.find().sort({ name: 1 }).toArray();
+  async function getSeenArtists(userId: string) {
+    const artists = await seenArtistDb
+      .find({ userId })
+      .sort({ name: 1 })
+      .toArray();
     return artists.map(toStoredSeenArtist);
   }
 
-  async function findSeenArtistById(id: string) {
-    const artist = await seenArtistDb.findOne({ _id: new ObjectId(id) });
+  async function findSeenArtistById(userId: string, id: string) {
+    const artist = await seenArtistDb.findOne({
+      _id: new ObjectId(id),
+      userId,
+    });
     return artist ? toStoredSeenArtist(artist) : null;
   }
 
-  async function findSeenArtistByName(name: string) {
+  async function findSeenArtistByName(userId: string, name: string) {
     const artist = await seenArtistDb.findOne(
-      { name },
+      { userId, name },
       { collation: { locale: "en", strength: 2 } },
     );
     return artist ? toStoredSeenArtist(artist) : null;
   }
 
-  async function insertSeenArtist(artist: SeenArtistI) {
-    await seenArtistDb.insertOne({ ...artist });
+  async function insertSeenArtist(userId: string, artist: SeenArtistI) {
+    await seenArtistDb.insertOne({ ...artist, userId });
   }
 
-  async function replaceSeenArtist(id: string, artist: SeenArtistI) {
-    await seenArtistDb.replaceOne({ _id: new ObjectId(id) }, artist);
+  async function replaceSeenArtist(
+    userId: string,
+    id: string,
+    artist: SeenArtistI,
+  ) {
+    await seenArtistDb.replaceOne(
+      { _id: new ObjectId(id), userId },
+      { ...artist, userId },
+    );
   }
 
-  async function deleteSeenArtist(id: string) {
-    return await seenArtistDb.deleteOne({ _id: new ObjectId(id) });
+  async function deleteSeenArtist(userId: string, id: string) {
+    return await seenArtistDb.deleteOne({ _id: new ObjectId(id), userId });
   }
 
-  async function insertMissingSeenArtists(artists: Array<SeenArtistI>) {
+  async function insertMissingSeenArtists(
+    userId: string,
+    artists: Array<SeenArtistI>,
+  ) {
     const bulkOperations = artists.map((artist) => ({
       updateOne: {
-        filter: { name: artist.name },
-        update: { $setOnInsert: artist },
+        filter: { userId, name: artist.name },
+        update: { $setOnInsert: { ...artist, userId } },
         upsert: true,
       },
     }));
