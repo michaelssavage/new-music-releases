@@ -11,7 +11,7 @@ interface StyledI {
 
 export const ButtonStyled = styled.button<StyledI>`
   height: 32px;
-  padding: 0 0.75rem;
+  padding: 2px 6px;
   border-radius: 4px;
   transition: all 0.2s ease-in-out;
   box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
@@ -31,10 +31,10 @@ export const ButtonStyled = styled.button<StyledI>`
 
     if (variant === "secondary") {
       return css`
-        background-color: #ebedf5;
+        background-color: #ffffff;
 
         &:hover:not(:disabled) {
-          background-color: #a1b7b3;
+          background-color: #ebedf5;
         }
       `;
     }
@@ -108,7 +108,7 @@ export const ButtonStyled = styled.button<StyledI>`
   > span {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 4px;
     opacity: ${({ isLoading }) => (isLoading ? 0 : 1)};
     transition: opacity 0.2s;
   }

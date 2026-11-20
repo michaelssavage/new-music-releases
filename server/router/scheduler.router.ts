@@ -10,6 +10,7 @@ export function SchedulerRouter({
   const schedulerController = SchedulerController({ schedulerService, env });
 
   router.post("/trigger-schedule", schedulerController.triggerManualUpdate);
+  router.get("/scheduler-runs", schedulerController.getRecentRuns);
 
   return router;
 }

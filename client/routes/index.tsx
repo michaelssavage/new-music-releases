@@ -6,6 +6,7 @@ import { Info } from "@client/components/InfoToast";
 import { Loader } from "@client/components/Loader";
 import { LoadMore } from "@client/components/LoadMore";
 import { Panel } from "@client/components/Panel";
+import { SchedulerRuns } from "@client/components/SchedulerRuns";
 import { SeenArtists } from "@client/components/SeenArtists";
 import { LikedSongsTable } from "@client/components/Table/LikedSongs";
 import { PlaylistUpdatesTable } from "@client/components/Table/PlaylistUpdates";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/")({
 });
 
 const Content = styled.div`
+  flex: 1;
   padding: 0 0 1rem;
   background-color: #c4cff1;
 `;
@@ -149,6 +151,15 @@ function MainComponent() {
         panel: (
           <Panel>
             <SeenArtists />
+          </Panel>
+        ),
+      },
+      {
+        key: "configuration",
+        tab: "Configuration",
+        panel: (
+          <Panel>
+            <SchedulerRuns />
           </Panel>
         ),
       },

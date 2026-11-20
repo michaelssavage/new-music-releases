@@ -4,6 +4,7 @@ import type { UserID } from "@model/spotify/user";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 const PLAYLIST_PAGE_SIZE = 30;
+const PLAYLIST_STALE_TIME_MS = 5 * 60 * 1000;
 
 const flattenPlaylistPages = ({
   pages,
@@ -29,6 +30,7 @@ export const usePlaylistUpdates = (userId: UserID, enabled: boolean) =>
       return loaded < lastPage.playlistItems.total ? loaded : undefined;
     },
     select: flattenPlaylistPages,
+    staleTime: PLAYLIST_STALE_TIME_MS,
     refetchOnWindowFocus: false,
     enabled,
   });

@@ -1,3 +1,4 @@
+import type { SchedulerRunI } from "@model/scheduler";
 import type { SchedulerServiceI } from "@server/container/types";
 import { ARTIST_TRACKER_PLAYLIST_ID } from "@server/utils/constants";
 import { logger } from "@server/utils/logger";
@@ -6,6 +7,8 @@ interface ExecuteJobProps {
   manual?: boolean;
   fromDate?: string;
 }
+
+const RECENT_RUNS_LIMIT = 15;
 
 export function SchedulerService({
   repository,
@@ -73,5 +76,14 @@ export function SchedulerService({
     }
   }
 
-  return { executeJob };
+  async function getRecentRuns(): Promise<Array<SchedulerRunI>> {
+    const runs = await repository.findRecent(RECENT_RUNS_LIMIT);
+    return runs.map(({ _id, executionTime, status }) => ({
+      id: _id.toString(),
+      executionTime: executionTime.toISOString(),
+      status,
+    }));
+  }
+
+  return { executeJob, getRecentRuns };
 }

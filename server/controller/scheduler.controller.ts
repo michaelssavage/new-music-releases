@@ -1,3 +1,4 @@
+import { requireSpotifyToken } from "@server/utils/auth";
 import { logger } from "@server/utils/logger";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -78,7 +79,19 @@ export function SchedulerController({
     }
   }
 
+  async function getRecentRuns(req: Request, res: Response): Promise<void> {
+    if (!requireSpotifyToken(req, res)) return;
+
+    try {
+      res.json({ runs: await schedulerService.getRecentRuns() });
+    } catch (error) {
+      logger.error("Error retrieving scheduler runs:", error);
+      res.status(500).json({ error: "Failed to retrieve scheduler runs" });
+    }
+  }
+
   return {
     triggerManualUpdate,
+    getRecentRuns,
   };
 }

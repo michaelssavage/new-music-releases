@@ -1,5 +1,4 @@
 .env
 node_modules
 dist
-guide.md
-concert_sightings.json
+tasks

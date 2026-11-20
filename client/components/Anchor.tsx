@@ -38,10 +38,11 @@ const LinkStyle = styled.a<IStyle>`
           cursor: pointer;
           gap: 0.5rem;
           color: #000000;
-          background-color: #ebedf5;
+          border: 1px solid #ebedf5;
+          background-color: #f9f5f5;
           transition: background-color 0.25s;
           &:hover {
-            background-color: #a1b7b3;
+            background-color: #ebedf5;
           }
           &:active {
             transform: scale(1.05);
@@ -110,7 +111,7 @@ export const Anchor = memo(
         target={isExternal ? "_blank" : undefined}
       >
         {text ? <span>{text}</span> : link}{" "}
-        {isExternal && !icon ? <ExternalLinkIcon /> : icon}
+        {isExternal && !icon ? <ExternalLinkIcon size={16} /> : icon}
       </LinkStyle>
     );
   },
