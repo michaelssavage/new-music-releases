@@ -39,7 +39,7 @@ export function createAuthHandlers({
     req: Request,
     res: Response,
   ): Promise<void> {
-    const refresh_token = req.query.refresh_token as string;
+    const refresh_token = req.body.refresh_token as string;
 
     if (!refresh_token) {
       res.status(400).json({ error: "Missing refresh token" });

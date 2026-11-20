@@ -12,7 +12,7 @@ export function SpotifyRouter({
 
   router.get("/login", c.handleLogin);
   router.get("/callback", c.handleOAuthCallback);
-  router.get("/refresh", c.handleTokenRefresh);
+  router.post("/refresh-token", c.handleTokenRefresh);
   router.get("/validate-token", c.handleValidateToken);
 
   router.get("/user", c.handleGetUser);

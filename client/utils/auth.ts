@@ -64,15 +64,9 @@ export function setupAuthRefresh() {
 
       if (refreshToken && accessToken) {
         try {
-          const valid = await isAuthValid(accessToken);
-
-          if (valid) {
-            const newAccessToken = await refreshAuthToken(refreshToken);
-            if (newAccessToken) {
-              logger.info(
-                "setupAuthRefresh:Access token refreshed successfully."
-              );
-            }
+          const newAccessToken = await refreshAuthToken(refreshToken);
+          if (newAccessToken) {
+            logger.info("setupAuthRefresh:Access token refreshed successfully.");
           }
         } catch (error) {
           console.error(

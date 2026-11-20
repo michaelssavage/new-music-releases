@@ -1,4 +1,5 @@
 import { logger } from "@client/utils/logger";
+import type { SchedulerRunsResponse } from "@model/scheduler";
 import type {
   SeenArtistInputI,
   SeenArtistsResponse,
@@ -143,17 +144,10 @@ export const getSavedArtists = async (userId: UserID) => {
   }
 
   try {
-    const valid = await isAuthValid(accessToken);
-    if (valid) {
-      const res = await axios.get<Array<SavedArtistI>>(
-        `/api/get-artists?userId=${userId}`
-      );
-      return res.data;
-    }
-    logger.error(
-      "getSavedArtists:Failed to get saved artists: Invalid access token"
+    const res = await axios.get<Array<SavedArtistI>>(
+      `/api/get-artists?userId=${userId}`
     );
-    return [];
+    return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       logger.error(
@@ -410,5 +404,19 @@ export const getPlaylistTracks = async (playlistId?: string) => {
       logger.error("getPlaylistTracks:An unexpected error occurred:", error);
     }
     return null;
+  }
+};
+
+export const getSchedulerRuns = async () => {
+  const spotify_access_token = Cookies.get("spotify_access_token");
+
+  try {
+    const res = await axios.get<SchedulerRunsResponse>("/api/scheduler-runs", {
+      headers: { spotify_access_token },
+    });
+    return res.data.runs;
+  } catch (error) {
+    logger.error("getSchedulerRuns:Failed to get scheduler runs:", error);
+    throw error;
   }
 };
