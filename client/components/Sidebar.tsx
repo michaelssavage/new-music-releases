@@ -100,14 +100,14 @@ const Footer = styled.div`
 
 export const Sidebar = () => {
   const navigate = useNavigate();
-  const { logout, savedArtists } = useAppStore();
+  const { logout } = useAppStore();
   const [collapsed, setCollapsed] = useState(startsCollapsed);
 
   const items: ReadonlyArray<SidebarItem> = [
     { to: "/updates", label: "Updates", icon: <PlaylistIcon /> },
     {
       to: "/saved-artists",
-      label: `Saved Artists (${savedArtists.length})`,
+      label: "Saved Artists",
       icon: <ArtistsIcon />,
     },
     {

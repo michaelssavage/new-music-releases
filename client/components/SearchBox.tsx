@@ -6,6 +6,7 @@ import {
   defaultResults,
 } from "@client/utils/defaults";
 import { css } from "@emotion/react";
+import styled from "@emotion/styled";
 import type { SearchResponse } from "@model/spotify/search";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -28,20 +29,30 @@ import { SearchIcon } from "./Icons/Search";
 import { Modal } from "./Modal";
 import { type Tab, TabList, TabPanel } from "./Tabs";
 
-const customButtonStyles = css`
-  padding: 0.25rem;
+const searchFieldStyles = css`
   height: 40px;
-  width: 300px;
+  width: 400px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background-color: #ffffff;
+  box-shadow: #c4cff1 1px 6px 4px;
+  color: #040c2f91;
+  transition: border-color 0.2s ease-in-out;
+
+  &:hover,
+  &:focus-within {
+    border-color: #040c2f;
+  }
 `;
 
-const searchBoxStyling = css`
-  margin: 0 auto;
-  order: 2;
-
-  @media screen and (max-width: 600px) {
-    margin: unset;
-    order: 3;
-  }
+const SearchInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background-color: transparent;
+  color: #040c2f;
 `;
 
 interface ResultsProps {
@@ -99,15 +110,24 @@ export const SearchBox = () => {
     },
   });
 
-  const handleEnter = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleClick();
-  };
+  const disableSearch = !search || type.length === 0 || isPending;
 
   const handleClick = () => {
     mutate({ search, type: type.map((t) => t.value) });
   };
 
-  const disableSearch = !search || type.length === 0 || isPending;
+  const openSearch = () => {
+    setIsOpen(true);
+    if (!disableSearch) handleClick();
+  };
+
+  const handleEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleClick();
+  };
+
+  const handleFieldEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") openSearch();
+  };
 
   const data: Array<Tab> = [
     {
@@ -171,14 +191,22 @@ export const SearchBox = () => {
   ];
 
   return (
-    <Group align="center" styling={searchBoxStyling}>
-      <Button
-        icon={<SearchIcon />}
-        variant="input"
-        text="Search..."
-        onClick={() => setIsOpen(true)}
-        styles={customButtonStyles}
-      />
+    <Group align="center">
+      <Group
+        justify="space-between"
+        wrap="nowrap"
+        gap="0.5rem"
+        styling={searchFieldStyles}
+      >
+        <SearchInput
+          aria-label="Search"
+          placeholder="Search..."
+          value={search}
+          onChange={handleSearch}
+          onKeyDown={handleFieldEnter}
+        />
+        <Button variant="ghost" icon={<SearchIcon />} onClick={openSearch} />
+      </Group>
 
       <Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
         <Group
@@ -193,6 +221,7 @@ export const SearchBox = () => {
           <TextInput
             id="search"
             placeholder="type here..."
+            value={search}
             onChange={handleSearch}
             onKeyDown={handleEnter}
             styles={css`

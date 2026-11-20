@@ -32,7 +32,15 @@ const Header = styled.h1`
   font-weight: 700;
   line-height: 1;
   text-align: center;
-  margin: 2rem 1rem 3rem;
+  margin: 2rem 1rem 1rem;
+`;
+
+const Subheader = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  margin: 0 1rem 3rem;
 `;
 
 const Grid = styled.div`
@@ -121,7 +129,10 @@ function HomePage() {
 
   return (
     <Layout>
-      <Header>Cookie Jar - new music releases</Header>
+      <Header>New music releases</Header>
+      <Subheader>
+        Straight to your Spotify playlist. A full cookie jar.
+      </Subheader>
       <Grid>
         <StatCard
           to="/updates"
