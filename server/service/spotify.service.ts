@@ -1,3 +1,4 @@
+import { PLAYLIST_ROLES } from "@model/playlist-settings";
 import type { SpotifyServiceI } from "@server/container/types";
 import { createLastFmApi } from "./lastfm-api";
 import { createAccountsService } from "./spotify-domain/accounts";
@@ -26,7 +27,22 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     repository,
     api,
     ensureValidAccessToken: userSession.ensureValidAccessToken,
+    ensurePlaylistId: playlistSettings.ensurePlaylistId,
   });
+
+  async function completeOAuthLogin(code: string) {
+    const login = await userSession.completeOAuthLogin(code);
+    if (login.user.saved_artists.length === 0) {
+      for (const role of PLAYLIST_ROLES) {
+        await playlistSettings.ensurePlaylistId(
+          login.user,
+          login.access_token,
+          role,
+        );
+      }
+    }
+    return login;
+  }
 
   async function initialize(): Promise<void> {
     await repository.connect();
@@ -43,7 +59,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     exchangeAuthorizationCode: oauth.exchangeAuthorizationCode,
     refreshAccessToken: oauth.refreshAccessToken,
 
-    completeOAuthLogin: userSession.completeOAuthLogin,
+    completeOAuthLogin,
     getUser: userSession.getUser,
     saveUser: userSession.saveUser,
     ensureValidAccessToken: userSession.ensureValidAccessToken,
@@ -79,7 +95,6 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     getPlaylistSettings: playlistSettings.getPlaylistSettings,
     listOwnedPlaylists: playlistSettings.listOwnedPlaylists,
     selectPlaylist: playlistSettings.selectPlaylist,
-    createAndSelectPlaylist: playlistSettings.createAndSelectPlaylist,
     renamePlaylist: playlistSettings.renamePlaylist,
   };
 }

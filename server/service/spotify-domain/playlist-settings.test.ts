@@ -51,12 +51,20 @@ test("only playlists the user owns can be selected or listed", async () => {
   );
 });
 
-test("a newly created playlist becomes the selected one for that role", async () => {
+test("each role gets its default playlist created once and remembered", async () => {
   const { service, saved } = setup();
+  const withReleases = { ...user, releasesPlaylistId: "existing" } as User;
 
-  await service.createAndSelectPlaylist(user, "token", "releases", "Fresh");
+  assert.equal(
+    await service.ensurePlaylistId(withReleases, "token", "releases"),
+    "existing",
+  );
+  assert.equal(
+    await service.ensurePlaylistId(withReleases, "token", "tracker"),
+    "new-Artist Tracker",
+  );
 
-  assert.deepEqual(saved, [["me", "releases", "new-Fresh"]]);
+  assert.deepEqual(saved, [["me", "tracker", "new-Artist Tracker"]]);
 });
 
 test("each role renames its own playlist, and nothing is renamed before one is selected", async () => {

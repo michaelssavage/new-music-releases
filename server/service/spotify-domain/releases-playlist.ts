@@ -1,3 +1,4 @@
+import type { PlaylistRole } from "@model/playlist-settings";
 import type { NewReleasesI, SpotifyDataProps } from "@model/spotify";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { User } from "@model/spotify/user";
@@ -12,10 +13,6 @@ import pLimit from "p-limit";
 type Repository = ReturnType<typeof SpotifyRepository>;
 
 const RELEASE_FETCH_CONCURRENCY = 3;
-const DEFAULT_RELEASES_PLAYLIST = {
-  name: "Cookie Jar",
-  description: "A playlist of today's new releases.",
-};
 
 export function getLatestPlaylistAdditionDate(
   items: PlaylistTracksI["items"],
@@ -33,8 +30,13 @@ export function createReleasesPlaylistService(deps: {
   repository: Repository;
   api: SpotifyWebApi;
   ensureValidAccessToken: (user: User) => Promise<string>;
+  ensurePlaylistId: (
+    user: User,
+    token: string,
+    role: PlaylistRole,
+  ) => Promise<string>;
 }) {
-  const { repository, api, ensureValidAccessToken } = deps;
+  const { repository, api, ensureValidAccessToken, ensurePlaylistId } = deps;
 
   async function collectNewReleasesForUser(
     userId: string,
@@ -192,24 +194,12 @@ export function createReleasesPlaylistService(deps: {
     return { addedTracks, failedArtistIds };
   }
 
-  async function ensureReleasesPlaylistId(user: User, token: string) {
-    if (user.releasesPlaylistId) return user.releasesPlaylistId;
-
-    const playlist = await api.createPlaylist(token, DEFAULT_RELEASES_PLAYLIST);
-    await repository.setPlaylistId(user.userId, "releases", playlist.id);
-    logger.info(
-      `ensureReleasesPlaylistId:Created playlist for ${user.userId}:`,
-      playlist.name,
-    );
-    return playlist.id;
-  }
-
   async function syncNewReleasesToUserPlaylist(
     user: User,
     token: string,
     fromDate?: string,
   ) {
-    const playlistId = await ensureReleasesPlaylistId(user, token);
+    const playlistId = await ensurePlaylistId(user, token, "releases");
 
     const checkpointDate = user.lastReleaseSyncAt?.toISOString().split("T")[0];
     const { addedTracks, failedArtistIds } = await appendNewReleasesToPlaylist({
@@ -308,7 +298,7 @@ export function createReleasesPlaylistService(deps: {
     token: string,
     page: PlaylistPageParams,
   ): Promise<SpotifyDataProps> {
-    const playlistId = await ensureReleasesPlaylistId(user, token);
+    const playlistId = await ensurePlaylistId(user, token, "releases");
 
     const [playlist, playlistItems] = await Promise.all([
       api.fetchPlaylist(token, playlistId),

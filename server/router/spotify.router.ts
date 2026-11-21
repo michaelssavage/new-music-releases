@@ -62,7 +62,6 @@ export function SpotifyRouter({
   router.get("/playlist-settings", requireUser, c.handleGetPlaylistSettings);
   router.get("/user-playlists", requireUser, c.handleGetUserPlaylists);
   router.put("/playlist-settings/:role", requireUser, c.handleSelectPlaylist);
-  router.post("/playlist-settings/:role", requireUser, c.handleCreatePlaylist);
   router.patch("/playlist-settings/:role", requireUser, c.handleRenamePlaylist);
   router.post("/save-song-to-playlist", c.handleAddTrackToPlaylist);
 

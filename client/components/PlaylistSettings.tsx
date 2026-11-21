@@ -7,7 +7,6 @@ import { Info } from "@client/components/InfoToast";
 import { Loader } from "@client/components/Loader";
 import { useSession } from "@client/hooks/use-session.hook";
 import {
-  createPlaylist,
   getPlaylistSettings,
   getUserPlaylists,
   renamePlaylist,
@@ -27,6 +26,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import Select, { type StylesConfig } from "react-select";
 
 const ROLE_COPY: Record<
   PlaylistRole,
@@ -48,8 +48,12 @@ const ROLE_COPY: Record<
 
 const Stack = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1.5rem;
+
+  ${forPhoneOnly(css`
+    flex-direction: column;
+  `)}
 `;
 
 const Row = styled.div`
@@ -78,19 +82,39 @@ const Description = styled.p`
   margin: 0 0 1rem;
 `;
 
-const NativeSelect = styled.select`
-  height: 32px;
-  min-width: 14rem;
-  padding: 0.25rem;
-  border-radius: 4px;
-  border: 1px solid #cccccc;
-  background-color: #ffffff;
+const SelectRow = styled(Row)`
+  flex-wrap: nowrap;
 
   ${forPhoneOnly(css`
-    flex: 1 1 100%;
-    min-width: 0;
+    flex-wrap: wrap;
   `)}
 `;
+
+const SelectWrapper = styled.div`
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 40rem;
+`;
+
+const playlistSelectStyles: StylesConfig<PlaylistOption, false> = {
+  control: (base, { isFocused }) => ({
+    ...base,
+    minHeight: 32,
+    height: 32,
+    borderColor: isFocused ? "#0cb57c" : "#cccccc",
+    boxShadow: "none",
+    "&:hover": { borderColor: isFocused ? "#0cb57c" : "#cccccc" },
+  }),
+  menu: (base) => ({
+    ...base,
+    width: "max-content",
+    minWidth: "100%",
+    maxWidth: "min(40rem, 90vw)",
+  }),
+  valueContainer: (base) => ({ ...base, padding: "1px 8px" }),
+  dropdownIndicator: (base) => ({ ...base, padding: 5 }),
+  indicatorSeparator: () => ({ display: "none" }),
+};
 
 const LoaderStyled = styled.div`
   margin: 2rem;
@@ -98,13 +122,17 @@ const LoaderStyled = styled.div`
   justify-content: center;
 `;
 
+interface PlaylistOption {
+  value: string;
+  label: string;
+}
+
 interface PlaylistCardProps {
   role: PlaylistRole;
   current: PlaylistSummaryI | null;
   playlists: Array<PlaylistSummaryI>;
   busy: boolean;
   onSelect: (playlistId: string) => void;
-  onCreate: (name: string) => void;
   onRename: (name: string) => void;
   onFetchReleases?: () => void;
   isFetchingReleases?: boolean;
@@ -116,7 +144,6 @@ const PlaylistCard = ({
   playlists,
   busy,
   onSelect,
-  onCreate,
   onRename,
   onFetchReleases,
   isFetchingReleases,
@@ -125,7 +152,7 @@ const PlaylistCard = ({
   const [renameValue, setRenameValue] = useState(current?.name ?? "");
   const currentId = current?.id ?? "";
   const [selectedId, setSelectedId] = useState(currentId);
-  const [newName, setNewName] = useState("");
+  const options = playlists.map(({ id, name }) => ({ value: id, label: name }));
 
   const trimmedRename = renameValue.trim();
 
@@ -183,45 +210,26 @@ const PlaylistCard = ({
 
         <div>
           <Subheading>Use an existing playlist</Subheading>
-          <Row>
-            <NativeSelect
-              aria-label={`Choose ${title.toLowerCase()}`}
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-            >
-              {!current && <option value="">Choose a playlist…</option>}
-              {playlists.map(({ id, name }) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </NativeSelect>
+          <SelectRow>
+            <SelectWrapper>
+              <Select<PlaylistOption>
+                aria-label={`Choose ${title.toLowerCase()}`}
+                options={options}
+                value={
+                  options.find(({ value }) => value === selectedId) ?? null
+                }
+                onChange={(option) => setSelectedId(option?.value ?? "")}
+                placeholder="Choose a playlist…"
+                styles={playlistSelectStyles}
+              />
+            </SelectWrapper>
             <Button
               text="Use playlist"
               variant="secondary"
               disabled={busy || !selectedId || selectedId === currentId}
               onClick={() => onSelect(selectedId)}
             />
-          </Row>
-        </div>
-
-        <div>
-          <Subheading>Create a new playlist</Subheading>
-          <Row>
-            <TextInput
-              id={`${role}-create`}
-              ariaLabel={`New ${title.toLowerCase()} name`}
-              placeholder="Playlist name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-            <Button
-              text="Create and use"
-              variant="secondary"
-              disabled={busy || !newName.trim()}
-              onClick={() => onCreate(newName.trim())}
-            />
-          </Row>
+          </SelectRow>
         </div>
       </Stack>
     </ConfigCard>
@@ -260,10 +268,6 @@ export const PlaylistSettings = () => {
     mutationFn: selectPlaylist,
     ...mutationOptions("Playlist updated"),
   });
-  const create = useMutation({
-    mutationFn: createPlaylist,
-    ...mutationOptions("Playlist created"),
-  });
   const rename = useMutation({
     mutationFn: renamePlaylist,
     ...mutationOptions("Playlist renamed"),
@@ -299,7 +303,7 @@ export const PlaylistSettings = () => {
     return <div>Couldn't load your playlists</div>;
   }
 
-  const busy = select.isPending || create.isPending || rename.isPending;
+  const busy = select.isPending || rename.isPending;
 
   return (
     <>
@@ -313,7 +317,6 @@ export const PlaylistSettings = () => {
             playlists={playlists.data}
             busy={busy}
             onSelect={(playlistId) => select.mutate({ role, playlistId })}
-            onCreate={(name) => create.mutate({ role, name })}
             onRename={(name) => rename.mutate({ role, name })}
             onFetchReleases={
               role === "releases" && session?.isAdmin

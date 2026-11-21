@@ -136,9 +136,10 @@ function HomePage() {
 
   return (
     <Layout>
-      <Header>New music releases</Header>
+      <Header>Cookie Jar</Header>
       <Subheader>
-        Straight to your Spotify playlist. A full cookie jar.
+        New music releases straight into your Spotify playlist. A full cookie
+        jar.
       </Subheader>
 
       {savedArtistsLoaded && savedArtists.length === 0 && (

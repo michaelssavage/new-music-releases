@@ -7,12 +7,22 @@ import type { User } from "@model/spotify/user";
 import type { SpotifyRepository } from "@server/repository/spotify.repository";
 import type { SpotifyWebApi } from "@server/service/spotify-api";
 import { HttpException } from "@server/utils/exceptions";
+import { logger } from "@server/utils/logger";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
 
-const NEW_PLAYLIST_DESCRIPTIONS: Record<PlaylistRole, string> = {
-  releases: "A playlist of today's new releases.",
-  tracker: "Artists to watch for new releases.",
+const DEFAULT_PLAYLISTS: Record<
+  PlaylistRole,
+  { name: string; description: string }
+> = {
+  releases: {
+    name: "Cookie Jar",
+    description: "A playlist of today's new releases.",
+  },
+  tracker: {
+    name: "Artist Tracker",
+    description: "Artists to watch for new releases.",
+  },
 };
 
 export const playlistIdFor = (user: User, role: PlaylistRole) =>
@@ -61,17 +71,21 @@ export function createPlaylistSettingsService(deps: {
     await repository.setPlaylistId(user.userId, role, playlist.id);
   }
 
-  async function createAndSelectPlaylist(
+  async function ensurePlaylistId(
     user: User,
     token: string,
     role: PlaylistRole,
-    name: string,
   ) {
-    const playlist = await api.createPlaylist(token, {
-      name,
-      description: NEW_PLAYLIST_DESCRIPTIONS[role],
-    });
+    const existingId = playlistIdFor(user, role);
+    if (existingId) return existingId;
+
+    const playlist = await api.createPlaylist(token, DEFAULT_PLAYLISTS[role]);
     await repository.setPlaylistId(user.userId, role, playlist.id);
+    logger.info(
+      `ensurePlaylistId:Created ${role} playlist for ${user.userId}:`,
+      playlist.name,
+    );
+    return playlist.id;
   }
 
   async function renamePlaylist(
@@ -89,7 +103,7 @@ export function createPlaylistSettingsService(deps: {
     getPlaylistSettings,
     listOwnedPlaylists,
     selectPlaylist,
-    createAndSelectPlaylist,
+    ensurePlaylistId,
     renamePlaylist,
   };
 }
