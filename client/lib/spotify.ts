@@ -500,3 +500,20 @@ export const renamePlaylist = async ({
     throw new Error(apiErrorMessage(error, "Couldn't rename playlist"));
   }
 };
+
+export const getFollowedArtists = async () => {
+  const res = await axios.get<Array<Artist>>("/api/followed-artists", {
+    headers: spotifyHeaders(),
+  });
+  return res.data;
+};
+
+export const saveAllFollowedArtists = async () => {
+  try {
+    await axios.post("/api/save-followed-artists", null, {
+      headers: spotifyHeaders(),
+    });
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Couldn't save followed artists"));
+  }
+};

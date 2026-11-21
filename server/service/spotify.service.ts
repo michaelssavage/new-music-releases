@@ -51,6 +51,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     listUniqueArtistsFromLikedTracks:
       trackedArtists.listUniqueArtistsFromLikedTracks,
     persistTrackedArtists: trackedArtists.persistTrackedArtists,
+    saveAllFollowedArtists: trackedArtists.saveAllFollowedArtists,
     removeTrackedArtist: trackedArtists.removeTrackedArtist,
     listSavedArtistsForUser: trackedArtists.listSavedArtistsForUser,
     syncArtistsFromTrackerPlaylist:

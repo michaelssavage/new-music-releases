@@ -27,6 +27,13 @@ export function SpotifyRouter({
 
   router.get("/spotify-artists", c.handleListArtistsFromLikedTracks);
 
+  router.get("/followed-artists", requireUser, c.handleListFollowedArtists);
+  router.post(
+    "/save-followed-artists",
+    requireUser,
+    c.handleSaveAllFollowedArtists,
+  );
+
   router.post("/save-artists", c.handlePersistTrackedArtists);
   router.get("/get-artist/:id", c.handleGetArtistById);
   router.get("/get-artists", c.handleListSavedArtists);

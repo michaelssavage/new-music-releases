@@ -16,6 +16,7 @@ import { Route as TrackedImport } from "./routes/tracked"
 import { Route as SeenLiveImport } from "./routes/seen-live"
 import { Route as LoginImport } from "./routes/login"
 import { Route as LikedSongsImport } from "./routes/liked-songs"
+import { Route as FollowedArtistsImport } from "./routes/followed-artists"
 import { Route as ConfigurationImport } from "./routes/configuration"
 import { Route as CallbackImport } from "./routes/callback"
 import { Route as IndexImport } from "./routes/index"
@@ -49,6 +50,12 @@ const LoginRoute = LoginImport.update({
 const LikedSongsRoute = LikedSongsImport.update({
   id: "/liked-songs",
   path: "/liked-songs",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const FollowedArtistsRoute = FollowedArtistsImport.update({
+  id: "/followed-artists",
+  path: "/followed-artists",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,6 +102,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ConfigurationImport
       parentRoute: typeof rootRoute
     }
+    "/followed-artists": {
+      id: "/followed-artists"
+      path: "/followed-artists"
+      fullPath: "/followed-artists"
+      preLoaderRoute: typeof FollowedArtistsImport
+      parentRoute: typeof rootRoute
+    }
     "/liked-songs": {
       id: "/liked-songs"
       path: "/liked-songs"
@@ -139,6 +153,7 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/configuration": typeof ConfigurationRoute
+  "/followed-artists": typeof FollowedArtistsRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
   "/seen-live": typeof SeenLiveRoute
@@ -150,6 +165,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/configuration": typeof ConfigurationRoute
+  "/followed-artists": typeof FollowedArtistsRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
   "/seen-live": typeof SeenLiveRoute
@@ -162,6 +178,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/configuration": typeof ConfigurationRoute
+  "/followed-artists": typeof FollowedArtistsRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
   "/seen-live": typeof SeenLiveRoute
@@ -175,6 +192,7 @@ export interface FileRouteTypes {
     | "/"
     | "/callback"
     | "/configuration"
+    | "/followed-artists"
     | "/liked-songs"
     | "/login"
     | "/seen-live"
@@ -185,6 +203,7 @@ export interface FileRouteTypes {
     | "/"
     | "/callback"
     | "/configuration"
+    | "/followed-artists"
     | "/liked-songs"
     | "/login"
     | "/seen-live"
@@ -195,6 +214,7 @@ export interface FileRouteTypes {
     | "/"
     | "/callback"
     | "/configuration"
+    | "/followed-artists"
     | "/liked-songs"
     | "/login"
     | "/seen-live"
@@ -207,6 +227,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CallbackRoute: typeof CallbackRoute
   ConfigurationRoute: typeof ConfigurationRoute
+  FollowedArtistsRoute: typeof FollowedArtistsRoute
   LikedSongsRoute: typeof LikedSongsRoute
   LoginRoute: typeof LoginRoute
   SeenLiveRoute: typeof SeenLiveRoute
@@ -218,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CallbackRoute: CallbackRoute,
   ConfigurationRoute: ConfigurationRoute,
+  FollowedArtistsRoute: FollowedArtistsRoute,
   LikedSongsRoute: LikedSongsRoute,
   LoginRoute: LoginRoute,
   SeenLiveRoute: SeenLiveRoute,
@@ -238,6 +260,7 @@ export const routeTree = rootRoute
         "/",
         "/callback",
         "/configuration",
+        "/followed-artists",
         "/liked-songs",
         "/login",
         "/seen-live",
@@ -253,6 +276,9 @@ export const routeTree = rootRoute
     },
     "/configuration": {
       "filePath": "configuration.tsx"
+    },
+    "/followed-artists": {
+      "filePath": "followed-artists.tsx"
     },
     "/liked-songs": {
       "filePath": "liked-songs.tsx"

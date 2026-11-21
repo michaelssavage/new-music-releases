@@ -2,6 +2,7 @@ import { HeartIcon } from "@client/components/Icons/Heart";
 import { HomeIcon } from "@client/components/Icons/Home";
 import {
   ArtistsIcon,
+  FollowedIcon,
   LogoutIcon,
   PlaylistIcon,
   SidebarToggleIcon,
@@ -182,6 +183,7 @@ export const Sidebar = () => {
       label: "Tracked",
       icon: <ArtistsIcon />,
     },
+    { to: "/followed-artists", label: "Followed", icon: <FollowedIcon /> },
     {
       to: "/liked-songs",
       label: "Liked Songs",

@@ -85,6 +85,33 @@ export function createLibraryHandlers({
     );
   }
 
+  async function handleListFollowedArtists(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    await withBearerJson(
+      req,
+      res,
+      "Error retrieving followed artists:",
+      "Failed to retrieve followed artists",
+      (token) => api.fetchFollowedArtists(token),
+    );
+  }
+
+  async function handleSaveAllFollowedArtists(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    await withBearerJson(
+      req,
+      res,
+      "Error saving followed artists:",
+      "Failed to save followed artists",
+      (token) =>
+        spotifyService.saveAllFollowedArtists(currentUser(res).userId, token),
+    );
+  }
+
   async function handlePersistTrackedArtists(
     req: PersistArtistsBody,
     res: Response,
@@ -220,6 +247,8 @@ export function createLibraryHandlers({
     handleSearch,
     handleGetLikedTracks,
     handleListArtistsFromLikedTracks,
+    handleListFollowedArtists,
+    handleSaveAllFollowedArtists,
     handlePersistTrackedArtists,
     handleGetArtistById,
     handleListSavedArtists,
