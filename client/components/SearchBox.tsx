@@ -136,7 +136,6 @@ export const SearchBox = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<SearchResponse>(defaultResults);
   const [types, setTypes] = useState(defaultSearchTypes);
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("artists");
 
   const handleSearch = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -151,9 +150,8 @@ export const SearchBox = () => {
     });
   };
 
-  const { isPending, mutate } = useMutation({
+  const { isPending, isIdle, mutate } = useMutation({
     mutationFn: fetchSearchResults,
-    onMutate: () => setLoading(true),
     onSuccess: (data) => {
       const {
         artists: { items: artists = [] },
@@ -164,12 +162,10 @@ export const SearchBox = () => {
       setResults({ artists, albums, tracks });
       const firstTabWithResults = getActiveTabKey({ artists, albums, tracks });
       if (firstTabWithResults) setActiveTab(firstTabWithResults);
-      setLoading(false);
     },
     onError: (error) => {
       console.error(error);
       setResults(defaultResults);
-      setLoading(false);
     },
   });
 
@@ -253,6 +249,8 @@ export const SearchBox = () => {
     },
   ];
 
+  const visibleTabs = data.filter(({ visible }) => visible);
+
   return (
     <Group align="center">
       <Group
@@ -302,16 +300,20 @@ export const SearchBox = () => {
           />
         </ModalControls>
 
-        <TabList
-          data={data.filter(({ visible }) => visible)}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-        />
-        <TabPanel
-          data={data.filter(({ visible }) => visible)}
-          activeTab={activeTab}
-          loading={loading}
-        />
+        {!isIdle && (
+          <>
+            <TabList
+              data={visibleTabs}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+            />
+            <TabPanel
+              data={visibleTabs}
+              activeTab={activeTab}
+              loading={isPending}
+            />
+          </>
+        )}
       </Modal>
     </Group>
   );
