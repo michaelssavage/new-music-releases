@@ -27,7 +27,10 @@ function SavedArtistsPage() {
 
   return (
     <Layout>
-      <Panel>
+      <Panel
+        title="Tracked artists"
+        subtitle="The artists you'll get daily updates for in your Cookie Jar."
+      >
         <ArtistExplorer
           artists={savedArtists}
           showCreatedDate

@@ -85,7 +85,11 @@ function FollowedArtistsPage() {
 
   return (
     <Layout>
-      <Panel direction="column" title="Followed artists">
+      <Panel
+        direction="column"
+        title="Followed artists"
+        subtitle="The artists you follow on Spotify. Track them!"
+      >
         {canSaveAll && (
           <SaveAllBanner>
             <Group direction="column" gap="0.75rem">

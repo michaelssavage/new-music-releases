@@ -158,7 +158,10 @@ function SeenLivePage() {
 
   return (
     <Layout>
-      <Panel>
+      <Panel
+        title="Seen live"
+        subtitle="Add artists and their genres to see a breakdown of what you see."
+      >
         <Card>
           <Header>
             <div>
