@@ -1,7 +1,5 @@
-import { ArtistCard } from "@client/components/Card/Artist";
-import { CardGrid } from "@client/components/Card/Card.styled";
+import { ArtistExplorer } from "@client/components/ArtistExplorer";
 import { Button } from "@client/components/Button";
-import { TextInput } from "@client/components/Form/TextInput";
 import { Group } from "@client/components/Group";
 import { Layout } from "@client/components/Layout";
 import { Loader } from "@client/components/Loader";
@@ -12,17 +10,22 @@ import {
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
-import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { type ChangeEvent, useState } from "react";
 import { toast } from "react-hot-toast";
 
-export const Route = createFileRoute("/followed-artists")({
+export const Route = createFileRoute("/followed")({
   beforeLoad: async () => await requireAuth(),
   component: FollowedArtistsPage,
 });
+
+const LoaderStyled = styled.div`
+  margin: 4rem auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`;
 
 const SaveAllBanner = styled.div`
   width: 100%;
@@ -33,18 +36,8 @@ const SaveAllBanner = styled.div`
   text-align: center;
 `;
 
-const filterStyles = css`
-  width: 100%;
-  max-width: 400px;
-
-  input {
-    width: 100%;
-  }
-`;
-
 function FollowedArtistsPage() {
   const { savedArtists, savedArtistsLoaded, refetchArtists } = useAppStore();
-  const [filter, setFilter] = useState("");
 
   const {
     data: followedArtists,
@@ -65,14 +58,12 @@ function FollowedArtistsPage() {
     onError: (error) => toast.error(error.message),
   });
 
-  const handleFilter = (event: ChangeEvent<HTMLInputElement>) => {
-    setFilter(event.target.value);
-  };
-
   if (isPending) {
     return (
       <Layout>
-        <Loader />
+        <LoaderStyled>
+          <Loader />
+        </LoaderStyled>
       </Layout>
     );
   }
@@ -91,10 +82,6 @@ function FollowedArtistsPage() {
     savedArtistsLoaded &&
     savedArtists.length === 0 &&
     followedArtists.length > 0;
-
-  const visibleArtists = followedArtists.filter(({ name }) =>
-    name.toLowerCase().includes(filter.toLowerCase()),
-  );
 
   return (
     <Layout>
@@ -118,25 +105,10 @@ function FollowedArtistsPage() {
         {followedArtists.length === 0 ? (
           <p>You don't follow any artists on Spotify yet.</p>
         ) : (
-          <>
-            <TextInput
-              id="followed-filter"
-              ariaLabel="Filter followed artists"
-              placeholder="Filter by name..."
-              value={filter}
-              onChange={handleFilter}
-              styles={filterStyles}
-            />
-            <CardGrid>
-              {visibleArtists.map((artist) => (
-                <ArtistCard
-                  key={artist.id}
-                  image={artist.images[0]?.url}
-                  artist={artist}
-                />
-              ))}
-            </CardGrid>
-          </>
+          <ArtistExplorer
+            artists={followedArtists}
+            autoOpenArtistId={followedArtists[0]?.id}
+          />
         )}
       </Panel>
     </Layout>

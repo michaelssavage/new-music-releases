@@ -1,8 +1,8 @@
+import { useAppStore } from "@client/store/appStore";
 import {
   floatAnimation,
   slideInAnimation,
 } from "@client/styles/abstracts/animations.styled";
-import { useAppStore } from "@client/store/appStore";
 import styled from "@emotion/styled";
 import { Link } from "@tanstack/react-router";
 import { Button } from "./Button";
@@ -78,9 +78,7 @@ export const EmptyState = ({ title, description }: Props) => {
       <p>{description}</p>
       <Actions>
         <Button onClick={() => setSearchOpen(true)} text="Search for artists" />
-        <FollowedLink to="/followed-artists">
-          View followed artists
-        </FollowedLink>
+        <FollowedLink to="/followed">View followed artists</FollowedLink>
       </Actions>
     </Card>
   );

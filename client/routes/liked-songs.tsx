@@ -1,6 +1,6 @@
 import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
-import { ArtistCard } from "@client/components/Card/Artist";
+import { ArtistDetail } from "@client/components/Card/ArtistDetail";
 import { Group } from "@client/components/Group";
 import { SortIcon } from "@client/components/Icons/Sort";
 import { SpotifyIcon } from "@client/components/Icons/Spotify";
@@ -13,7 +13,7 @@ import {
   TableWrapper,
 } from "@client/components/Table/Table.styled";
 import { useMediaQuery } from "@client/hooks/use-media-query.hook";
-import { getArtist, getNextTracks, getUserTracks } from "@client/lib/spotify";
+import { getNextTracks, getUserTracks } from "@client/lib/spotify";
 import { PHONE_QUERY } from "@client/styles/abstracts/mixins.styled";
 import { requireAuth } from "@client/utils/auth";
 import { displayDate } from "@client/utils/dates";
@@ -92,17 +92,6 @@ function LikedSongsPage() {
     setIsOpen(true);
     setArtistId(id);
   };
-
-  const {
-    data: artistData,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["artist", artistId],
-    queryFn: () => getArtist(artistId),
-    enabled: artistId !== undefined,
-    refetchOnWindowFocus: false,
-  });
 
   const { data, isPending, isSuccess } = useQuery<LikedTracksI | null>({
     queryKey: ["userTrack"],
@@ -220,16 +209,6 @@ function LikedSongsPage() {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const renderArtist = () => {
-    if (!artistData) return null;
-    if (isLoading) return <Loader />;
-    if (isError) return <p>Error fetching Artist, please try again</p>;
-
-    return (
-      <ArtistCard image={artistData.images?.[0].url} artist={artistData} />
-    );
-  };
-
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       const target = entries[0];
@@ -294,7 +273,7 @@ function LikedSongsPage() {
         )}
 
         <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-          {renderArtist()}
+          <ArtistDetail artistId={artistId} />
         </Modal>
       </Page>
     </Layout>

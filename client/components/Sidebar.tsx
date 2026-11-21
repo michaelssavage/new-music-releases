@@ -183,7 +183,7 @@ export const Sidebar = () => {
       label: "Tracked",
       icon: <ArtistsIcon />,
     },
-    { to: "/followed-artists", label: "Followed", icon: <FollowedIcon /> },
+    { to: "/followed", label: "Followed", icon: <FollowedIcon /> },
     {
       to: "/liked-songs",
       label: "Liked Songs",

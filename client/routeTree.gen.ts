@@ -16,7 +16,7 @@ import { Route as TrackedImport } from "./routes/tracked"
 import { Route as SeenLiveImport } from "./routes/seen-live"
 import { Route as LoginImport } from "./routes/login"
 import { Route as LikedSongsImport } from "./routes/liked-songs"
-import { Route as FollowedArtistsImport } from "./routes/followed-artists"
+import { Route as FollowedImport } from "./routes/followed"
 import { Route as ConfigurationImport } from "./routes/configuration"
 import { Route as CallbackImport } from "./routes/callback"
 import { Route as IndexImport } from "./routes/index"
@@ -53,9 +53,9 @@ const LikedSongsRoute = LikedSongsImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const FollowedArtistsRoute = FollowedArtistsImport.update({
-  id: "/followed-artists",
-  path: "/followed-artists",
+const FollowedRoute = FollowedImport.update({
+  id: "/followed",
+  path: "/followed",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -102,11 +102,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ConfigurationImport
       parentRoute: typeof rootRoute
     }
-    "/followed-artists": {
-      id: "/followed-artists"
-      path: "/followed-artists"
-      fullPath: "/followed-artists"
-      preLoaderRoute: typeof FollowedArtistsImport
+    "/followed": {
+      id: "/followed"
+      path: "/followed"
+      fullPath: "/followed"
+      preLoaderRoute: typeof FollowedImport
       parentRoute: typeof rootRoute
     }
     "/liked-songs": {
@@ -153,7 +153,7 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/configuration": typeof ConfigurationRoute
-  "/followed-artists": typeof FollowedArtistsRoute
+  "/followed": typeof FollowedRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
   "/seen-live": typeof SeenLiveRoute
@@ -165,7 +165,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/configuration": typeof ConfigurationRoute
-  "/followed-artists": typeof FollowedArtistsRoute
+  "/followed": typeof FollowedRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
   "/seen-live": typeof SeenLiveRoute
@@ -178,7 +178,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/callback": typeof CallbackRoute
   "/configuration": typeof ConfigurationRoute
-  "/followed-artists": typeof FollowedArtistsRoute
+  "/followed": typeof FollowedRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
   "/seen-live": typeof SeenLiveRoute
@@ -192,7 +192,7 @@ export interface FileRouteTypes {
     | "/"
     | "/callback"
     | "/configuration"
-    | "/followed-artists"
+    | "/followed"
     | "/liked-songs"
     | "/login"
     | "/seen-live"
@@ -203,7 +203,7 @@ export interface FileRouteTypes {
     | "/"
     | "/callback"
     | "/configuration"
-    | "/followed-artists"
+    | "/followed"
     | "/liked-songs"
     | "/login"
     | "/seen-live"
@@ -214,7 +214,7 @@ export interface FileRouteTypes {
     | "/"
     | "/callback"
     | "/configuration"
-    | "/followed-artists"
+    | "/followed"
     | "/liked-songs"
     | "/login"
     | "/seen-live"
@@ -227,7 +227,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CallbackRoute: typeof CallbackRoute
   ConfigurationRoute: typeof ConfigurationRoute
-  FollowedArtistsRoute: typeof FollowedArtistsRoute
+  FollowedRoute: typeof FollowedRoute
   LikedSongsRoute: typeof LikedSongsRoute
   LoginRoute: typeof LoginRoute
   SeenLiveRoute: typeof SeenLiveRoute
@@ -239,7 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CallbackRoute: CallbackRoute,
   ConfigurationRoute: ConfigurationRoute,
-  FollowedArtistsRoute: FollowedArtistsRoute,
+  FollowedRoute: FollowedRoute,
   LikedSongsRoute: LikedSongsRoute,
   LoginRoute: LoginRoute,
   SeenLiveRoute: SeenLiveRoute,
@@ -260,7 +260,7 @@ export const routeTree = rootRoute
         "/",
         "/callback",
         "/configuration",
-        "/followed-artists",
+        "/followed",
         "/liked-songs",
         "/login",
         "/seen-live",
@@ -277,8 +277,8 @@ export const routeTree = rootRoute
     "/configuration": {
       "filePath": "configuration.tsx"
     },
-    "/followed-artists": {
-      "filePath": "followed-artists.tsx"
+    "/followed": {
+      "filePath": "followed.tsx"
     },
     "/liked-songs": {
       "filePath": "liked-songs.tsx"

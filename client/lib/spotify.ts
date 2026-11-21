@@ -90,7 +90,7 @@ export const saveArtist = async ({
   } catch (error) {
     if (axios.isAxiosError(error)) {
       logger.error(
-        "Failed to save artist:",
+        "Failed to track artist:",
         error.response?.data || error.message,
       );
     } else {
