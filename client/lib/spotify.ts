@@ -471,21 +471,6 @@ export const selectPlaylist = async ({
   }
 };
 
-export const createPlaylist = async ({
-  role,
-  name,
-}: { role: PlaylistRole } & PlaylistNameInputI) => {
-  try {
-    await axios.post(
-      `/api/playlist-settings/${role}`,
-      { name } satisfies PlaylistNameInputI,
-      { headers: spotifyHeaders() },
-    );
-  } catch (error) {
-    throw new Error(apiErrorMessage(error, "Couldn't create playlist"));
-  }
-};
-
 export const renamePlaylist = async ({
   role,
   name,

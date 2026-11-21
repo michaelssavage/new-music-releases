@@ -85,24 +85,6 @@ export function createPlaylistSettingsHandlers({
     );
   }
 
-  async function handleCreatePlaylist(req: Request, res: Response) {
-    await withBearerJson(
-      req,
-      res,
-      "Error creating playlist:",
-      "Failed to create playlist",
-      async (token) => {
-        await spotifyService.createAndSelectPlaylist(
-          currentUser(res),
-          token,
-          parseRole(req),
-          parsePlaylistName(req.body),
-        );
-        return { status: "OK" };
-      },
-    );
-  }
-
   async function handleRenamePlaylist(req: Request, res: Response) {
     await withBearerJson(
       req,
@@ -125,7 +107,6 @@ export function createPlaylistSettingsHandlers({
     handleGetPlaylistSettings,
     handleGetUserPlaylists,
     handleSelectPlaylist,
-    handleCreatePlaylist,
     handleRenamePlaylist,
   };
 }

@@ -2,6 +2,7 @@ import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { User } from "@model/spotify/user";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createPlaylistSettingsService } from "./playlist-settings";
 import {
   createReleasesPlaylistService,
   getLatestPlaylistAdditionDate,
@@ -75,6 +76,10 @@ function setupSync(
     repository: repository as never,
     api: api as never,
     ensureValidAccessToken: async () => "token",
+    ensurePlaylistId: createPlaylistSettingsService({
+      repository: repository as never,
+      api: api as never,
+    }).ensurePlaylistId,
   });
 
   return {
