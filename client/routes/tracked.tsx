@@ -399,7 +399,7 @@ function SavedArtistsPage() {
                 onChange={handleSearchChange}
               />
             </SearchContainer>
-            <TableWrapper>
+            <TableWrapper stackedOnPhone>
               <table>
                 <thead>
                   {table.getHeaderGroups().map((headerGroup) => (

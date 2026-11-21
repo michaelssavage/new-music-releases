@@ -42,6 +42,10 @@ const Field = styled.div`
   font-weight: 500;
 `;
 
+const ReleaseDate = styled(Field)`
+  white-space: nowrap;
+`;
+
 const TrackLink = styled.a`
   font-weight: 500;
   color: #2650f6;
@@ -56,14 +60,6 @@ const ArtistBtn = styled.div`
   flex-wrap: nowrap;
   display: flex;
 `;
-
-const COLUMN_LABELS: Record<string, string> = {
-  artists: "Artists",
-  trackName: "Track",
-  albumName: "Album",
-  releaseDate: "Released",
-  externalLink: "Spotify",
-};
 
 export const Route = createFileRoute("/liked-songs")({
   beforeLoad: async () => await requireAuth(),
@@ -182,7 +178,7 @@ function LikedSongsPage() {
           <SortIcon direction={column.getIsSorted()} />
         </SortableHeader>
       ),
-      cell: (info) => <Field>{displayDate(info.getValue())}</Field>,
+      cell: (info) => <ReleaseDate>{displayDate(info.getValue())}</ReleaseDate>,
     }),
     columnHelper.accessor((row) => row.track.external_urls.spotify, {
       id: "externalLink",
@@ -268,10 +264,7 @@ function LikedSongsPage() {
                   {table.getRowModel().rows.map((row) => (
                     <tr key={row.id}>
                       {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
-                          data-label={COLUMN_LABELS[cell.column.id]}
-                        >
+                        <td key={cell.id}>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext(),
