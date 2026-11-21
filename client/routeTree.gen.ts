@@ -12,8 +12,8 @@
 
 import { Route as rootRoute } from "./routes/__root"
 import { Route as UpdatesImport } from "./routes/updates"
+import { Route as TrackedImport } from "./routes/tracked"
 import { Route as SeenLiveImport } from "./routes/seen-live"
-import { Route as SavedArtistsImport } from "./routes/saved-artists"
 import { Route as LoginImport } from "./routes/login"
 import { Route as LikedSongsImport } from "./routes/liked-songs"
 import { Route as ConfigurationImport } from "./routes/configuration"
@@ -28,15 +28,15 @@ const UpdatesRoute = UpdatesImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const SeenLiveRoute = SeenLiveImport.update({
-  id: "/seen-live",
-  path: "/seen-live",
+const TrackedRoute = TrackedImport.update({
+  id: "/tracked",
+  path: "/tracked",
   getParentRoute: () => rootRoute,
 } as any)
 
-const SavedArtistsRoute = SavedArtistsImport.update({
-  id: "/saved-artists",
-  path: "/saved-artists",
+const SeenLiveRoute = SeenLiveImport.update({
+  id: "/seen-live",
+  path: "/seen-live",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -109,18 +109,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    "/saved-artists": {
-      id: "/saved-artists"
-      path: "/saved-artists"
-      fullPath: "/saved-artists"
-      preLoaderRoute: typeof SavedArtistsImport
-      parentRoute: typeof rootRoute
-    }
     "/seen-live": {
       id: "/seen-live"
       path: "/seen-live"
       fullPath: "/seen-live"
       preLoaderRoute: typeof SeenLiveImport
+      parentRoute: typeof rootRoute
+    }
+    "/tracked": {
+      id: "/tracked"
+      path: "/tracked"
+      fullPath: "/tracked"
+      preLoaderRoute: typeof TrackedImport
       parentRoute: typeof rootRoute
     }
     "/updates": {
@@ -141,8 +141,8 @@ export interface FileRoutesByFullPath {
   "/configuration": typeof ConfigurationRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
-  "/saved-artists": typeof SavedArtistsRoute
   "/seen-live": typeof SeenLiveRoute
+  "/tracked": typeof TrackedRoute
   "/updates": typeof UpdatesRoute
 }
 
@@ -152,8 +152,8 @@ export interface FileRoutesByTo {
   "/configuration": typeof ConfigurationRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
-  "/saved-artists": typeof SavedArtistsRoute
   "/seen-live": typeof SeenLiveRoute
+  "/tracked": typeof TrackedRoute
   "/updates": typeof UpdatesRoute
 }
 
@@ -164,8 +164,8 @@ export interface FileRoutesById {
   "/configuration": typeof ConfigurationRoute
   "/liked-songs": typeof LikedSongsRoute
   "/login": typeof LoginRoute
-  "/saved-artists": typeof SavedArtistsRoute
   "/seen-live": typeof SeenLiveRoute
+  "/tracked": typeof TrackedRoute
   "/updates": typeof UpdatesRoute
 }
 
@@ -177,8 +177,8 @@ export interface FileRouteTypes {
     | "/configuration"
     | "/liked-songs"
     | "/login"
-    | "/saved-artists"
     | "/seen-live"
+    | "/tracked"
     | "/updates"
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -187,8 +187,8 @@ export interface FileRouteTypes {
     | "/configuration"
     | "/liked-songs"
     | "/login"
-    | "/saved-artists"
     | "/seen-live"
+    | "/tracked"
     | "/updates"
   id:
     | "__root__"
@@ -197,8 +197,8 @@ export interface FileRouteTypes {
     | "/configuration"
     | "/liked-songs"
     | "/login"
-    | "/saved-artists"
     | "/seen-live"
+    | "/tracked"
     | "/updates"
   fileRoutesById: FileRoutesById
 }
@@ -209,8 +209,8 @@ export interface RootRouteChildren {
   ConfigurationRoute: typeof ConfigurationRoute
   LikedSongsRoute: typeof LikedSongsRoute
   LoginRoute: typeof LoginRoute
-  SavedArtistsRoute: typeof SavedArtistsRoute
   SeenLiveRoute: typeof SeenLiveRoute
+  TrackedRoute: typeof TrackedRoute
   UpdatesRoute: typeof UpdatesRoute
 }
 
@@ -220,8 +220,8 @@ const rootRouteChildren: RootRouteChildren = {
   ConfigurationRoute: ConfigurationRoute,
   LikedSongsRoute: LikedSongsRoute,
   LoginRoute: LoginRoute,
-  SavedArtistsRoute: SavedArtistsRoute,
   SeenLiveRoute: SeenLiveRoute,
+  TrackedRoute: TrackedRoute,
   UpdatesRoute: UpdatesRoute,
 }
 
@@ -240,8 +240,8 @@ export const routeTree = rootRoute
         "/configuration",
         "/liked-songs",
         "/login",
-        "/saved-artists",
         "/seen-live",
+        "/tracked",
         "/updates"
       ]
     },
@@ -260,11 +260,11 @@ export const routeTree = rootRoute
     "/login": {
       "filePath": "login.tsx"
     },
-    "/saved-artists": {
-      "filePath": "saved-artists.tsx"
-    },
     "/seen-live": {
       "filePath": "seen-live.tsx"
+    },
+    "/tracked": {
+      "filePath": "tracked.tsx"
     },
     "/updates": {
       "filePath": "updates.tsx"

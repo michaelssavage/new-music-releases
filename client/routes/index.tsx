@@ -148,8 +148,8 @@ function HomePage() {
           count={playlist?.total}
         />
         <StatCard
-          to="/saved-artists"
-          label="Saved Artists"
+          to="/tracked"
+          label="Tracked"
           icon={<ArtistsIcon />}
           count={savedArtists.length}
         />

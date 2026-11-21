@@ -149,7 +149,7 @@ const fuzzyFilter: FilterFn<SavedArtistI> = (row, columnId, filterValue) => {
   return value.toLowerCase().includes((filterValue as string).toLowerCase());
 };
 
-export const Route = createFileRoute("/saved-artists")({
+export const Route = createFileRoute("/tracked")({
   beforeLoad: async () => await requireAuth(),
   component: SavedArtistsPage,
 });

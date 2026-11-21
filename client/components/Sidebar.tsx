@@ -178,8 +178,8 @@ export const Sidebar = () => {
   const items: ReadonlyArray<SidebarItem> = [
     { to: "/updates", label: "Updates", icon: <PlaylistIcon /> },
     {
-      to: "/saved-artists",
-      label: "Saved Artists",
+      to: "/tracked",
+      label: "Tracked",
       icon: <ArtistsIcon />,
     },
     {

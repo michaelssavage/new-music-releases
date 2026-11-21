@@ -63,12 +63,24 @@ const searchFieldStyles = css`
   `)}
 `;
 
-const modalControlsStyles = css`
+const ModalControls = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 0 8px;
+  align-items: flex-end;
   margin: 0 0 1rem 0;
+
+  > :first-child {
+    width: 100%;
+  }
 
   ${forPhoneOnly(css`
     flex-direction: column;
     align-items: stretch;
+
+    button {
+      margin-top: 12px;
+    }
 
     > * {
       width: 100%;
@@ -250,13 +262,7 @@ export const SearchBox = () => {
       </Group>
 
       <Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
-        <Group
-          justify="space-between"
-          align="flex-end"
-          width="100%"
-          gap="1rem"
-          styling={modalControlsStyles}
-        >
+        <ModalControls>
           <TextInput
             id="search"
             placeholder="type here..."
@@ -284,7 +290,7 @@ export const SearchBox = () => {
             onClick={handleClick}
             text={isPending ? "Searching..." : "Search"}
           />
-        </Group>
+        </ModalControls>
 
         <TabList
           data={data.filter(({ visible }) => visible)}
