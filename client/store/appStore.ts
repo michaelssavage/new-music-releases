@@ -10,6 +10,8 @@ interface StoreState {
   refetchArtists: (() => void) | null;
   isSidebarOpen: boolean;
   setSidebarOpen: (isOpen: boolean) => void;
+  isSearchOpen: boolean;
+  setSearchOpen: (isOpen: boolean) => void;
   login: (accessToken: string, refreshToken: string, userId: string) => void;
   logout: () => void;
   setSavedArtists: (artists: Array<SavedArtistI>) => void;
@@ -24,6 +26,8 @@ export const useAppStore = create<StoreState>((set) => ({
   refetchArtists: null,
   isSidebarOpen: false,
   setSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
+  isSearchOpen: false,
+  setSearchOpen: (isSearchOpen) => set({ isSearchOpen }),
   login: (accessToken, refreshToken, userId) => {
     Cookies.set("spotify_access_token", accessToken, {
       secure: true,

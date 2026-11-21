@@ -3,6 +3,7 @@ import {
   forPhoneOnly,
   forTabletOnly,
 } from "@client/styles/abstracts/mixins.styled";
+import { useAppStore } from "@client/store/appStore";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
   defaultResults,
@@ -133,7 +134,7 @@ const Results = ({ title, show, children }: ResultsProps) => {
 
 export const SearchBox = () => {
   const [search, setSearch] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const { isSearchOpen, setSearchOpen } = useAppStore();
   const [results, setResults] = useState<SearchResponse>(defaultResults);
   const [types, setTypes] = useState(defaultSearchTypes);
   const [activeTab, setActiveTab] = useState("artists");
@@ -176,7 +177,7 @@ export const SearchBox = () => {
   };
 
   const openSearch = () => {
-    setIsOpen(true);
+    setSearchOpen(true);
     if (!disableSearch) handleClick();
   };
 
@@ -274,7 +275,7 @@ export const SearchBox = () => {
         />
       </Group>
 
-      <Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
+      <Modal isOpen={isSearchOpen} setIsOpen={setSearchOpen} width="70%">
         <ModalControls>
           <TextInput
             id="search"

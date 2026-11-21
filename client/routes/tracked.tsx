@@ -1,6 +1,7 @@
 import { AddSeenArtistButton } from "@client/components/AddSeenArtistButton";
 import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
+import { EmptyState } from "@client/components/EmptyState";
 import { Group } from "@client/components/Group";
 import { CloseIcon } from "@client/components/Icons/Close";
 import { SortIcon } from "@client/components/Icons/Sort";
@@ -174,7 +175,7 @@ function SavedArtistsPage() {
   const artistDetailRef = useRef<HTMLDivElement>(null);
   const [removedArtists, setRemovedArtists] = useState<Array<string>>([]);
 
-  const { savedArtists, userId } = useAppStore();
+  const { savedArtists, savedArtistsLoaded, userId } = useAppStore();
 
   const { refetch: refetchArtists } = useQuery({
     queryKey: ["artist", userId],
@@ -371,6 +372,17 @@ function SavedArtistsPage() {
 
   const searchValue =
     (columnFilters.find(({ id }) => id === "name")?.value as string) || "";
+
+  if (savedArtistsLoaded && savedArtists.length === 0) {
+    return (
+      <Layout>
+        <EmptyState
+          title="No tracked artists yet"
+          description="Start adding artists by searching, or check the artists you follow on Spotify."
+        />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
