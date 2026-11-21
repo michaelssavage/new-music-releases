@@ -1,4 +1,3 @@
-import { Accounts } from "@client/components/Accounts";
 import { Layout } from "@client/components/Layout";
 import { PlaylistSettings } from "@client/components/PlaylistSettings";
 import { SchedulerRuns } from "@client/components/SchedulerRuns";
@@ -27,12 +26,7 @@ function ConfigurationPage() {
     <Layout>
       <Sections>
         <PlaylistSettings />
-        {session?.isAdmin && (
-          <>
-            <Accounts />
-            <SchedulerRuns />
-          </>
-        )}
+        {session?.isAdmin && <SchedulerRuns />}
       </Sections>
     </Layout>
   );

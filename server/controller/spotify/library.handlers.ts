@@ -206,7 +206,7 @@ export function createLibraryHandlers({
       if (axios.isAxiosError(error)) {
         logger.error("Error retrieving recommendations:", {
           status: error?.status,
-          response: error?.response,
+          response: error.response?.data,
         });
       }
       res.status(500).json({

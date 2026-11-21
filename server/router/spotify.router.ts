@@ -10,8 +10,7 @@ export function SpotifyRouter({
 }: SpotifyControllerI) {
   const router = express.Router();
   const c = SpotifyController({ spotifyService, api, env });
-  const { requireVerified, requireAdmin } =
-    createAccessMiddleware(spotifyService);
+  const { requireUser } = createAccessMiddleware(spotifyService);
 
   router.get("/login", c.handleLogin);
   router.get("/callback", c.handleOAuthCallback);
@@ -19,12 +18,6 @@ export function SpotifyRouter({
   router.get("/validate-token", c.handleValidateToken);
 
   router.get("/session", c.handleGetSession);
-  router.get("/accounts", requireAdmin, c.handleGetAccounts);
-  router.put(
-    "/accounts/:userId/verification",
-    requireAdmin,
-    c.handleSetAccountVerification,
-  );
 
   router.get("/user", c.handleGetUser);
 
@@ -38,48 +31,32 @@ export function SpotifyRouter({
   router.get("/get-artist/:id", c.handleGetArtistById);
   router.get("/get-artists", c.handleListSavedArtists);
 
-  router.get("/seen-artists", requireVerified, c.handleGetSeenArtists);
-  router.post("/seen-artists", requireVerified, c.handleAddSeenArtist);
-  router.put("/seen-artists/:id", requireVerified, c.handleUpdateSeenArtist);
-  router.delete("/seen-artists/:id", requireVerified, c.handleDeleteSeenArtist);
+  router.get("/seen-artists", requireUser, c.handleGetSeenArtists);
+  router.post("/seen-artists", requireUser, c.handleAddSeenArtist);
+  router.put("/seen-artists/:id", requireUser, c.handleUpdateSeenArtist);
+  router.delete("/seen-artists/:id", requireUser, c.handleDeleteSeenArtist);
 
   router.delete("/remove-artist/:id", c.handleRemoveTrackedArtist);
 
   router.post(
     "/sync-tracker-playlist",
-    requireVerified,
+    requireUser,
     c.handleSyncArtistsFromTrackerPlaylist,
   );
 
-  router.get("/get-playlist", requireVerified, c.handleGetUserReleasesPlaylist);
+  router.get("/get-playlist", requireUser, c.handleGetUserReleasesPlaylist);
   router.get("/get-playlist-tracks/:playlistId", c.handleGetPlaylistTracks);
   router.get(
     "/update-playlist-releases",
-    requireVerified,
+    requireUser,
     c.handleSyncPlaylistReleases,
   );
 
-  router.get(
-    "/playlist-settings",
-    requireVerified,
-    c.handleGetPlaylistSettings,
-  );
-  router.get("/user-playlists", requireVerified, c.handleGetUserPlaylists);
-  router.put(
-    "/playlist-settings/:role",
-    requireVerified,
-    c.handleSelectPlaylist,
-  );
-  router.post(
-    "/playlist-settings/:role",
-    requireVerified,
-    c.handleCreatePlaylist,
-  );
-  router.patch(
-    "/playlist-settings/:role",
-    requireVerified,
-    c.handleRenamePlaylist,
-  );
+  router.get("/playlist-settings", requireUser, c.handleGetPlaylistSettings);
+  router.get("/user-playlists", requireUser, c.handleGetUserPlaylists);
+  router.put("/playlist-settings/:role", requireUser, c.handleSelectPlaylist);
+  router.post("/playlist-settings/:role", requireUser, c.handleCreatePlaylist);
+  router.patch("/playlist-settings/:role", requireUser, c.handleRenamePlaylist);
   router.post("/save-song-to-playlist", c.handleAddTrackToPlaylist);
 
   router.post("/get-recommendations", c.handleGetRecommendations);

@@ -1,10 +1,5 @@
 import { logger } from "@client/utils/logger";
-import type {
-  AccountI,
-  AccountsResponse,
-  SessionI,
-  VerificationInputI,
-} from "@model/accounts";
+import type { SessionI } from "@model/accounts";
 import type {
   PlaylistNameInputI,
   PlaylistRole,
@@ -40,7 +35,7 @@ export const isAuthValid = async (accessToken: string): Promise<boolean> => {
 };
 
 export async function refreshAuthToken(
-  refreshToken: string
+  refreshToken: string,
 ): Promise<string | null> {
   try {
     const { data } = await axios.post("/api/refresh-token", {
@@ -70,7 +65,7 @@ export const getUser = async (userId: UserID) => {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getUser:Failed to get user:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getUser:An unexpected error occurred:", error);
@@ -96,7 +91,7 @@ export const saveArtist = async ({
     if (axios.isAxiosError(error)) {
       logger.error(
         "Failed to save artist:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("saveArtist:An unexpected error occurred:", error);
@@ -120,7 +115,7 @@ export const removeArtist = async ({
     if (axios.isAxiosError(error)) {
       logger.error(
         "removeArtist:Failed to remove artist:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("removeArtist:An unexpected error occurred:", error);
@@ -141,7 +136,7 @@ export const getArtist = async (id?: string) => {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getArtist:Failed to get artist:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getArtist:An unexpected error occurred:", error);
@@ -159,14 +154,14 @@ export const getSavedArtists = async (userId: UserID) => {
 
   try {
     const res = await axios.get<Array<SavedArtistI>>(
-      `/api/get-artists?userId=${userId}`
+      `/api/get-artists?userId=${userId}`,
     );
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getSavedArtists:Failed to get saved artists:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getSavedArtists:An unexpected error occurred:", error);
@@ -187,7 +182,7 @@ export const getSeenArtists = async () => {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getSeenArtists:Failed to get seen artists:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getSeenArtists:An unexpected error occurred:", error);
@@ -208,7 +203,7 @@ export const getUserTracks = async () => {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getUserTracks:Failed to get user tracks:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getUserTracks:An unexpected error occurred:", error);
@@ -232,7 +227,7 @@ export const getNextTracks = async (nextUrl: string) => {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getNextTracks:Failed to get next tracks:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getNextTracks:An unexpected error occurred:", error);
@@ -309,7 +304,7 @@ export const fetchSearchResults = async ({
 
 export const getSpotifyPlaylist = async (
   userId: UserID,
-  page: { offset: number; limit: number }
+  page: { offset: number; limit: number },
 ) => {
   const spotify_access_token = Cookies.get("spotify_access_token");
 
@@ -323,7 +318,7 @@ export const getSpotifyPlaylist = async (
     if (axios.isAxiosError(error)) {
       logger.error(
         "getSpotifyPlaylist:Failed to get playlist:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getSpotifyPlaylist:An unexpected error occurred:", error);
@@ -340,19 +335,19 @@ export const updateSpotifyPlaylistReleases = async (userId: UserID) => {
       `/api/update-playlist-releases?userId=${userId}`,
       {
         headers: { spotify_access_token },
-      }
+      },
     );
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       logger.error(
         "updateSpotifyPlaylistReleases:Failed to get spotify playlist releases:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error(
         "updateSpotifyPlaylistReleases:An unexpected error occurred:",
-        error
+        error,
       );
     }
     throw error;
@@ -379,14 +374,14 @@ export const saveSongToPlaylist = async ({
         headers: {
           spotify_access_token,
         },
-      }
+      },
     );
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       logger.error(
         "saveSongToPlaylist:Failed to save song to playlist:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       throw new Error(error.response?.data?.message || error.message);
     }
@@ -412,7 +407,7 @@ export const getPlaylistTracks = async (playlistId?: string) => {
     if (axios.isAxiosError(error)) {
       logger.error(
         "getPlaylistTracks:Failed to get playlist tracks:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
     } else {
       logger.error("getPlaylistTracks:An unexpected error occurred:", error);
@@ -446,28 +441,6 @@ export const getSession = async () => {
   return res.data;
 };
 
-export const getAccounts = async (): Promise<Array<AccountI>> => {
-  const res = await axios.get<AccountsResponse>("/api/accounts", {
-    headers: spotifyHeaders(),
-  });
-  return res.data.accounts;
-};
-
-export const setAccountVerified = async ({
-  userId,
-  verified,
-}: { userId: string } & VerificationInputI) => {
-  try {
-    await axios.put(
-      `/api/accounts/${encodeURIComponent(userId)}/verification`,
-      { verified } satisfies VerificationInputI,
-      { headers: spotifyHeaders() },
-    );
-  } catch (error) {
-    throw new Error(apiErrorMessage(error, "Couldn't update account"));
-  }
-};
-
 export const getPlaylistSettings = async () => {
   const res = await axios.get<PlaylistSettingsResponse>(
     "/api/playlist-settings",
@@ -476,9 +449,7 @@ export const getPlaylistSettings = async () => {
   return res.data;
 };
 
-export const getUserPlaylists = async (): Promise<
-  Array<PlaylistSummaryI>
-> => {
+export const getUserPlaylists = async (): Promise<Array<PlaylistSummaryI>> => {
   const res = await axios.get<UserPlaylistsResponse>("/api/user-playlists", {
     headers: spotifyHeaders(),
   });

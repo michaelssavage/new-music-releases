@@ -17,6 +17,7 @@ test("the scheduled tracker sync uses each user's own playlist, skips users with
   const service = createTrackedArtistsService({
     repository: {
       getAllArtists: async () => [],
+      getAllUsers: async () => users,
       saveArtists: async (userId: string) => {
         savedFor.push(userId);
       },
@@ -39,7 +40,6 @@ test("the scheduled tracker sync uses each user's own playlist, skips users with
       },
     } as never,
     ensureValidAccessToken: async () => "token",
-    listVerifiedUsers: async () => users,
   });
 
   await service.syncTrackerPlaylistsForAllUsers();
@@ -57,7 +57,6 @@ test("syncing a single user's tracker playlist needs one to be selected", async 
     repository: {} as never,
     api: {} as never,
     ensureValidAccessToken: async () => "token",
-    listVerifiedUsers: async () => [],
   });
 
   await assert.rejects(

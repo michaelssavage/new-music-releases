@@ -30,7 +30,7 @@ export function createAccessMiddleware(
   spotifyService: ReturnType<typeof SpotifyService>,
 ) {
   return {
-    requireVerified: guard(spotifyService.requireVerifiedUser),
+    requireUser: guard(spotifyService.requireUser),
     requireAdmin: guard(spotifyService.requireAdmin),
   };
 }

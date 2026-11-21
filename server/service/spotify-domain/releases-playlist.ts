@@ -33,9 +33,8 @@ export function createReleasesPlaylistService(deps: {
   repository: Repository;
   api: SpotifyWebApi;
   ensureValidAccessToken: (user: User) => Promise<string>;
-  listVerifiedUsers: () => Promise<Array<User>>;
 }) {
-  const { repository, api, ensureValidAccessToken, listVerifiedUsers } = deps;
+  const { repository, api, ensureValidAccessToken } = deps;
 
   async function collectNewReleasesForUser(
     userId: string,
@@ -233,11 +232,11 @@ export function createReleasesPlaylistService(deps: {
 
   async function syncNewReleasesForAllUsers(fromDate?: string) {
     try {
-      const users = await listVerifiedUsers();
+      const users = await repository.getAllUsers();
 
       if (users.length === 0) {
         logger.warn(
-          "syncNewReleasesForAllUsers:No verified users found for updating playlists.",
+          "syncNewReleasesForAllUsers:No users found for updating playlists.",
         );
         return;
       }

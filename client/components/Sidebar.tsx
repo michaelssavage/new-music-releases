@@ -8,7 +8,6 @@ import {
   SlidersIcon,
   TicketIcon,
 } from "@client/components/Icons/NavIcons";
-import { useSession } from "@client/hooks/use-session.hook";
 import { useAppStore } from "@client/store/appStore";
 import {
   forDesktopOnly,
@@ -135,12 +134,6 @@ const itemStyles = css`
     color: #eff3f2;
     background-color: #4e6db0;
   }
-
-  &[aria-disabled="true"] {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background-color: transparent;
-  }
 `;
 
 const Item = styled.button`
@@ -165,8 +158,6 @@ const Footer = styled.div`
 export const Sidebar = () => {
   const navigate = useNavigate();
   const { logout, isSidebarOpen, setSidebarOpen } = useAppStore();
-  const { data: session } = useSession();
-  const locked = session?.verified === false;
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -235,8 +226,7 @@ export const Sidebar = () => {
           <NavLink
             key={to}
             to={to}
-            disabled={locked}
-            title={locked ? `${label} (verify your account first)` : label}
+            title={label}
             aria-label={label}
             onClick={closeSidebar}
           >

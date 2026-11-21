@@ -17,7 +17,6 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     repository,
     api,
     ensureValidAccessToken: userSession.ensureValidAccessToken,
-    listVerifiedUsers: accounts.listVerifiedUsers,
   });
   const seenArtists = createSeenArtistsService({
     repository,
@@ -27,7 +26,6 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     repository,
     api,
     ensureValidAccessToken: userSession.ensureValidAccessToken,
-    listVerifiedUsers: accounts.listVerifiedUsers,
   });
 
   async function initialize(): Promise<void> {
@@ -73,11 +71,9 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     getUserReleasesPlaylistWithTracks:
       releasesPlaylist.getUserReleasesPlaylistWithTracks,
 
-    requireVerifiedUser: accounts.requireVerifiedUser,
+    requireUser: accounts.requireUser,
     requireAdmin: accounts.requireAdmin,
     getSession: accounts.getSession,
-    listAccounts: accounts.listAccounts,
-    setAccountVerified: accounts.setAccountVerified,
 
     getPlaylistSettings: playlistSettings.getPlaylistSettings,
     listOwnedPlaylists: playlistSettings.listOwnedPlaylists,

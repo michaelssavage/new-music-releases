@@ -1,5 +1,4 @@
 import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
-import { useSession } from "@client/hooks/use-session.hook";
 import { useAppStore } from "@client/store/appStore";
 import {
   forPhoneOnly,
@@ -16,7 +15,10 @@ import { SearchBox } from "./SearchBox";
 const NavbarContainer = styled.header`
   padding: 1rem 2rem;
   display: grid;
-  grid-template-columns: minmax(max-content, 1fr) minmax(0, 400px) minmax(max-content, 1fr);
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, 400px) minmax(
+      max-content,
+      1fr
+    );
   align-items: center;
 
   ${forTabletOnly(css`
@@ -85,11 +87,7 @@ const PlaylistLink = styled.div`
 
 export const Navbar = () => {
   const { userId, setSidebarOpen } = useAppStore();
-  const { data: session } = useSession();
-  const { data: playlist } = usePlaylistUpdates(
-    userId,
-    !!userId && !!session?.verified,
-  );
+  const { data: playlist } = usePlaylistUpdates(userId, !!userId);
 
   return (
     <NavbarContainer>

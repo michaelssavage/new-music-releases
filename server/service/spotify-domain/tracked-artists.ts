@@ -12,9 +12,8 @@ export function createTrackedArtistsService(deps: {
   repository: Repository;
   api: SpotifyWebApi;
   ensureValidAccessToken: (user: User) => Promise<string>;
-  listVerifiedUsers: () => Promise<Array<User>>;
 }) {
-  const { repository, api, ensureValidAccessToken, listVerifiedUsers } = deps;
+  const { repository, api, ensureValidAccessToken } = deps;
 
   async function listUniqueArtistsFromLikedTracks(token: string) {
     const tracks = await api.fetchLikedTracks(token);
@@ -122,13 +121,13 @@ export function createTrackedArtistsService(deps: {
   }
 
   async function syncTrackerPlaylistsForAllUsers() {
-    const users = (await listVerifiedUsers()).filter(
+    const users = (await repository.getAllUsers()).filter(
       ({ trackerPlaylistId }) => trackerPlaylistId,
     );
 
     if (users.length === 0) {
       logger.warn(
-        "syncTrackerPlaylistsForAllUsers:No verified users with a tracker playlist.",
+        "syncTrackerPlaylistsForAllUsers:No users with a tracker playlist.",
       );
       return;
     }

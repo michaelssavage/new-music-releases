@@ -1,3 +1,4 @@
+import axios from "axios";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -10,13 +11,27 @@ interface LogMessage {
   data?: unknown;
 }
 
+// An AxiosError serialises its request config, which includes the Authorization header and client secret.
+export function toLoggable(data: unknown): unknown {
+  if (!axios.isAxiosError(data)) return data;
+
+  return {
+    name: data.name,
+    message: data.message,
+    status: data.response?.status,
+    method: data.config?.method,
+    url: data.config?.url,
+    response: data.response?.data,
+  };
+}
+
 class Logger {
   private isDevelopment = process.env.NODE_ENV !== "production";
 
   private createLogMessage(
     level: LogLevel,
     message: string,
-    data?: unknown
+    data?: unknown,
   ): LogMessage {
     return {
       timestamp: format(new Date(), "dd-MM-yyyy HH:mm:ss", { locale: es }),
@@ -40,7 +55,7 @@ class Logger {
   private log(level: LogLevel, message: string, data?: unknown) {
     if (!this.isDevelopment && level === "debug") return;
 
-    const logMessage = this.createLogMessage(level, message, data);
+    const logMessage = this.createLogMessage(level, message, toLoggable(data));
 
     const formattedMessage = this.formatMessage(logMessage);
 

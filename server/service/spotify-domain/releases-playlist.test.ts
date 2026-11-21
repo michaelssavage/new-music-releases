@@ -33,6 +33,7 @@ function setupSync(
   const checkpoints: Array<string> = [];
 
   const repository = {
+    getAllUsers: async () => [user],
     getAllArtists: async () => [
       { id: "ok-1" },
       { id: "ok-2" },
@@ -74,7 +75,6 @@ function setupSync(
     repository: repository as never,
     api: api as never,
     ensureValidAccessToken: async () => "token",
-    listVerifiedUsers: async () => [user],
   });
 
   return {

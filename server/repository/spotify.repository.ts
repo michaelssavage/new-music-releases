@@ -187,10 +187,6 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     );
   }
 
-  async function setVerified(userId: string, verified: boolean) {
-    return await userDb.updateOne({ userId }, { $set: { verified } });
-  }
-
   return {
     connect,
     disconnect,
@@ -209,6 +205,5 @@ export function SpotifyRepository({ mongoUri }: SpotifyRepositoryI) {
     deleteSeenArtist,
     insertMissingSeenArtists,
     setPlaylistId,
-    setVerified,
   };
 }

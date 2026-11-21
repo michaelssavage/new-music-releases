@@ -1,5 +1,3 @@
-import { AlertCard } from "@client/components/AlertCard";
-import { Button } from "@client/components/Button";
 import { HeartIcon } from "@client/components/Icons/Heart";
 import {
   ArtistsIcon,
@@ -8,7 +6,6 @@ import {
 } from "@client/components/Icons/NavIcons";
 import { Layout } from "@client/components/Layout";
 import { usePlaylistUpdates } from "@client/hooks/use-playlist-updates.hook";
-import { useSession } from "@client/hooks/use-session.hook";
 import { getSeenArtists, getUserTracks } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { forTabletOnly } from "@client/styles/abstracts/mixins.styled";
@@ -30,7 +27,6 @@ interface StatCardProps {
   label: string;
   icon: ReactNode;
   count: number | undefined;
-  disabled: boolean;
 }
 
 const Header = styled.h1`
@@ -80,12 +76,6 @@ const Card = styled(Link)`
     outline: 1px solid #1e1e1e;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
   }
-
-  &[aria-disabled="true"] {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background-color: white;
-  }
 `;
 
 const IconWrapper = styled.span`
@@ -116,11 +106,11 @@ const Label = styled.span`
   color: #6b7280;
 `;
 
-const StatCard = ({ to, label, icon, count, disabled }: StatCardProps) => (
-  <Card to={to} disabled={disabled}>
+const StatCard = ({ to, label, icon, count }: StatCardProps) => (
+  <Card to={to}>
     <IconWrapper>{icon}</IconWrapper>
     <Details>
-      <Count>{disabled ? "–" : (count ?? "–")}</Count>
+      <Count>{count ?? "–"}</Count>
       <Label>{label}</Label>
     </Details>
   </Card>
@@ -129,27 +119,18 @@ const StatCard = ({ to, label, icon, count, disabled }: StatCardProps) => (
 function HomePage() {
   const { userId, savedArtists } = useAppStore();
 
-  const {
-    data: session,
-    refetch: checkVerification,
-    isFetching: isCheckingVerification,
-  } = useSession();
-  const verified = session?.verified === true;
-
-  const { data: playlist } = usePlaylistUpdates(userId, !!userId && verified);
+  const { data: playlist } = usePlaylistUpdates(userId, !!userId);
 
   const { data: likedTracks } = useQuery<LikedTracksI | null>({
     queryKey: ["userTrack"],
     queryFn: getUserTracks,
     refetchOnWindowFocus: false,
-    enabled: verified,
   });
 
   const { data: seenArtists } = useQuery({
     queryKey: ["seen-artists"],
     queryFn: getSeenArtists,
     refetchOnWindowFocus: false,
-    enabled: verified,
   });
 
   return (
@@ -159,49 +140,30 @@ function HomePage() {
         Straight to your Spotify playlist. A full cookie jar.
       </Subheader>
 
-      {session && !verified && (
-        <AlertCard
-          action={
-            <Button
-              text="Check again"
-              variant="secondary"
-              onClick={() => checkVerification()}
-              loading={isCheckingVerification}
-            />
-          }
-        >
-          Your account needs to be verified before you can use Cookie Jar. Ask
-          the owner to verify it, then check again.
-        </AlertCard>
-      )}
       <Grid>
         <StatCard
           to="/updates"
           label="Updates"
           icon={<PlaylistIcon />}
           count={playlist?.total}
-          disabled={!verified}
         />
         <StatCard
           to="/saved-artists"
           label="Saved Artists"
           icon={<ArtistsIcon />}
           count={savedArtists.length}
-          disabled={!verified}
         />
         <StatCard
           to="/liked-songs"
           label="Liked Songs"
           icon={<HeartIcon size="20" />}
           count={likedTracks?.total}
-          disabled={!verified}
         />
         <StatCard
           to="/seen-live"
           label="Seen Live"
           icon={<TicketIcon />}
           count={seenArtists?.artists.length}
-          disabled={!verified}
         />
       </Grid>
     </Layout>

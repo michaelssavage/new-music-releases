@@ -34,7 +34,6 @@ export interface User {
   listen_later_playlist?: string;
   lastReleaseSyncAt?: Date;
   roles?: Array<"admin">;
-  verified?: boolean;
   releasesPlaylistId?: string;
   trackerPlaylistId?: string;
 }
