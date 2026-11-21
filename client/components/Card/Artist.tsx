@@ -69,7 +69,7 @@ export const ArtistCard = ({ image, artist }: CardI) => {
           <Anchor link={link} text="Open" variant="link" isExternal />
         </ImageLink>
       )}
-      <img src={image ? image : noPhoto} alt={name} />
+      <img src={image ? image : noPhoto} alt={name} loading="lazy" />
 
       <h2>{name}</h2>
 

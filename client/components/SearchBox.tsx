@@ -3,11 +3,12 @@ import {
   forPhoneOnly,
   forTabletOnly,
 } from "@client/styles/abstracts/mixins.styled";
+import { useAppStore } from "@client/store/appStore";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
-  type TypeI,
-  defaultOptions,
   defaultResults,
+  defaultSearchTypes,
+  searchTypeOptions,
 } from "@client/utils/defaults";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -20,13 +21,12 @@ import {
   useCallback,
   useState,
 } from "react";
-import type { MultiValue } from "react-select";
 import { Button } from "./Button";
 import { AlbumCard } from "./Card/Album";
 import { ArtistCard } from "./Card/Artist";
 import { CardGrid } from "./Card/Card.styled";
 import { TrackCard } from "./Card/Track";
-import { Select } from "./Form/Select";
+import { PillToggleGroup } from "./Form/PillToggleGroup";
 import { TextInput } from "./Form/TextInput";
 import { Group } from "./Group";
 import { SearchIcon } from "./Icons/Search";
@@ -63,12 +63,21 @@ const searchFieldStyles = css`
   `)}
 `;
 
-const modalControlsStyles = css`
+const ModalControls = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 0 8px;
+  align-items: flex-end;
   margin: 0 0 1rem 0;
+
+  > :first-child {
+    width: 100%;
+  }
 
   ${forPhoneOnly(css`
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
 
     > * {
       width: 100%;
@@ -76,8 +85,23 @@ const modalControlsStyles = css`
   `)}
 `;
 
-const stretchOnPhone = forPhoneOnly(css`
-  align-items: stretch;
+const modalInputStyles = css`
+  flex: 1;
+
+  input {
+    width: 100%;
+
+    ${forPhoneOnly(css`
+      height: 48px;
+      padding: 0.5rem 0.75rem;
+      font-size: 1.125rem;
+    `)}
+  }
+`;
+
+const modalSearchButtonStyles = forPhoneOnly(css`
+  height: 48px;
+  font-size: 1.125rem;
 `);
 
 const SearchInput = styled.input`
@@ -110,23 +134,25 @@ const Results = ({ title, show, children }: ResultsProps) => {
 
 export const SearchBox = () => {
   const [search, setSearch] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const { isSearchOpen, setSearchOpen } = useAppStore();
   const [results, setResults] = useState<SearchResponse>(defaultResults);
-  const [type, setType] = useState(defaultOptions);
-  const [loading, setLoading] = useState(false);
+  const [types, setTypes] = useState(defaultSearchTypes);
   const [activeTab, setActiveTab] = useState("artists");
 
   const handleSearch = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
   }, []);
 
-  const handleType = (newValue: MultiValue<TypeI>) => {
-    setType(newValue as Array<TypeI>);
+  const toggleType = (value: string) => {
+    setTypes((current) => {
+      if (!current.includes(value)) return [...current, value];
+      if (current.length === 1) return current;
+      return current.filter((type) => type !== value);
+    });
   };
 
-  const { isPending, mutate } = useMutation({
+  const { isPending, isIdle, mutate } = useMutation({
     mutationFn: fetchSearchResults,
-    onMutate: () => setLoading(true),
     onSuccess: (data) => {
       const {
         artists: { items: artists = [] },
@@ -137,23 +163,21 @@ export const SearchBox = () => {
       setResults({ artists, albums, tracks });
       const firstTabWithResults = getActiveTabKey({ artists, albums, tracks });
       if (firstTabWithResults) setActiveTab(firstTabWithResults);
-      setLoading(false);
     },
     onError: (error) => {
       console.error(error);
       setResults(defaultResults);
-      setLoading(false);
     },
   });
 
-  const disableSearch = !search || type.length === 0 || isPending;
+  const disableSearch = !search || isPending;
 
   const handleClick = () => {
-    mutate({ search, type: type.map((t) => t.value) });
+    mutate({ search, type: types });
   };
 
   const openSearch = () => {
-    setIsOpen(true);
+    setSearchOpen(true);
     if (!disableSearch) handleClick();
   };
 
@@ -169,7 +193,7 @@ export const SearchBox = () => {
     {
       key: "artists",
       tab: "Artists",
-      visible: type.some(({ value }) => value === "artist"),
+      visible: types.includes("artist"),
       panel: (
         <Results title="Artists" show={results.artists?.length > 0}>
           {results.artists
@@ -187,7 +211,7 @@ export const SearchBox = () => {
     {
       key: "albums",
       tab: "Albums",
-      visible: type.some(({ value }) => value === "album"),
+      visible: types.includes("album"),
       panel: (
         <Results title="Albums" show={results.albums?.length > 0}>
           {results.albums
@@ -207,7 +231,7 @@ export const SearchBox = () => {
     {
       key: "tracks",
       tab: "Tracks",
-      visible: type.some(({ value }) => value === "track"),
+      visible: types.includes("track"),
       panel: (
         <Results title="Tracks" show={results.tracks?.length > 0}>
           {results.tracks
@@ -225,6 +249,8 @@ export const SearchBox = () => {
       ),
     },
   ];
+
+  const visibleTabs = data.filter(({ visible }) => visible);
 
   return (
     <Group align="center">
@@ -249,53 +275,46 @@ export const SearchBox = () => {
         />
       </Group>
 
-      <Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
-        <Group
-          justify="space-between"
-          align="flex-end"
-          width="100%"
-          gap="1rem"
-          styling={modalControlsStyles}
-        >
+      <Modal isOpen={isSearchOpen} setIsOpen={setSearchOpen} width="70%">
+        <ModalControls>
           <TextInput
             id="search"
             placeholder="type here..."
             value={search}
             onChange={handleSearch}
             onKeyDown={handleEnter}
-            styles={css`
-              flex: 1;
-              input {
-                width: 100%;
-              }
-            `}
+            styles={modalInputStyles}
           />
 
-          <Select
-            id="type"
-            options={defaultOptions}
-            value={type}
-            onChange={handleType}
-            styles={stretchOnPhone}
+          <PillToggleGroup
+            label="Search for"
+            options={searchTypeOptions}
+            selected={types}
+            onToggle={toggleType}
           />
 
           <Button
             disabled={disableSearch}
             onClick={handleClick}
             text={isPending ? "Searching..." : "Search"}
+            styles={modalSearchButtonStyles}
           />
-        </Group>
+        </ModalControls>
 
-        <TabList
-          data={data.filter(({ visible }) => visible)}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-        />
-        <TabPanel
-          data={data.filter(({ visible }) => visible)}
-          activeTab={activeTab}
-          loading={loading}
-        />
+        {!isIdle && (
+          <>
+            <TabList
+              data={visibleTabs}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+            />
+            <TabPanel
+              data={visibleTabs}
+              activeTab={activeTab}
+              loading={isPending}
+            />
+          </>
+        )}
       </Modal>
     </Group>
   );

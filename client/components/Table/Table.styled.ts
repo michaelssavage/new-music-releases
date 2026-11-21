@@ -48,7 +48,16 @@ const stackedRowsOnPhone = forPhoneOnly(css`
   }
 `);
 
-export const TableWrapper = styled.div`
+const scrollRowsOnPhone = forPhoneOnly(css`
+  th,
+  td {
+    white-space: nowrap;
+  }
+`);
+
+export const TableWrapper = styled.div<{ stackedOnPhone?: boolean }>`
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
 
   table {
@@ -68,13 +77,20 @@ export const TableWrapper = styled.div`
     td {
       padding: 0.5rem 1rem;
       border-top: 1px solid #e5e7eb;
+
+      ${forPhoneOnly(css`
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        vertical-align: top;
+      `)}
     }
 
     tr:hover {
       background-color: #f9fafb;
     }
 
-    ${stackedRowsOnPhone}
+    ${({ stackedOnPhone }) =>
+      stackedOnPhone ? stackedRowsOnPhone : scrollRowsOnPhone}
   }
 `;
 

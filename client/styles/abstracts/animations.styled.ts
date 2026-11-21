@@ -4,7 +4,7 @@ export const slideInAnimation = (
   from: string,
   direction = "vertical",
   duration = "0.25s",
-  fillMode = "none"
+  fillMode = "none",
 ) => {
   const transform = direction === "horizontal" ? "translateX" : "translateY";
 
@@ -21,3 +21,18 @@ export const slideInAnimation = (
     `} ${duration} ${fillMode};
   `;
 };
+
+export const floatAnimation = css`
+  animation: ${keyframes`
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-6px);
+    }
+  `} 2.5s ease-in-out infinite alternate;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`;

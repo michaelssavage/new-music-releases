@@ -13,7 +13,7 @@ export const AddSeenArtistButton = ({ artistName }: Props) => {
     <>
       <Button
         variant="secondary"
-        text="Seen live"
+        text="Seen live?"
         onClick={() => setIsOpen(true)}
       />
       <SeenArtistDialog

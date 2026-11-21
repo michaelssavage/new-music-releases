@@ -1,13 +1,10 @@
 import noPhoto from "@client/assets/no-photo.jpg";
-import { getArtist } from "@client/lib/spotify";
 import styled from "@emotion/styled";
 import type { Artist, Track } from "@model/spotify/liked-tracks";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "../Button";
-import { Loader } from "../Loader";
 import { Modal } from "../Modal";
-import { ArtistCard } from "./Artist";
+import { ArtistDetail } from "./ArtistDetail";
 import { CardWrapper } from "./Card.styled";
 
 interface CardI {
@@ -42,27 +39,6 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
     setArtistId(id);
   };
 
-  const {
-    data: artistData,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["artist", artistId],
-    queryFn: () => getArtist(artistId),
-    enabled: artistId !== undefined,
-    refetchOnWindowFocus: false,
-  });
-
-  const renderArtist = () => {
-    if (!artistData) return null;
-    if (isLoading) return <Loader />;
-    if (isError) return <p>Error fetching Artist, please try again</p>;
-
-    return (
-      <ArtistCard image={artistData.images?.[0].url} artist={artistData} />
-    );
-  };
-
   return (
     <CardWrapper>
       <img src={image ? image : noPhoto} alt={name} />
@@ -89,7 +65,7 @@ export const TrackCard = ({ image, name, artists }: CardI) => {
       </Content>
 
       <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-        {renderArtist()}
+        <ArtistDetail artistId={artistId} />
       </Modal>
     </CardWrapper>
   );

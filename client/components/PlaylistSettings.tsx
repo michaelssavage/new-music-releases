@@ -2,15 +2,21 @@ import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
 import { ConfigCard, ConfigCardHeader } from "@client/components/ConfigCard";
 import { TextInput } from "@client/components/Form/TextInput";
+import { Group } from "@client/components/Group";
+import { Info } from "@client/components/InfoToast";
 import { Loader } from "@client/components/Loader";
+import { useSession } from "@client/hooks/use-session.hook";
 import {
   createPlaylist,
   getPlaylistSettings,
   getUserPlaylists,
   renamePlaylist,
   selectPlaylist,
+  updateSpotifyPlaylistReleases,
 } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
+import { logger } from "@client/utils/logger";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import {
@@ -100,6 +106,8 @@ interface PlaylistCardProps {
   onSelect: (playlistId: string) => void;
   onCreate: (name: string) => void;
   onRename: (name: string) => void;
+  onFetchReleases?: () => void;
+  isFetchingReleases?: boolean;
 }
 
 const PlaylistCard = ({
@@ -110,6 +118,8 @@ const PlaylistCard = ({
   onSelect,
   onCreate,
   onRename,
+  onFetchReleases,
+  isFetchingReleases,
 }: PlaylistCardProps) => {
   const { title, description, empty } = ROLE_COPY[role];
   const [renameValue, setRenameValue] = useState(current?.name ?? "");
@@ -123,13 +133,25 @@ const PlaylistCard = ({
     <ConfigCard>
       <ConfigCardHeader>
         <h2>{title}</h2>
-        {current && (
-          <Anchor
-            link={current.external_urls.spotify}
-            text="Open in Spotify"
-            variant="secondary"
-            isExternal
-          />
+
+        {current && onFetchReleases && (
+          <Group align="center" gap="0.25rem">
+            {current && (
+              <Anchor
+                link={current.external_urls.spotify}
+                text="Open in Spotify"
+                variant="secondary"
+                isExternal
+              />
+            )}
+            {onFetchReleases && (
+              <Button
+                text="Fetch new releases"
+                loading={isFetchingReleases}
+                onClick={onFetchReleases}
+              />
+            )}
+          </Group>
         )}
       </ConfigCardHeader>
       <Description>{description}</Description>
@@ -208,6 +230,8 @@ const PlaylistCard = ({
 
 export const PlaylistSettings = () => {
   const queryClient = useQueryClient();
+  const { userId } = useAppStore();
+  const { data: session } = useSession();
 
   const settings = useQuery({
     queryKey: ["playlist-settings"],
@@ -245,6 +269,24 @@ export const PlaylistSettings = () => {
     ...mutationOptions("Playlist renamed"),
   });
 
+  const fetchReleases = useMutation({
+    mutationFn: updateSpotifyPlaylistReleases,
+    onSuccess: async (data) => {
+      if (!data) {
+        toast.custom(<Info text="No data returned" />);
+      } else if (Array.isArray(data.tracks) && data.tracks.length > 0) {
+        toast.success("Fetched new playlist releases");
+        await queryClient.invalidateQueries({ queryKey: ["playlist"] });
+      } else {
+        toast.custom(<Info text="No new releases found" />);
+      }
+    },
+    onError: (error) => {
+      logger.error("Failed to fetch new releases", error);
+      toast.error("Failed to fetch new releases");
+    },
+  });
+
   if (settings.isLoading || playlists.isLoading) {
     return (
       <LoaderStyled>
@@ -273,6 +315,12 @@ export const PlaylistSettings = () => {
             onSelect={(playlistId) => select.mutate({ role, playlistId })}
             onCreate={(name) => create.mutate({ role, name })}
             onRename={(name) => rename.mutate({ role, name })}
+            onFetchReleases={
+              role === "releases" && session?.isAdmin
+                ? () => fetchReleases.mutate(userId)
+                : undefined
+            }
+            isFetchingReleases={fetchReleases.isPending}
           />
         );
       })}

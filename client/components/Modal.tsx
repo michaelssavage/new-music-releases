@@ -5,7 +5,6 @@ import styled from "@emotion/styled";
 import { type MouseEvent, type ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "./Button";
-import { CloseIcon } from "./Icons/Close";
 
 const Backdrop = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
@@ -23,7 +22,7 @@ const Container = styled.div<{ width?: string }>`
   max-width: ${({ width }) => width || "700px"};
   border-radius: 4px;
   margin: 50px auto;
-  padding: 2.5rem;
+  padding: 3rem 1rem 2rem;
   transform-origin: center center;
   position: relative;
 
@@ -48,8 +47,10 @@ const Header = styled.div`
   margin-bottom: 1rem;
 
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 4px;
+  right: 8px;
+
+  font-size: 1.25rem;
 `;
 
 interface ModalProps {
@@ -95,7 +96,6 @@ export const Modal = ({ isOpen, setIsOpen, children, width }: ModalProps) => {
               variant="ghost"
               ariaLabel="Close Modal"
               text="Close"
-              icon={<CloseIcon />}
             />
           </Header>
           <div>{children}</div>

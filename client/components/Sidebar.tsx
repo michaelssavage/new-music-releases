@@ -2,6 +2,7 @@ import { HeartIcon } from "@client/components/Icons/Heart";
 import { HomeIcon } from "@client/components/Icons/Home";
 import {
   ArtistsIcon,
+  FollowedIcon,
   LogoutIcon,
   PlaylistIcon,
   SidebarToggleIcon,
@@ -178,10 +179,11 @@ export const Sidebar = () => {
   const items: ReadonlyArray<SidebarItem> = [
     { to: "/updates", label: "Updates", icon: <PlaylistIcon /> },
     {
-      to: "/saved-artists",
-      label: "Saved Artists",
+      to: "/tracked",
+      label: "Tracked",
       icon: <ArtistsIcon />,
     },
+    { to: "/followed", label: "Followed", icon: <FollowedIcon /> },
     {
       to: "/liked-songs",
       label: "Liked Songs",

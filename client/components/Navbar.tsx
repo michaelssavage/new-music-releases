@@ -14,6 +14,7 @@ import { SearchBox } from "./SearchBox";
 
 const NavbarContainer = styled.header`
   padding: 1rem 2rem;
+  gap: 6px;
   display: grid;
   grid-template-columns: minmax(max-content, 1fr) minmax(0, 400px) minmax(
       max-content,
@@ -47,11 +48,10 @@ const Brand = styled.div`
   justify-self: start;
 
   h1 {
+    white-space: nowrap;
+
     ${forPhoneOnly(css`
       font-size: 1.25rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     `)}
   }
 

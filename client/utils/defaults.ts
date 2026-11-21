@@ -4,13 +4,10 @@ export const defaultResults = {
   tracks: [],
 };
 
-export interface TypeI {
-  value: string;
-  label: string;
-}
-
-export const defaultOptions: Array<TypeI> = [
+export const searchTypeOptions = [
   { value: "artist", label: "Artists" },
   { value: "album", label: "Albums" },
   { value: "track", label: "Tracks" },
 ];
+
+export const defaultSearchTypes = searchTypeOptions.map(({ value }) => value);

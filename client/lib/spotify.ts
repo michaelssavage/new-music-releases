@@ -90,7 +90,7 @@ export const saveArtist = async ({
   } catch (error) {
     if (axios.isAxiosError(error)) {
       logger.error(
-        "Failed to save artist:",
+        "Failed to track artist:",
         error.response?.data || error.message,
       );
     } else {
@@ -498,5 +498,22 @@ export const renamePlaylist = async ({
     );
   } catch (error) {
     throw new Error(apiErrorMessage(error, "Couldn't rename playlist"));
+  }
+};
+
+export const getFollowedArtists = async () => {
+  const res = await axios.get<Array<Artist>>("/api/followed-artists", {
+    headers: spotifyHeaders(),
+  });
+  return res.data;
+};
+
+export const saveAllFollowedArtists = async () => {
+  try {
+    await axios.post("/api/save-followed-artists", null, {
+      headers: spotifyHeaders(),
+    });
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Couldn't save followed artists"));
   }
 };

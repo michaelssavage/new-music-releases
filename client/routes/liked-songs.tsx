@@ -1,19 +1,20 @@
 import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
-import { ArtistCard } from "@client/components/Card/Artist";
+import { ArtistDetail } from "@client/components/Card/ArtistDetail";
 import { Group } from "@client/components/Group";
 import { SortIcon } from "@client/components/Icons/Sort";
 import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { Layout } from "@client/components/Layout";
 import { Loader } from "@client/components/Loader";
 import { Modal } from "@client/components/Modal";
-import { Panel } from "@client/components/Panel";
 import {
   SortableHeader,
   TableContainer,
   TableWrapper,
 } from "@client/components/Table/Table.styled";
-import { getArtist, getNextTracks, getUserTracks } from "@client/lib/spotify";
+import { useMediaQuery } from "@client/hooks/use-media-query.hook";
+import { getNextTracks, getUserTracks } from "@client/lib/spotify";
+import { PHONE_QUERY } from "@client/styles/abstracts/mixins.styled";
 import { requireAuth } from "@client/utils/auth";
 import { displayDate } from "@client/utils/dates";
 import styled from "@emotion/styled";
@@ -40,18 +41,33 @@ const Field = styled.div`
   font-weight: 500;
 `;
 
+const Page = styled.div`
+  width: 100%;
+  min-width: 0;
+`;
+
+const ReleaseDate = styled(Field)`
+  white-space: nowrap;
+`;
+
+const TrackLink = styled.a`
+  font-weight: 500;
+  color: #2650f6;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const ArtistBtn = styled.div`
   flex-wrap: nowrap;
   display: flex;
-`;
 
-const COLUMN_LABELS: Record<string, string> = {
-  artists: "Artists",
-  trackName: "Track",
-  albumName: "Album",
-  releaseDate: "Released",
-  externalLink: "Spotify",
-};
+  button {
+    height: auto;
+  }
+`;
 
 export const Route = createFileRoute("/liked-songs")({
   beforeLoad: async () => await requireAuth(),
@@ -63,6 +79,7 @@ function LikedSongsPage() {
 
   const columnHelper = createColumnHelper<ShowItem>();
   const [sorting, setSorting] = useState<SortingState>([]);
+  const isPhone = useMediaQuery(PHONE_QUERY);
 
   const [tracks, setTracks] = useState<Array<ShowItem>>([]);
   const [nextUrl, setNextUrl] = useState<string | null>(null);
@@ -75,17 +92,6 @@ function LikedSongsPage() {
     setIsOpen(true);
     setArtistId(id);
   };
-
-  const {
-    data: artistData,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["artist", artistId],
-    queryFn: () => getArtist(artistId),
-    enabled: artistId !== undefined,
-    refetchOnWindowFocus: false,
-  });
 
   const { data, isPending, isSuccess } = useQuery<LikedTracksI | null>({
     queryKey: ["userTrack"],
@@ -119,7 +125,12 @@ function LikedSongsPage() {
         </SortableHeader>
       ),
       cell: (info) => (
-        <Group align="flex-start" gap="0.25rem">
+        <Group
+          align="flex-start"
+          justify="flex-start"
+          wrap="nowrap"
+          gap="0.25rem"
+        >
           {info.getValue().map((artist, index) => (
             <ArtistBtn key={`${artist.id}-${index}`}>
               <Button
@@ -137,11 +148,19 @@ function LikedSongsPage() {
       id: "trackName",
       header: ({ column }) => (
         <SortableHeader onClick={() => column.toggleSorting()}>
-          Track Name
+          Track
           <SortIcon direction={column.getIsSorted()} />
         </SortableHeader>
       ),
-      cell: (info) => <Field>{info.getValue()}</Field>,
+      cell: (info) => (
+        <TrackLink
+          href={info.row.original.track.external_urls.spotify}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {info.getValue()}
+        </TrackLink>
+      ),
     }),
     columnHelper.accessor((row) => row.track.album.name, {
       id: "albumName",
@@ -157,11 +176,11 @@ function LikedSongsPage() {
       id: "releaseDate",
       header: ({ column }) => (
         <SortableHeader onClick={() => column.toggleSorting()}>
-          Release Date
+          Released
           <SortIcon direction={column.getIsSorted()} />
         </SortableHeader>
       ),
-      cell: (info) => <Field>{displayDate(info.getValue())}</Field>,
+      cell: (info) => <ReleaseDate>{displayDate(info.getValue())}</ReleaseDate>,
     }),
     columnHelper.accessor((row) => row.track.external_urls.spotify, {
       id: "externalLink",
@@ -183,21 +202,12 @@ function LikedSongsPage() {
     columns,
     state: {
       sorting,
+      columnVisibility: { albumName: !isPhone, externalLink: !isPhone },
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel<ShowItem>(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  const renderArtist = () => {
-    if (!artistData) return null;
-    if (isLoading) return <Loader />;
-    if (isError) return <p>Error fetching Artist, please try again</p>;
-
-    return (
-      <ArtistCard image={artistData.images?.[0].url} artist={artistData} />
-    );
-  };
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -221,7 +231,7 @@ function LikedSongsPage() {
 
   return (
     <Layout>
-      <Panel>
+      <Page>
         {isPending ? (
           <Loader />
         ) : (
@@ -246,10 +256,7 @@ function LikedSongsPage() {
                   {table.getRowModel().rows.map((row) => (
                     <tr key={row.id}>
                       {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
-                          data-label={COLUMN_LABELS[cell.column.id]}
-                        >
+                        <td key={cell.id}>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext(),
@@ -266,9 +273,9 @@ function LikedSongsPage() {
         )}
 
         <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-          {renderArtist()}
+          <ArtistDetail artistId={artistId} />
         </Modal>
-      </Panel>
+      </Page>
     </Layout>
   );
 }

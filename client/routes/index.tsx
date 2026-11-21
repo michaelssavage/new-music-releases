@@ -1,3 +1,4 @@
+import { EmptyState } from "@client/components/EmptyState";
 import { HeartIcon } from "@client/components/Icons/Heart";
 import {
   ArtistsIcon,
@@ -117,7 +118,7 @@ const StatCard = ({ to, label, icon, count }: StatCardProps) => (
 );
 
 function HomePage() {
-  const { userId, savedArtists } = useAppStore();
+  const { userId, savedArtists, savedArtistsLoaded } = useAppStore();
 
   const { data: playlist } = usePlaylistUpdates(userId, !!userId);
 
@@ -140,6 +141,13 @@ function HomePage() {
         Straight to your Spotify playlist. A full cookie jar.
       </Subheader>
 
+      {savedArtistsLoaded && savedArtists.length === 0 && (
+        <EmptyState
+          title="Start tracking artists"
+          description="Add artists you love and their new releases will land in your Spotify playlist. Search for one, or pick from the artists you already follow."
+        />
+      )}
+
       <Grid>
         <StatCard
           to="/updates"
@@ -148,8 +156,8 @@ function HomePage() {
           count={playlist?.total}
         />
         <StatCard
-          to="/saved-artists"
-          label="Saved Artists"
+          to="/tracked"
+          label="Tracked"
           icon={<ArtistsIcon />}
           count={savedArtists.length}
         />

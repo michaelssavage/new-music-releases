@@ -57,6 +57,17 @@ export function createTrackedArtistsService(deps: {
     return result;
   }
 
+  async function saveAllFollowedArtists(userId: string, token: string) {
+    const savedArtists = await repository.getAllArtists(userId);
+    if (savedArtists.length > 0) {
+      throw new HttpException(409, "You already have tracked artists");
+    }
+
+    const followedArtists = await api.fetchFollowedArtists(token);
+    await persistTrackedArtists(userId, followedArtists);
+    return { saved: followedArtists.length };
+  }
+
   async function removeTrackedArtist(userId: string, id: string) {
     const result = await repository.removeSavedArtist(userId, id);
 
@@ -160,6 +171,7 @@ export function createTrackedArtistsService(deps: {
   return {
     listUniqueArtistsFromLikedTracks,
     persistTrackedArtists,
+    saveAllFollowedArtists,
     removeTrackedArtist,
     listSavedArtistsForUser,
     syncArtistsFromTrackerPlaylist,

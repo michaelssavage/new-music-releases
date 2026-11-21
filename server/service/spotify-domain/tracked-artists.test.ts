@@ -64,3 +64,33 @@ test("syncing a single user's tracker playlist needs one to be selected", async 
     { status: 409 },
   );
 });
+
+test("saving all followed artists only works while the user tracks nobody", async () => {
+  const saved: Array<Array<string>> = [];
+  const followed = [{ id: "a" }, { id: "b" }];
+
+  const serviceFor = (alreadyTracked: number) =>
+    createTrackedArtistsService({
+      repository: {
+        getAllArtists: async () => Array(alreadyTracked).fill({}),
+        saveArtists: async (
+          _userId: string,
+          artists: Array<{ id: string }>,
+        ) => {
+          saved.push(artists.map(({ id }) => id));
+        },
+      } as never,
+      api: { fetchFollowedArtists: async () => followed } as never,
+      ensureValidAccessToken: async () => "token",
+    });
+
+  await assert.rejects(serviceFor(1).saveAllFollowedArtists("me", "token"), {
+    status: 409,
+  });
+  assert.deepEqual(saved, []);
+
+  assert.deepEqual(await serviceFor(0).saveAllFollowedArtists("me", "token"), {
+    saved: 2,
+  });
+  assert.deepEqual(saved, [["a", "b"]]);
+});
