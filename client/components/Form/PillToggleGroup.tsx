@@ -1,4 +1,5 @@
-import type { SerializedStyles } from "@emotion/react";
+import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
+import { type SerializedStyles, css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Group } from "../Group";
 
@@ -44,6 +45,12 @@ const Pill = styled.button`
     outline: 1px solid #1e1e1e;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
   }
+
+  ${forPhoneOnly(css`
+    min-height: 40px;
+    padding: 0.25rem 1.25rem;
+    font-size: 1rem;
+  `)}
 `;
 
 export const PillToggleGroup = ({

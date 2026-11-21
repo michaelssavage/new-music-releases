@@ -76,16 +76,32 @@ const ModalControls = styled.div`
   ${forPhoneOnly(css`
     flex-direction: column;
     align-items: stretch;
-
-    button {
-      margin-top: 12px;
-    }
+    gap: 1rem;
 
     > * {
       width: 100%;
     }
   `)}
 `;
+
+const modalInputStyles = css`
+  flex: 1;
+
+  input {
+    width: 100%;
+
+    ${forPhoneOnly(css`
+      height: 48px;
+      padding: 0.5rem 0.75rem;
+      font-size: 1.125rem;
+    `)}
+  }
+`;
+
+const modalSearchButtonStyles = forPhoneOnly(css`
+  height: 48px;
+  font-size: 1.125rem;
+`);
 
 const SearchInput = styled.input`
   flex: 1;
@@ -268,12 +284,7 @@ export const SearchBox = () => {
             value={search}
             onChange={handleSearch}
             onKeyDown={handleEnter}
-            styles={css`
-              flex: 1;
-              input {
-                width: 100%;
-              }
-            `}
+            styles={modalInputStyles}
           />
 
           <PillToggleGroup
@@ -287,6 +298,7 @@ export const SearchBox = () => {
             disabled={disableSearch}
             onClick={handleClick}
             text={isPending ? "Searching..." : "Search"}
+            styles={modalSearchButtonStyles}
           />
         </ModalControls>
 
