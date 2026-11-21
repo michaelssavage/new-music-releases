@@ -5,9 +5,9 @@ import {
 } from "@client/styles/abstracts/mixins.styled";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
-  type TypeI,
-  defaultOptions,
   defaultResults,
+  defaultSearchTypes,
+  searchTypeOptions,
 } from "@client/utils/defaults";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -20,13 +20,12 @@ import {
   useCallback,
   useState,
 } from "react";
-import type { MultiValue } from "react-select";
 import { Button } from "./Button";
 import { AlbumCard } from "./Card/Album";
 import { ArtistCard } from "./Card/Artist";
 import { CardGrid } from "./Card/Card.styled";
 import { TrackCard } from "./Card/Track";
-import { Select } from "./Form/Select";
+import { PillToggleGroup } from "./Form/PillToggleGroup";
 import { TextInput } from "./Form/TextInput";
 import { Group } from "./Group";
 import { SearchIcon } from "./Icons/Search";
@@ -88,10 +87,6 @@ const ModalControls = styled.div`
   `)}
 `;
 
-const stretchOnPhone = forPhoneOnly(css`
-  align-items: stretch;
-`);
-
 const SearchInput = styled.input`
   flex: 1;
   min-width: 0;
@@ -124,7 +119,7 @@ export const SearchBox = () => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<SearchResponse>(defaultResults);
-  const [type, setType] = useState(defaultOptions);
+  const [types, setTypes] = useState(defaultSearchTypes);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("artists");
 
@@ -132,8 +127,12 @@ export const SearchBox = () => {
     setSearch(event.target.value);
   }, []);
 
-  const handleType = (newValue: MultiValue<TypeI>) => {
-    setType(newValue as Array<TypeI>);
+  const toggleType = (value: string) => {
+    setTypes((current) => {
+      if (!current.includes(value)) return [...current, value];
+      if (current.length === 1) return current;
+      return current.filter((type) => type !== value);
+    });
   };
 
   const { isPending, mutate } = useMutation({
@@ -158,10 +157,10 @@ export const SearchBox = () => {
     },
   });
 
-  const disableSearch = !search || type.length === 0 || isPending;
+  const disableSearch = !search || isPending;
 
   const handleClick = () => {
-    mutate({ search, type: type.map((t) => t.value) });
+    mutate({ search, type: types });
   };
 
   const openSearch = () => {
@@ -181,7 +180,7 @@ export const SearchBox = () => {
     {
       key: "artists",
       tab: "Artists",
-      visible: type.some(({ value }) => value === "artist"),
+      visible: types.includes("artist"),
       panel: (
         <Results title="Artists" show={results.artists?.length > 0}>
           {results.artists
@@ -199,7 +198,7 @@ export const SearchBox = () => {
     {
       key: "albums",
       tab: "Albums",
-      visible: type.some(({ value }) => value === "album"),
+      visible: types.includes("album"),
       panel: (
         <Results title="Albums" show={results.albums?.length > 0}>
           {results.albums
@@ -219,7 +218,7 @@ export const SearchBox = () => {
     {
       key: "tracks",
       tab: "Tracks",
-      visible: type.some(({ value }) => value === "track"),
+      visible: types.includes("track"),
       panel: (
         <Results title="Tracks" show={results.tracks?.length > 0}>
           {results.tracks
@@ -277,12 +276,11 @@ export const SearchBox = () => {
             `}
           />
 
-          <Select
-            id="type"
-            options={defaultOptions}
-            value={type}
-            onChange={handleType}
-            styles={stretchOnPhone}
+          <PillToggleGroup
+            label="Search for"
+            options={searchTypeOptions}
+            selected={types}
+            onToggle={toggleType}
           />
 
           <Button
