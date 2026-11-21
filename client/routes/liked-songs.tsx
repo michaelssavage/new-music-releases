@@ -13,7 +13,9 @@ import {
   TableContainer,
   TableWrapper,
 } from "@client/components/Table/Table.styled";
+import { useMediaQuery } from "@client/hooks/use-media-query.hook";
 import { getArtist, getNextTracks, getUserTracks } from "@client/lib/spotify";
+import { PHONE_QUERY } from "@client/styles/abstracts/mixins.styled";
 import { requireAuth } from "@client/utils/auth";
 import { displayDate } from "@client/utils/dates";
 import styled from "@emotion/styled";
@@ -40,6 +42,16 @@ const Field = styled.div`
   font-weight: 500;
 `;
 
+const TrackLink = styled.a`
+  font-weight: 500;
+  color: #2650f6;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const ArtistBtn = styled.div`
   flex-wrap: nowrap;
   display: flex;
@@ -63,6 +75,7 @@ function LikedSongsPage() {
 
   const columnHelper = createColumnHelper<ShowItem>();
   const [sorting, setSorting] = useState<SortingState>([]);
+  const isPhone = useMediaQuery(PHONE_QUERY);
 
   const [tracks, setTracks] = useState<Array<ShowItem>>([]);
   const [nextUrl, setNextUrl] = useState<string | null>(null);
@@ -141,7 +154,15 @@ function LikedSongsPage() {
           <SortIcon direction={column.getIsSorted()} />
         </SortableHeader>
       ),
-      cell: (info) => <Field>{info.getValue()}</Field>,
+      cell: (info) => (
+        <TrackLink
+          href={info.row.original.track.external_urls.spotify}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {info.getValue()}
+        </TrackLink>
+      ),
     }),
     columnHelper.accessor((row) => row.track.album.name, {
       id: "albumName",
@@ -183,6 +204,7 @@ function LikedSongsPage() {
     columns,
     state: {
       sorting,
+      columnVisibility: { albumName: !isPhone, externalLink: !isPhone },
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel<ShowItem>(),
