@@ -33,3 +33,7 @@ export interface SchedulerServiceI {
   repository: ReturnType<typeof SchedulerRepository>;
   spotifyService: ReturnType<typeof SpotifyService>;
 }
+
+export interface SchedulerRouterI extends SchedulerControllerI {
+  spotifyService: ReturnType<typeof SpotifyService>;
+}

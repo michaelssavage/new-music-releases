@@ -3,7 +3,7 @@ import type { SpotifyControllerI } from "@server/container/types";
 import { HttpException } from "@server/utils/exceptions";
 import type { Request, Response } from "express";
 import { ObjectId } from "mongodb";
-import { withBearerJson } from "./http-helpers";
+import { currentUser, withBearerJson } from "./http-helpers";
 
 const FIRST_GIG_YEAR = 1950;
 const MAX_NAME_LENGTH = 200;
@@ -83,7 +83,7 @@ export function createSeenArtistsHandlers({
       res,
       "Error retrieving seen artists:",
       "Failed to retrieve seen artists",
-      () => spotifyService.getSeenArtists(),
+      () => spotifyService.getSeenArtists(currentUser(res).userId),
     );
   }
 
@@ -94,7 +94,10 @@ export function createSeenArtistsHandlers({
       "Error adding seen artist:",
       "Failed to add seen artist",
       async () => {
-        await spotifyService.addSeenArtist(parseSeenArtistInput(req.body));
+        await spotifyService.addSeenArtist(
+          currentUser(res).userId,
+          parseSeenArtistInput(req.body),
+        );
         return { status: "OK" };
       },
     );
@@ -108,6 +111,7 @@ export function createSeenArtistsHandlers({
       "Failed to update seen artist",
       async () => {
         await spotifyService.updateSeenArtist(
+          currentUser(res).userId,
           parseId(req),
           parseSeenArtistInput(req.body),
         );
@@ -123,7 +127,10 @@ export function createSeenArtistsHandlers({
       "Error deleting seen artist:",
       "Failed to delete seen artist",
       async () => {
-        await spotifyService.deleteSeenArtist(parseId(req));
+        await spotifyService.deleteSeenArtist(
+          currentUser(res).userId,
+          parseId(req),
+        );
         return { status: "OK" };
       },
     );

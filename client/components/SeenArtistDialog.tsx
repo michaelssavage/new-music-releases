@@ -62,20 +62,24 @@ const SightingRow = styled.div`
   align-items: flex-end;
   gap: 0.5rem;
 
-  > :first-of-type {
+  > div:first-of-type {
     flex: 1;
+    min-width: 0;
   }
 
   input {
     width: 100%;
   }
 
-  > :nth-of-type(2) {
+  > div:nth-of-type(2) {
     width: 110px;
+    flex-shrink: 0;
   }
 `;
 
 const RemoveSighting = styled.button`
+  flex: none;
+  width: fit-content;
   height: 32px;
   padding: 0 0.5rem;
   background: transparent;

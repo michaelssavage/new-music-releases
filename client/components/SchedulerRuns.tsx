@@ -2,31 +2,8 @@ import { getSchedulerRuns } from "@client/lib/spotify";
 import styled from "@emotion/styled";
 import { useQuery } from "@tanstack/react-query";
 import { Anchor } from "./Anchor";
+import { ConfigCard, ConfigCardHeader } from "./ConfigCard";
 import { Loader } from "./Loader";
-
-const RENDER_DASHBOARD_URL = "https://dashboard.render.com";
-
-const Card = styled.div`
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1rem 1.5rem;
-  width: 100%;
-  max-width: 900px;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-
-  h2 {
-    margin: 0;
-    font-size: 1rem;
-  }
-`;
 
 const RunList = styled.ul`
   margin: 0;
@@ -36,6 +13,8 @@ const RunList = styled.ul`
   li {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
     padding: 0.5rem 0;
     border-top: 1px solid #e5e7eb;
   }
@@ -78,16 +57,16 @@ export const SchedulerRuns = () => {
   if (isError || !runs) return <div>Couldn't fetch recent runs</div>;
 
   return (
-    <Card>
-      <Header>
+    <ConfigCard>
+      <ConfigCardHeader>
         <h2>Recent runs</h2>
         <Anchor
-          link={RENDER_DASHBOARD_URL}
+          link="https://dashboard.render.com"
           text="Render dashboard"
           variant="secondary"
           isExternal
         />
-      </Header>
+      </ConfigCardHeader>
       {runs.length === 0 ? (
         <p>No runs yet</p>
       ) : (
@@ -102,6 +81,6 @@ export const SchedulerRuns = () => {
           ))}
         </RunList>
       )}
-    </Card>
+    </ConfigCard>
   );
 };

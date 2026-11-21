@@ -1,7 +1,8 @@
 import type { SpotifyServiceI } from "@server/container/types";
-import { logger } from "@server/utils/logger";
 import { createLastFmApi } from "./lastfm-api";
+import { createAccountsService } from "./spotify-domain/accounts";
 import { createSpotifyOAuth } from "./spotify-domain/oauth";
+import { createPlaylistSettingsService } from "./spotify-domain/playlist-settings";
 import { createReleasesPlaylistService } from "./spotify-domain/releases-playlist";
 import { createSeenArtistsService } from "./spotify-domain/seen-artists";
 import { createTrackedArtistsService } from "./spotify-domain/tracked-artists";
@@ -10,7 +11,14 @@ import { createUserSession } from "./spotify-domain/user-session";
 export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
   const oauth = createSpotifyOAuth(env);
   const userSession = createUserSession({ repository, api, oauth });
-  const trackedArtists = createTrackedArtistsService({ repository, api });
+  const accounts = createAccountsService({ repository, api });
+  const playlistSettings = createPlaylistSettingsService({ repository, api });
+  const trackedArtists = createTrackedArtistsService({
+    repository,
+    api,
+    ensureValidAccessToken: userSession.ensureValidAccessToken,
+    listVerifiedUsers: accounts.listVerifiedUsers,
+  });
   const seenArtists = createSeenArtistsService({
     repository,
     lastFm: createLastFmApi({ apiKey: env.LASTFM_API_KEY }),
@@ -19,6 +27,7 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     repository,
     api,
     ensureValidAccessToken: userSession.ensureValidAccessToken,
+    listVerifiedUsers: accounts.listVerifiedUsers,
   });
 
   async function initialize(): Promise<void> {
@@ -27,54 +36,6 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 
   async function shutdown(): Promise<void> {
     await repository.disconnect();
-  }
-
-  async function syncArtistsFromPlaylistForAllUsers(playlistId: string) {
-    const users = await repository.getAllUsers();
-
-    if (!users || users.length === 0) {
-      logger.warn("syncArtistsFromPlaylistForAllUsers:No users found.");
-      return;
-    }
-
-    logger.info(
-      `syncArtistsFromPlaylistForAllUsers:Syncing playlist ${playlistId} for ${users.length} users.`,
-    );
-
-    const results = await Promise.allSettled(
-      users.map(async (user) => {
-        try {
-          const token = await userSession.ensureValidAccessToken(user);
-          return await trackedArtists.syncArtistsFromPlaylist(
-            user.userId,
-            token,
-            playlistId,
-          );
-        } catch (error) {
-          logger.error(
-            `syncArtistsFromPlaylistForAllUsers:Failed for user ${user.userId}:`,
-            error,
-          );
-          return null;
-        }
-      }),
-    );
-
-    const saved = results
-      .filter((r) => r.status === "fulfilled" && r.value)
-      .reduce(
-        (sum, r) =>
-          sum +
-          ((r as PromiseFulfilledResult<{ saved: number } | null>).value
-            ?.saved ?? 0),
-        0,
-      );
-
-    logger.info(
-      `syncArtistsFromPlaylistForAllUsers:Done. ${saved} new artists saved across all users.`,
-    );
-
-    return results;
   }
 
   return {
@@ -94,8 +55,10 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
     persistTrackedArtists: trackedArtists.persistTrackedArtists,
     removeTrackedArtist: trackedArtists.removeTrackedArtist,
     listSavedArtistsForUser: trackedArtists.listSavedArtistsForUser,
-    syncArtistsFromPlaylist: trackedArtists.syncArtistsFromPlaylist,
-    syncArtistsFromPlaylistForAllUsers,
+    syncArtistsFromTrackerPlaylist:
+      trackedArtists.syncArtistsFromTrackerPlaylist,
+    syncTrackerPlaylistsForAllUsers:
+      trackedArtists.syncTrackerPlaylistsForAllUsers,
 
     getSeenArtists: seenArtists.getSeenArtists,
     addSeenArtist: seenArtists.addSeenArtist,
@@ -104,12 +67,22 @@ export function SpotifyService({ repository, env, api }: SpotifyServiceI) {
 
     collectNewReleasesForUser: releasesPlaylist.collectNewReleasesForUser,
     appendNewReleasesToPlaylist: releasesPlaylist.appendNewReleasesToPlaylist,
-    ensureReleasesPlaylistForUser:
-      releasesPlaylist.ensureReleasesPlaylistForUser,
     syncNewReleasesToUserPlaylist:
       releasesPlaylist.syncNewReleasesToUserPlaylist,
     syncNewReleasesForAllUsers: releasesPlaylist.syncNewReleasesForAllUsers,
     getUserReleasesPlaylistWithTracks:
       releasesPlaylist.getUserReleasesPlaylistWithTracks,
+
+    requireVerifiedUser: accounts.requireVerifiedUser,
+    requireAdmin: accounts.requireAdmin,
+    getSession: accounts.getSession,
+    listAccounts: accounts.listAccounts,
+    setAccountVerified: accounts.setAccountVerified,
+
+    getPlaylistSettings: playlistSettings.getPlaylistSettings,
+    listOwnedPlaylists: playlistSettings.listOwnedPlaylists,
+    selectPlaylist: playlistSettings.selectPlaylist,
+    createAndSelectPlaylist: playlistSettings.createAndSelectPlaylist,
+    renamePlaylist: playlistSettings.renamePlaylist,
   };
 }

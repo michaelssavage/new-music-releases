@@ -1,5 +1,6 @@
 import { useListenLater } from "@client/hooks/use-listen-later.hook";
 import { saveSongToPlaylist } from "@client/lib/spotify";
+import { forTabletOnly } from "@client/styles/abstracts/mixins.styled";
 import { displayDate } from "@client/utils/dates";
 import { logger } from "@client/utils/logger";
 import { css } from "@emotion/react";
@@ -49,6 +50,13 @@ const CardHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  ${forTabletOnly(css`
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.5rem 0.5rem;
+  `)}
 `;
 
 const AlbumArt = styled.img`
@@ -57,21 +65,22 @@ const AlbumArt = styled.img`
   border-top-left-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
+
+  ${forTabletOnly(css`
+    width: 100%;
+  `)}
 `;
 
 const TrackName = styled.span`
   font-weight: 600;
   font-size: 0.9rem;
   color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 `;
 
 const TrackInfo = styled.a`
   display: flex;
   flex-direction: column;
-  padding: 0.25rem;
+  margin-top: 4px;
   min-width: 0;
   text-decoration: none;
   transition: transform 0.2s ease;
@@ -97,6 +106,13 @@ const CardFooter = styled.div`
   justify-content: space-between;
   border-top: 1px solid #e5e7eb;
   padding: 0.5rem 1rem;
+
+  ${forTabletOnly(css`
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.5rem 0.5rem;
+  `)}
 `;
 
 const DateAdded = styled.span`

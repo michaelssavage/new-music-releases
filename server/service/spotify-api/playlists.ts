@@ -1,15 +1,15 @@
-import type {
-  SavedTrackToPlaylistI,
-  SpotifyPlaylistI,
-} from "@model/spotify/playlist";
+import type { PlaylistSummaryI } from "@model/playlist-settings";
+import type { SavedTrackToPlaylistI } from "@model/spotify/playlist";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile } from "@model/spotify/user";
 import type { SaveSongToPlaylistI } from "@server/service/types";
 import { SPOTIFY_API_URL } from "@server/utils/constants";
-import { getRequest, postRequest } from "@server/utils/fetch";
+import { getRequest, postRequest, putRequest } from "@server/utils/fetch";
 import { logger } from "@server/utils/logger";
 
 const PLAYLIST_TRACKS_PAGE_SIZE = 100;
+const USER_PLAYLISTS_PAGE_SIZE = 50;
+const PLAYLIST_SUMMARY_FIELDS = "id,name,external_urls,owner(id)";
 
 export interface PlaylistPageParams {
   offset: number;
@@ -82,29 +82,62 @@ export function createPlaylistsApi() {
     return res.data;
   }
 
-  async function createReleasesPlaylist(token: string) {
+  async function createPlaylist(
+    token: string,
+    { name, description }: { name: string; description?: string },
+  ) {
     const { data: userProfile } = await getRequest<SpotifyUserProfile>(
       `${SPOTIFY_API_URL}/me`,
       token,
     );
 
-    const userId = userProfile.id;
-
-    const { data: playlist } = await postRequest<SpotifyPlaylistI>(
-      `${SPOTIFY_API_URL}/users/${userId}/playlists`,
+    const { data: playlist } = await postRequest<PlaylistSummaryI>(
+      `${SPOTIFY_API_URL}/users/${userProfile.id}/playlists`,
       token,
-      {
-        name: "Cookie Jar",
-        description: "A playlist of today's new releases.",
-        public: true,
-      },
+      { name, description, public: true },
     );
 
-    logger.info(
-      "createReleasesPlaylist:Playlist created in Spotify:",
-      playlist.name,
-    );
+    logger.info("createPlaylist:Playlist created in Spotify:", playlist.name);
     return playlist;
+  }
+
+  async function renamePlaylist(
+    token: string,
+    playlistId: string,
+    name: string,
+  ) {
+    await putRequest(`${SPOTIFY_API_URL}/playlists/${playlistId}`, token, {
+      name,
+    });
+    logger.info("renamePlaylist:Playlist renamed in Spotify:", {
+      playlistId,
+      name,
+    });
+  }
+
+  async function fetchPlaylist(token: string, playlistId: string) {
+    const { data } = await getRequest<PlaylistSummaryI>(
+      `${SPOTIFY_API_URL}/playlists/${playlistId}`,
+      token,
+      { fields: PLAYLIST_SUMMARY_FIELDS },
+    );
+    return data;
+  }
+
+  async function fetchUserPlaylists(token: string) {
+    const playlists: Array<PlaylistSummaryI> = [];
+    let nextUrl: string | null =
+      `${SPOTIFY_API_URL}/me/playlists?limit=${USER_PLAYLISTS_PAGE_SIZE}`;
+
+    while (nextUrl) {
+      const res: {
+        data: { items: Array<PlaylistSummaryI>; next: string | null };
+      } = await getRequest(nextUrl, token);
+      playlists.push(...res.data.items);
+      nextUrl = res.data.next;
+    }
+
+    return playlists;
   }
 
   async function fetchPlaylistTracks(token: string, playlistId: string) {
@@ -193,7 +226,10 @@ export function createPlaylistsApi() {
   return {
     appendTracksToPlaylist,
     addTrackToPlaylistById,
-    createReleasesPlaylist,
+    createPlaylist,
+    renamePlaylist,
+    fetchPlaylist,
+    fetchUserPlaylists,
     fetchPlaylistTracks,
     fetchPlaylistTracksAddedSince,
     fetchPlaylistTracksNewestFirst,

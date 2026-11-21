@@ -1,3 +1,4 @@
+import type { SerializedStyles } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { TypeI } from "client/utils/defaults";
 import ReactSelect, { type MultiValue, type StylesConfig } from "react-select";
@@ -32,6 +33,7 @@ interface Props {
   onChange: (e: MultiValue<TypeI>) => void;
   isMulti?: boolean;
   closeMenuOnSelect?: boolean;
+  styles?: SerializedStyles;
 }
 
 const Label = styled.label`
@@ -45,11 +47,12 @@ export const Select = ({
   value,
   onChange,
   closeMenuOnSelect = false,
+  styles,
 }: Props) => {
   const animatedComponents = makeAnimated();
 
   return (
-    <Group direction="column" gap="0.1rem" align="flex-start">
+    <Group direction="column" gap="0.1rem" align="flex-start" styling={styles}>
       <Label htmlFor={id}>{label}</Label>
       <ReactSelect
         id={id}

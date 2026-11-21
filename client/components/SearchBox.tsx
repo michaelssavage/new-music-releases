@@ -1,4 +1,8 @@
 import { fetchSearchResults } from "@client/lib/spotify";
+import {
+  forPhoneOnly,
+  forTabletOnly,
+} from "@client/styles/abstracts/mixins.styled";
 import { getActiveTabKey } from "@client/utils/activeKeys";
 import {
   type TypeI,
@@ -32,6 +36,7 @@ import { type Tab, TabList, TabPanel } from "./Tabs";
 const searchFieldStyles = css`
   height: 40px;
   width: 400px;
+  max-width: 100%;
   padding: 0.25rem 0.5rem;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -44,7 +49,36 @@ const searchFieldStyles = css`
   &:focus-within {
     border-color: #040c2f;
   }
+
+  ${forTabletOnly(css`
+    width: 240px;
+  `)}
+
+  ${forPhoneOnly(css`
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+    box-shadow: none;
+    background-color: transparent;
+  `)}
 `;
+
+const modalControlsStyles = css`
+  margin: 0 0 1rem 0;
+
+  ${forPhoneOnly(css`
+    flex-direction: column;
+    align-items: stretch;
+
+    > * {
+      width: 100%;
+    }
+  `)}
+`;
+
+const stretchOnPhone = forPhoneOnly(css`
+  align-items: stretch;
+`);
 
 const SearchInput = styled.input`
   flex: 1;
@@ -53,6 +87,8 @@ const SearchInput = styled.input`
   outline: 0;
   background-color: transparent;
   color: #040c2f;
+
+  ${forPhoneOnly("display: none;")}
 `;
 
 interface ResultsProps {
@@ -205,7 +241,12 @@ export const SearchBox = () => {
           onChange={handleSearch}
           onKeyDown={handleFieldEnter}
         />
-        <Button variant="ghost" icon={<SearchIcon />} onClick={openSearch} />
+        <Button
+          variant="ghost"
+          ariaLabel="Open search"
+          icon={<SearchIcon />}
+          onClick={openSearch}
+        />
       </Group>
 
       <Modal isOpen={isOpen} setIsOpen={setIsOpen} width="70%">
@@ -214,9 +255,7 @@ export const SearchBox = () => {
           align="flex-end"
           width="100%"
           gap="1rem"
-          styling={css`
-            margin: 0 0 1rem 0;
-          `}
+          styling={modalControlsStyles}
         >
           <TextInput
             id="search"
@@ -237,6 +276,7 @@ export const SearchBox = () => {
             options={defaultOptions}
             value={type}
             onChange={handleType}
+            styles={stretchOnPhone}
           />
 
           <Button

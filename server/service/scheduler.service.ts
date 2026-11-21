@@ -1,6 +1,5 @@
 import type { SchedulerRunI } from "@model/scheduler";
 import type { SchedulerServiceI } from "@server/container/types";
-import { ARTIST_TRACKER_PLAYLIST_ID } from "@server/utils/constants";
 import { logger } from "@server/utils/logger";
 
 interface ExecuteJobProps {
@@ -43,9 +42,7 @@ export function SchedulerService({
       }
 
       logger.info("Starting Artist Tracker playlist sync...");
-      await spotifyService.syncArtistsFromPlaylistForAllUsers(
-        ARTIST_TRACKER_PLAYLIST_ID,
-      );
+      await spotifyService.syncTrackerPlaylistsForAllUsers();
 
       logger.info("Starting playlist update...");
       const result = await spotifyService.syncNewReleasesForAllUsers(fromDate);

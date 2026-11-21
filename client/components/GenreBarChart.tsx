@@ -1,11 +1,17 @@
+import { PHONE_QUERY } from "@client/styles/abstracts/mixins.styled";
+import { useMediaQuery } from "@client/hooks/use-media-query.hook";
 import styled from "@emotion/styled";
 import type { GenreCountI } from "@model/seen-artists";
-import { barX, defineChart } from "@tanstack/charts";
+import {
+  barX,
+  defineChart,
+  type ChartRendererRenderContext,
+} from "@tanstack/charts";
 import { motion } from "@tanstack/charts/motion";
 import { tooltip } from "@tanstack/charts/tooltip";
 import { RendererChart } from "@tanstack/charts/react/tooltip";
 import { scaleBand, scaleLinear } from "d3-scale";
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 interface Props {
   genres: Array<GenreCountI>;
@@ -25,6 +31,10 @@ const BAR_COLORS = [
 const ROW_HEIGHT = 44;
 const CHART_PADDING = 10;
 const INITIAL_WIDTH = 600;
+const LABEL_MARGIN = 190;
+const PHONE_LABEL_MARGIN = 110;
+const LABEL_GAP = 10;
+const BAR_VALUE_PADDING = 8;
 
 const renderer = motion({
   initial: "always",
@@ -32,15 +42,11 @@ const renderer = motion({
 });
 
 const ChartContainer = styled.div`
+  position: relative;
   width: 100%;
 
   .ts-chart {
     color: #6b7280;
-  }
-
-  .ts-chart__axes text {
-    fill: #374151;
-    font-size: 0.875rem;
   }
 
   .ts-chart-tooltip {
@@ -55,11 +61,67 @@ const ChartContainer = styled.div`
   }
 `;
 
+const GenreLabels = styled.ol`
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+  visibility: hidden;
+
+  li {
+    position: absolute;
+    left: 0;
+    transform: translateY(-50%);
+    color: #374151;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+`;
+
+const BarValues = styled.ol`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+  visibility: hidden;
+
+  li {
+    position: absolute;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #040c2f;
+    animation: fade-in 0.3s ease-out 0.5s both;
+
+    &[data-fits="true"] {
+      color: #ffffff;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+`;
+
 function percentOf(artists: number, total: number) {
   return Math.round((artists / total) * 100);
 }
 
-function createGenreChart(genres: Array<GenreCountI>, totalArtists: number) {
+function createGenreChart(
+  genres: Array<GenreCountI>,
+  totalArtists: number,
+  labelMargin: number,
+) {
   const genreNames = genres.map(({ genre }) => genre);
 
   return defineChart(
@@ -78,18 +140,7 @@ function createGenreChart(genres: Array<GenreCountI>, totalArtists: number) {
         y: {
           scale: () =>
             scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
-          axis: {
-            line: false,
-            ticks: {
-              size: 0,
-              padding: 10,
-              format: (genre: string) => {
-                const artists =
-                  genres.find((count) => count.genre === genre)?.artists ?? 0;
-                return `${genre} · ${percentOf(artists, totalArtists)}%`;
-              },
-            },
-          },
+          axis: { line: false, ticks: { size: 0 }, tickLabels: false },
         },
       },
       color: { domain: genreNames, range: BAR_COLORS },
@@ -97,7 +148,7 @@ function createGenreChart(genres: Array<GenreCountI>, totalArtists: number) {
         top: CHART_PADDING,
         right: CHART_PADDING,
         bottom: 5,
-        left: 190,
+        left: labelMargin,
       },
       theme: {
         foreground: "#6b7280",
@@ -136,19 +187,65 @@ export const GenreBarChart = ({
   totalArtists,
   onSelectGenre,
 }: Props) => {
+  const isPhone = useMediaQuery(PHONE_QUERY);
+  const labelMargin = isPhone ? PHONE_LABEL_MARGIN : LABEL_MARGIN;
   const definition = useMemo(
-    () => createGenreChart(genres, totalArtists),
-    [genres, totalArtists],
+    () => createGenreChart(genres, totalArtists, labelMargin),
+    [genres, totalArtists, labelMargin],
+  );
+  const labelsRef = useRef<HTMLOListElement>(null);
+  const valuesRef = useRef<HTMLOListElement>(null);
+
+  const positionLabels = useCallback(
+    ({ scene }: ChartRendererRenderContext<GenreCountI, number, string>) => {
+      const labels = labelsRef.current;
+      const values = valuesRef.current;
+      if (!labels || !values) return;
+
+      const labelWidth = scene.chart.x - LABEL_GAP;
+      const barStart = scene.scales.x.map(0);
+      genres.forEach(({ genre, artists }, index) => {
+        const top = `${scene.scales.y.map(genre)}px`;
+
+        const label = labels.children[index] as HTMLElement;
+        label.style.top = top;
+        label.style.width = `${labelWidth}px`;
+
+        const value = values.children[index] as HTMLElement;
+        const barEnd = scene.scales.x.map(artists);
+        const fits =
+          barEnd - barStart >= value.offsetWidth + BAR_VALUE_PADDING * 2;
+        value.dataset.fits = String(fits);
+        value.style.top = top;
+        value.style.left = fits
+          ? `${barEnd - BAR_VALUE_PADDING - value.offsetWidth}px`
+          : `${barEnd + BAR_VALUE_PADDING}px`;
+      });
+      labels.style.visibility = "visible";
+      values.style.visibility = "visible";
+    },
+    [genres],
   );
 
   return (
     <ChartContainer>
+      <GenreLabels ref={labelsRef} aria-label="Genres">
+        {genres.map(({ genre }) => (
+          <li key={genre}>{genre}</li>
+        ))}
+      </GenreLabels>
+      <BarValues aria-hidden="true" ref={valuesRef}>
+        {genres.map(({ genre, artists }) => (
+          <li key={genre}>{percentOf(artists, totalArtists)}%</li>
+        ))}
+      </BarValues>
       <RendererChart
         definition={definition}
         renderer={renderer}
         initialWidth={INITIAL_WIDTH}
         height={genres.length * ROW_HEIGHT + CHART_PADDING}
         ariaLabel="Artists seen live by genre"
+        onRender={positionLabels}
         onSelect={(point) => onSelectGenre(point?.datum.genre)}
       />
     </ChartContainer>

@@ -1,5 +1,7 @@
 import { Loader } from "@client/components/Loader";
 import { useAppStore } from "@client/store/appStore";
+import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import {
   createFileRoute,
@@ -18,7 +20,18 @@ export const Page = styled.div`
   margin: 2rem auto;
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  text-align: center;
+
+  ${forPhoneOnly(css`
+    padding: 0 1rem;
+
+    h1 {
+      font-size: 1.25rem;
+    }
+  `)}
 `;
 
 export const Route = createFileRoute("/callback")({
