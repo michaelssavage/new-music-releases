@@ -48,7 +48,16 @@ const stackedRowsOnPhone = forPhoneOnly(css`
   }
 `);
 
+const scrollRowsOnPhone = forPhoneOnly(css`
+  th,
+  td {
+    white-space: nowrap;
+  }
+`);
+
 export const TableWrapper = styled.div<{ stackedOnPhone?: boolean }>`
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
 
   table {
@@ -80,7 +89,8 @@ export const TableWrapper = styled.div<{ stackedOnPhone?: boolean }>`
       background-color: #f9fafb;
     }
 
-    ${({ stackedOnPhone }) => stackedOnPhone && stackedRowsOnPhone}
+    ${({ stackedOnPhone }) =>
+      stackedOnPhone ? stackedRowsOnPhone : scrollRowsOnPhone}
   }
 `;
 

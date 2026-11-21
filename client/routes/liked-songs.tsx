@@ -7,7 +7,6 @@ import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { Layout } from "@client/components/Layout";
 import { Loader } from "@client/components/Loader";
 import { Modal } from "@client/components/Modal";
-import { Panel } from "@client/components/Panel";
 import {
   SortableHeader,
   TableContainer,
@@ -42,6 +41,11 @@ const Field = styled.div`
   font-weight: 500;
 `;
 
+const Page = styled.div`
+  width: 100%;
+  min-width: 0;
+`;
+
 const ReleaseDate = styled(Field)`
   white-space: nowrap;
 `;
@@ -59,6 +63,10 @@ const TrackLink = styled.a`
 const ArtistBtn = styled.div`
   flex-wrap: nowrap;
   display: flex;
+
+  button {
+    height: auto;
+  }
 `;
 
 export const Route = createFileRoute("/liked-songs")({
@@ -128,7 +136,12 @@ function LikedSongsPage() {
         </SortableHeader>
       ),
       cell: (info) => (
-        <Group align="flex-start" gap="0.25rem">
+        <Group
+          align="flex-start"
+          justify="flex-start"
+          wrap="nowrap"
+          gap="0.25rem"
+        >
           {info.getValue().map((artist, index) => (
             <ArtistBtn key={`${artist.id}-${index}`}>
               <Button
@@ -146,7 +159,7 @@ function LikedSongsPage() {
       id: "trackName",
       header: ({ column }) => (
         <SortableHeader onClick={() => column.toggleSorting()}>
-          Track Name
+          Track
           <SortIcon direction={column.getIsSorted()} />
         </SortableHeader>
       ),
@@ -174,7 +187,7 @@ function LikedSongsPage() {
       id: "releaseDate",
       header: ({ column }) => (
         <SortableHeader onClick={() => column.toggleSorting()}>
-          Release Date
+          Released
           <SortIcon direction={column.getIsSorted()} />
         </SortableHeader>
       ),
@@ -239,7 +252,7 @@ function LikedSongsPage() {
 
   return (
     <Layout>
-      <Panel>
+      <Page>
         {isPending ? (
           <Loader />
         ) : (
@@ -283,7 +296,7 @@ function LikedSongsPage() {
         <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
           {renderArtist()}
         </Modal>
-      </Panel>
+      </Page>
     </Layout>
   );
 }
