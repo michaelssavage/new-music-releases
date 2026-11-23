@@ -10,6 +10,7 @@ import {
 } from "@client/lib/spotify";
 import { useAppStore } from "@client/store/appStore";
 import { requireAuth } from "@client/utils/auth";
+import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -27,13 +28,36 @@ const LoaderStyled = styled.div`
   justify-content: center;
 `;
 
+const pulseBorder = keyframes`
+  0%,
+  100% {
+    border-color: rgba(78, 109, 176, 0.35);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      0 0 0 0 rgba(78, 109, 176, 0.45);
+  }
+  50% {
+    border-color: #4e6db0;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      0 0 0 4px rgba(78, 109, 176, 0.22);
+  }
+`;
+
 const SaveAllBanner = styled.div`
   width: 100%;
   padding: 1rem;
   border-radius: 8px;
   background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(78, 109, 176, 0.35);
   text-align: center;
+  animation: ${pulseBorder} 2.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    border-color: #4e6db0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 function FollowedArtistsPage() {

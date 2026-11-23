@@ -1,7 +1,13 @@
 import { Button } from "@client/components/Button";
+import { Group } from "@client/components/Group";
 import { SortIcon } from "@client/components/Icons/Sort";
+import { getArtist, removeArtist, saveArtist } from "@client/lib/spotify";
+import { useAppStore } from "@client/store/appStore";
 import { displayDate } from "@client/utils/dates";
 import styled from "@emotion/styled";
+import type { SavedArtistI } from "@model/spotify";
+import type { Artist } from "@model/spotify/liked-tracks";
+import { useMutation } from "@tanstack/react-query";
 import {
   type ColumnFiltersState,
   type FilterFn,
@@ -14,17 +20,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { type ChangeEvent, useState } from "react";
+import { toast } from "react-hot-toast";
 import { SortableHeader, TableContainer, TableWrapper } from "./Table.styled";
 
-export interface ArtistRow {
-  id: string;
-  name: string;
-  createdDate?: Date;
-}
+export type ArtistRow = Artist | SavedArtistI;
+
+const isSpotifyArtist = (artist: ArtistRow): artist is Artist =>
+  "images" in artist;
 
 const COLUMN_LABELS: Record<string, string> = {
   name: "Name",
   created_date: "Created",
+  actions: "Actions",
 };
 
 const TR = styled.tr`
@@ -62,6 +69,52 @@ const nameFilter: FilterFn<ArtistRow> = (row, columnId, filterValue) => {
 
 const columnHelper = createColumnHelper<ArtistRow>();
 
+const TrackArtistButton = ({ artist }: { artist: ArtistRow }) => {
+  const { savedArtists, userId, refetchArtists } = useAppStore();
+  const isSaved = savedArtists.some((saved) => saved.id === artist.id);
+
+  const { isPending: loadingSave, mutate: mutateSave } = useMutation({
+    mutationFn: async () => {
+      const data = isSpotifyArtist(artist)
+        ? artist
+        : await getArtist(artist.id);
+      if (!data) throw new Error("Couldn't load artist");
+      const saved = await saveArtist({ userId, data });
+      if (!saved) throw new Error("Couldn't track artist");
+    },
+    onSuccess: () => {
+      toast.success("Artist saved!");
+      refetchArtists?.();
+    },
+    onError: () => toast.error("Couldn't track artist"),
+  });
+
+  const { isPending: loadingRemove, mutate: mutateRemove } = useMutation({
+    mutationFn: async () => {
+      const removed = await removeArtist({
+        userId,
+        name: artist.name,
+        id: artist.id,
+      });
+      if (removed === null) throw new Error("Couldn't remove artist");
+    },
+    onSuccess: () => {
+      toast.success("Artist removed!");
+      refetchArtists?.();
+    },
+    onError: () => toast.error("Couldn't remove artist"),
+  });
+
+  return (
+    <Button
+      onClick={() => (isSaved ? mutateRemove() : mutateSave())}
+      text={isSaved ? "Untrack" : "Track"}
+      variant={isSaved ? "remove" : undefined}
+      loading={loadingSave || loadingRemove}
+    />
+  );
+};
+
 interface ArtistTableI {
   artists: Array<ArtistRow>;
   showCreatedDate?: boolean;
@@ -95,27 +148,33 @@ export const ArtistTable = ({
     filterFn: nameFilter,
   });
 
-  const createdDateColumn = columnHelper.accessor("createdDate", {
-    id: "created_date",
-    header: ({ column }) => (
-      <SortableHeader onClick={column.getToggleSortingHandler()}>
-        Created Date
-        <SortIcon direction={column.getIsSorted()} />
-      </SortableHeader>
-    ),
-    cell: (info) => (
-      <ArtistName>{displayDate(String(info.getValue()))}</ArtistName>
-    ),
-  });
+  const createdDateColumn = columnHelper.accessor(
+    (row) => ("createdDate" in row ? row.createdDate : undefined),
+    {
+      id: "created_date",
+      header: ({ column }) => (
+        <SortableHeader onClick={column.getToggleSortingHandler()}>
+          Created Date
+          <SortIcon direction={column.getIsSorted()} />
+        </SortableHeader>
+      ),
+      cell: (info) => (
+        <ArtistName>{displayDate(String(info.getValue()))}</ArtistName>
+      ),
+    },
+  );
 
   const actionsColumn = columnHelper.display({
     id: "actions",
     header: "Actions",
     cell: (info) => (
-      <Button
-        onClick={() => onSelect(info.row.original.id)}
-        text="View Artist"
-      />
+      <Group gap="0.5rem" justify="flex-start">
+        <Button
+          onClick={() => onSelect(info.row.original.id)}
+          text="View Artist"
+        />
+        <TrackArtistButton artist={info.row.original} />
+      </Group>
     ),
   });
 

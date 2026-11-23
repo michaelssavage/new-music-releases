@@ -8,17 +8,59 @@ import { useAppStore } from "@client/store/appStore";
 import { forTabletOnly } from "@client/styles/abstracts/mixins.styled";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 
+const PANEL_WIDTH = "400px";
+
+const ImageFrame = styled.div`
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  background-color: #e5e7eb;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  button[id="close"] {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 1;
+    color: white;
+    background-color: #01010142;
+
+    &:hover {
+      background-color: #010101;
+      text-decoration: none;
+    }
+
+    svg {
+      color: white;
+      fill: transparent;
+    }
+  }
+
+  ${forTabletOnly(css`
+    aspect-ratio: auto;
+    height: 16rem;
+  `)}
+`;
+
 const Wrapper = styled.div`
-  max-width: 400px;
+  width: ${PANEL_WIDTH};
+  flex: 0 0 ${PANEL_WIDTH};
   position: sticky;
   top: 5rem;
   border-radius: 4px;
   overflow: hidden;
-
   display: flex;
   flex-direction: column;
   background-color: #f5f5f5;
@@ -26,61 +68,46 @@ const Wrapper = styled.div`
   ${forTabletOnly(css`
     position: static;
     width: 100%;
-    max-width: 100%;
-
-    img {
-      max-height: 40vh;
-      object-fit: cover;
-    }
+    flex-basis: auto;
   `)}
-
-  img {
-    width: 100%;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-  }
-
-  div[id="image"] {
-    position: relative;
-
-    button[id="close"] {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      color: white;
-      background-color: #01010142;
-
-      &:hover {
-        background-color: #010101;
-        text-decoration: none;
-      }
-      svg {
-        color: white;
-        fill: transparent;
-      }
-    }
-  }
 `;
 
-const LoaderStyled = styled.div`
-  margin: 2rem;
-  width: 100%;
+const Body = styled.div`
   display: flex;
-  justify-content: center;
-`;
-
-const cardBodyStyling = css`
-  max-width: 500px;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  height: 13rem;
+  padding: 1rem;
   border: 1px solid black;
   border-bottom-left-radius: inherit;
   border-bottom-right-radius: inherit;
-  padding: 1rem;
+`;
+
+const Details = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+`;
+
+const LoaderStyled = styled.div`
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const FooterButtons = styled.div`
   width: 100%;
   display: flex;
   gap: 0.25rem;
+  margin-top: auto;
 
   button {
     flex: 1;
@@ -101,18 +128,18 @@ export const ArtistDetailPanel = ({
 
   const {
     data: artist,
-    isLoading,
+    isPending,
     isError,
   } = useQuery({
     queryKey: ["artist", artistId],
     queryFn: () => getArtist(artistId),
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
-    if (!artist) return;
     ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [artist]);
+  }, []);
 
   const { isPending: loadingSave, mutate: mutateSave } = useMutation({
     mutationFn: saveArtist,
@@ -131,73 +158,69 @@ export const ArtistDetailPanel = ({
     onError: () => toast.error("Couldn't remove artist"),
   });
 
-  if (isLoading) {
-    return (
-      <LoaderStyled>
-        <Loader />
-      </LoaderStyled>
-    );
-  }
-
-  if (isError || !artist) return <div>Couldn't fetch artist details</div>;
-
-  const image = artist.images?.[0]?.url;
-  const isSaved = savedArtists.some(({ id }) => id === artist.id);
+  const image = artist?.images?.[0]?.url;
+  const isSaved = artist
+    ? savedArtists.some(({ id }) => id === artist.id)
+    : false;
 
   const handleAction = () => {
+    if (!artist) return;
     if (isSaved) mutateRemove({ userId, id: artist.id, name: artist.name });
     else mutateSave({ userId, data: artist });
   };
 
   return (
     <Wrapper ref={ref}>
-      {image && (
-        <div id="image">
-          <Button
-            id="close"
-            onClick={onClose}
-            variant="ghost"
-            ariaLabel="Close artist"
-            text="Close"
-          />
-          <img src={image} alt={artist.name} />
-        </div>
-      )}
-      <Group
-        direction="column"
-        gap="0.5rem"
-        align="flex-start"
-        styling={cardBodyStyling}
-      >
-        <Group
-          align="center"
-          justify="space-between"
-          width="100%"
-          wrap="nowrap"
-        >
-          <h2>{artist.name}</h2>
-
-          <a
-            href={artist.external_urls.spotify}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <SpotifyIcon strokeWidth={1.5} />
-          </a>
-        </Group>
-        <p>{artist.followers.total.toLocaleString()} Followers</p>
-        <p>Genres: {artist.genres.join(", ")}</p>
-        <FooterButtons>
-          <AddSeenArtistButton artistName={artist.name} />
-
-          <Button
-            onClick={handleAction}
-            text={isSaved ? "Untrack" : "Track"}
-            variant={isSaved ? "remove" : undefined}
-            loading={loadingSave || loadingRemove}
-          />
-        </FooterButtons>
-      </Group>
+      <ImageFrame>
+        <Button
+          id="close"
+          onClick={onClose}
+          variant="ghost"
+          ariaLabel="Close artist"
+          text="Close"
+        />
+        {image && <img src={image} alt={artist?.name ?? ""} />}
+      </ImageFrame>
+      <Body>
+        {!artist && isPending ? (
+          <LoaderStyled>
+            <Loader />
+          </LoaderStyled>
+        ) : isError || !artist ? (
+          <p>Couldn't fetch artist details</p>
+        ) : (
+          <>
+            <Details>
+              <Group
+                align="center"
+                justify="space-between"
+                width="100%"
+                wrap="nowrap"
+              >
+                <h2>{artist.name}</h2>
+                <a
+                  href={artist.external_urls.spotify}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <SpotifyIcon strokeWidth={1.5} />
+                </a>
+              </Group>
+              <p>{artist.followers.total.toLocaleString()} Followers</p>
+              <p>Genres: {artist.genres.join(", ")}</p>
+            </Details>
+            <FooterButtons>
+              <AddSeenArtistButton artistName={artist.name} />
+              <Button
+                onClick={handleAction}
+                text={isSaved ? "Untrack" : "Track"}
+                variant={isSaved ? "remove" : undefined}
+                loading={loadingSave || loadingRemove}
+              />
+            </FooterButtons>
+          </>
+        )}
+      </Body>
     </Wrapper>
   );
 };
