@@ -67,7 +67,7 @@ export function SchedulerController({
       });
       res.status(200).json({ message: "Job triggered successfully", result });
     } catch (error) {
-      console.error("Failed to execute job:", error);
+      logger.error("triggerManualUpdate:Failed to execute job:", error);
 
       if (error instanceof jwt.JsonWebTokenError) {
         res.status(401).json({ error: "Invalid token" });

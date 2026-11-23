@@ -57,7 +57,7 @@ export function SchedulerService({
 
       return result;
     } catch (error) {
-      console.error("Failed to update playlists:", error);
+      logger.error("executeJob:Failed to update playlists:", error);
 
       // Log failed execution
       await repository.insertOne({

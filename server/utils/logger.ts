@@ -12,17 +12,32 @@ interface LogMessage {
 }
 
 // An AxiosError serialises its request config, which includes the Authorization header and client secret.
+// Other Errors keep their fields non-enumerable, so JSON.stringify would print "{}".
 export function toLoggable(data: unknown): unknown {
-  if (!axios.isAxiosError(data)) return data;
+  if (axios.isAxiosError(data)) {
+    return {
+      name: data.name,
+      message: data.message,
+      status: data.response?.status,
+      method: data.config?.method,
+      url: data.config?.url,
+      response: data.response?.data,
+    };
+  }
 
-  return {
-    name: data.name,
-    message: data.message,
-    status: data.response?.status,
-    method: data.config?.method,
-    url: data.config?.url,
-    response: data.response?.data,
-  };
+  if (data instanceof AggregateError) {
+    return {
+      name: data.name,
+      message: data.message,
+      errors: data.errors.map(toLoggable),
+    };
+  }
+
+  if (data instanceof Error) {
+    return { name: data.name, message: data.message };
+  }
+
+  return data;
 }
 
 class Logger {
