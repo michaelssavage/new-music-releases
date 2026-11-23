@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node ../dist/server/index.js",
-    "build": "tsc && tsc-alias --project ../tsconfig.json"
+    "build": "tsc && tsc-alias --project ../tsconfig.json && cp -R assets ../dist/server/"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

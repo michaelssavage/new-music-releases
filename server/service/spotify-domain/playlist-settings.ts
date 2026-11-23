@@ -8,16 +8,19 @@ import type { SpotifyRepository } from "@server/repository/spotify.repository";
 import type { SpotifyWebApi } from "@server/service/spotify-api";
 import { HttpException } from "@server/utils/exceptions";
 import { logger } from "@server/utils/logger";
+import { resolvePath } from "@server/utils/resolvePath";
+import { readFile } from "node:fs/promises";
 
 type Repository = ReturnType<typeof SpotifyRepository>;
 
 const DEFAULT_PLAYLISTS: Record<
   PlaylistRole,
-  { name: string; description: string }
+  { name: string; description: string; coverPath?: string }
 > = {
   releases: {
     name: "Cookie Jar",
     description: "A playlist of today's new releases.",
+    coverPath: resolvePath("server/assets/cookie-jar-cover.jpg"),
   },
   tracker: {
     name: "Artist Tracker",
@@ -79,13 +82,28 @@ export function createPlaylistSettingsService(deps: {
     const existingId = playlistIdFor(user, role);
     if (existingId) return existingId;
 
-    const playlist = await api.createPlaylist(token, DEFAULT_PLAYLISTS[role]);
+    const { coverPath, ...details } = DEFAULT_PLAYLISTS[role];
+    const playlist = await api.createPlaylist(token, details);
     await repository.setPlaylistId(user.userId, role, playlist.id);
     logger.info(
       `ensurePlaylistId:Created ${role} playlist for ${user.userId}:`,
       playlist.name,
     );
+    if (coverPath) await setCover(token, playlist.id, coverPath);
     return playlist.id;
+  }
+
+  // The cover is cosmetic, and users who logged in before ugc-image-upload was added lack the scope.
+  async function setCover(token: string, playlistId: string, path: string) {
+    try {
+      const jpeg = await readFile(path);
+      await api.uploadPlaylistCover(token, playlistId, jpeg.toString("base64"));
+    } catch (error) {
+      logger.warn("setCover:Could not upload playlist cover:", {
+        playlistId,
+        error,
+      });
+    }
   }
 
   async function renamePlaylist(

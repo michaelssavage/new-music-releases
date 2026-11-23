@@ -3,9 +3,11 @@ import type { SavedTrackToPlaylistI } from "@model/spotify/playlist";
 import type { PlaylistTracksI } from "@model/spotify/tracks";
 import type { SpotifyUserProfile } from "@model/spotify/user";
 import type { SaveSongToPlaylistI } from "@server/service/types";
+import { withSpotifyRetries } from "@server/service/spotify-api/retry";
 import { SPOTIFY_API_URL } from "@server/utils/constants";
 import { getRequest, postRequest, putRequest } from "@server/utils/fetch";
 import { logger } from "@server/utils/logger";
+import axios from "axios";
 
 const PLAYLIST_TRACKS_PAGE_SIZE = 100;
 const USER_PLAYLISTS_PAGE_SIZE = 50;
@@ -113,6 +115,26 @@ export function createPlaylistsApi() {
       playlistId,
       name,
     });
+  }
+
+  async function uploadPlaylistCover(
+    token: string,
+    playlistId: string,
+    jpegBase64: string,
+  ) {
+    await withSpotifyRetries(() =>
+      axios.put(
+        `${SPOTIFY_API_URL}/playlists/${playlistId}/images`,
+        jpegBase64,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "image/jpeg",
+          },
+        },
+      ),
+    );
+    logger.info("uploadPlaylistCover:Playlist cover uploaded:", playlistId);
   }
 
   async function fetchPlaylist(token: string, playlistId: string) {
@@ -228,6 +250,7 @@ export function createPlaylistsApi() {
     addTrackToPlaylistById,
     createPlaylist,
     renamePlaylist,
+    uploadPlaylistCover,
     fetchPlaylist,
     fetchUserPlaylists,
     fetchPlaylistTracks,

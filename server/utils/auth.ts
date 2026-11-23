@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 export function getAuthorizationUrl(
   REDIRECT_URI: string,
-  SPOTIFY_CLIENT_ID: string
+  SPOTIFY_CLIENT_ID: string,
 ) {
   const scopes = [
     "user-follow-read",
@@ -12,6 +12,7 @@ export function getAuthorizationUrl(
     "playlist-read-private",
     "playlist-modify-public",
     "playlist-modify-private",
+    "ugc-image-upload",
   ];
   if (!REDIRECT_URI) {
     throw new Error("REDIRECT_URI is not defined.");
@@ -22,7 +23,7 @@ export function getAuthorizationUrl(
 
 export function requireSpotifyToken(
   req: Request,
-  res: Response
+  res: Response,
 ): string | null {
   const token = req.headers.spotify_access_token as string;
   if (!token) {
