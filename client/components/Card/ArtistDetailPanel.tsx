@@ -77,7 +77,7 @@ const Body = styled.div`
   flex-direction: column;
   gap: 0.5rem;
   align-items: flex-start;
-  height: 13rem;
+  min-height: 120px;
   padding: 1rem;
   border: 1px solid black;
   border-bottom-left-radius: inherit;
@@ -169,6 +169,8 @@ export const ArtistDetailPanel = ({
     else mutateSave({ userId, data: artist });
   };
 
+  const genres = artist?.genres.join(", ");
+
   return (
     <Wrapper ref={ref}>
       <ImageFrame>
@@ -207,7 +209,7 @@ export const ArtistDetailPanel = ({
                 </a>
               </Group>
               <p>{artist.followers.total.toLocaleString()} Followers</p>
-              <p>Genres: {artist.genres.join(", ")}</p>
+              {genres ? <p>Genres: {genres}</p> : null}
             </Details>
             <FooterButtons>
               <AddSeenArtistButton artistName={artist.name} />

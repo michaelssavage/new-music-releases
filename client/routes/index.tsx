@@ -1,3 +1,4 @@
+import { DemoGuide } from "@client/components/demo-guide";
 import { EmptyState } from "@client/components/EmptyState";
 import { HeartIcon } from "@client/components/Icons/Heart";
 import {
@@ -50,7 +51,7 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  max-width: 40rem;
+  max-width: 700px;
   margin: 0 auto;
 
   ${forTabletOnly(css`
@@ -105,6 +106,15 @@ const Count = styled.span`
 const Label = styled.span`
   font-size: 0.875rem;
   color: #6b7280;
+`;
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
 `;
 
 const StatCard = ({ to, label, icon, count }: StatCardProps) => (
@@ -175,6 +185,10 @@ function HomePage() {
           count={seenArtists?.artists.length}
         />
       </Grid>
+
+      <Container>
+        <DemoGuide />
+      </Container>
     </Layout>
   );
 }

@@ -1,5 +1,6 @@
 import { Anchor } from "@client/components/Anchor";
 import { Button } from "@client/components/Button";
+import { DemoGuide } from "@client/components/demo-guide";
 import { Group } from "@client/components/Group";
 import { SpotifyIcon } from "@client/components/Icons/Spotify";
 import { forPhoneOnly } from "@client/styles/abstracts/mixins.styled";
@@ -14,9 +15,18 @@ const NavBox = styled.div`
   text-align: center;
   color: #f9f5f4;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
+  gap: 2rem;
+
+  button {
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    color: #ffffff;
+    height: auto;
+    white-space: nowrap;
+    font-size: 1.2rem;
+  }
 
   ${forPhoneOnly(css`
     padding: 2rem 1rem;
@@ -28,28 +38,25 @@ const NavBox = styled.div`
     h1 {
       font-size: 1.75rem;
     }
+
+    button {
+      font-size: 1rem;
+    }
   `)}
 `;
 
 const Page = styled.div`
   margin: 2rem auto 1rem;
-  max-width: 500px;
   padding: 0 1rem;
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
 
-  button {
-    border-radius: 12px;
-    padding: 0.5rem 1rem;
-    color: #ffffff;
-    height: auto;
-    white-space: nowrap;
+  p:first-child {
+    margin: 2rem 0;
   }
 
-  button,
   p,
   a {
     font-size: 1.2rem;
@@ -60,13 +67,6 @@ const Page = styled.div`
 
 const LoginPage = styled.div`
   margin-bottom: 2rem;
-`;
-
-const Header = styled.h2``;
-
-const Demo = styled.video`
-  width: 100%;
-  background: #000;
 `;
 
 export const Route = createFileRoute("/login")({
@@ -82,42 +82,33 @@ function Login() {
   return (
     <LoginPage>
       <NavBox>
-        <img src="/cookie-jar.png" alt="Cookie jar" width="100px" />
-        <h1>Cookie Jar</h1>
+        <Group align="center" width="100%" gap="0">
+          <img src="/cookie-jar.png" alt="Cookie jar" width="100px" />
+          <h1>Cookie Jar</h1>
+        </Group>
+
+        <Button
+          onClick={handleSignIn}
+          text="Log in with Spotify"
+          icon={<SpotifyIcon size={24} />}
+        />
       </NavBox>
 
       <Page>
-        <Group align="center" width="100%">
-          <Button
-            onClick={handleSignIn}
-            text="Log in with Spotify"
-            icon={<SpotifyIcon size={24} />}
+        <p>
+          New music releases from Spotify updated daily into the Cookie Jar.
+          Track artists and see a genre breakdown of the artists you've seen.
+          View the project on{" "}
+          <Anchor
+            link="https://github.com/michaelssavage/new-music-releases"
+            text="Github"
+            variant="link"
+            isExternal
           />
+          .
+        </p>
 
-          <p>
-            New music releases from Spotify updated daily into a playlist.
-            Artists can be added to favourites for tracking. View the project on{" "}
-            <Anchor
-              link="https://github.com/michaelssavage/new-music-releases"
-              text="Github"
-              variant="link"
-              isExternal
-            />
-            .
-          </p>
-        </Group>
-
-        <Header>Demo</Header>
-        <Demo
-          src="/demo-video.mov"
-          autoPlay
-          muted
-          playsInline
-          controls
-          preload="metadata"
-        >
-          Your browser does not support the demo video.
-        </Demo>
+        <DemoGuide />
       </Page>
     </LoginPage>
   );
