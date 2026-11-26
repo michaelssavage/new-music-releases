@@ -32,7 +32,7 @@ export const DemoGuide = () => {
           artists.
         </SubHeader>
         <Demo
-          src="/demo-video.mov"
+          src="/demo-video.mp4"
           muted
           playsInline
           controls
@@ -49,7 +49,7 @@ export const DemoGuide = () => {
           don't need to use the app after settting it up.
         </SubHeader>
         <Demo
-          src="/spotify-only.mov"
+          src="/spotify-only.mp4"
           muted
           playsInline
           controls
